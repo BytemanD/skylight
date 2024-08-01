@@ -57,6 +57,7 @@ var (
 			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
 
 			s := g.Server()
+			// s.SetSessionStorage(gsession.NewStorageFile("/tmp"))
 			if port != "" {
 				s.SetAddr(fmt.Sprintf(":%s", port))
 			}
@@ -65,9 +66,8 @@ var (
 				ghttp.MiddlewareHandlerResponse, MiddlewareLogResponse,
 			)
 			// 注册路由
-			s.Group("/", func(group *ghttp.RouterGroup) {
-				group.Bind(new(controller.Login))
-			})
+			s.BindObjectRest("/login", controller.LoginController{})
+
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Bind(new(controller.Version))
 			})
