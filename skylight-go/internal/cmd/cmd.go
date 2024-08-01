@@ -69,12 +69,8 @@ var (
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Bind(new(controller.Version))
 			})
-			s.Group("/networking", func(group *ghttp.RouterGroup) {
-				group.Bind(new(controller.Networking))
-			})
-			s.Group("/computing", func(group *ghttp.RouterGroup) {
-				group.Bind(new(controller.Computing))
-			})
+			s.BindObjectRest("/networking/*", new(controller.Networking))
+			s.BindObjectRest("/computing/*", new(controller.Computing))
 
 			logging.Info("starting server")
 			s.Run()

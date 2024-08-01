@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
@@ -100,10 +99,14 @@ func (c *OpenstackManager) makeSureEndpoint(service, version string) (err error)
 	}
 	endpoint, err := c.GetEndpoint(service)
 	if err == nil {
-		if strings.HasSuffix(endpoint, version) {
-			c.serviceEndpoint[service], err = endpoint, nil
+		if u, err2 := url.Parse(endpoint); err2 != nil {
+			return err2
 		} else {
-			c.serviceEndpoint[service], err = url.JoinPath(endpoint, version)
+			if u.Path == "" || u.Path == "/" {
+				c.serviceEndpoint[service], err = url.JoinPath(endpoint, version)
+			} else {
+				c.serviceEndpoint[service], err = endpoint, nil
+			}
 		}
 	}
 	return
@@ -142,6 +145,18 @@ func (c *OpenstackManager) ProxyNetworking(u string) (*resty.Response, error) {
 }
 func (c *OpenstackManager) ProxyComputing(u string) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("nova", "v2.1"); err != nil {
+		return nil, err
+	}
+	return c.doProxy(c.serviceEndpoint["nova"], u)
+}
+func (c *OpenstackManager) ProxyVolume(u string) (*resty.Response, error) {
+	if err := c.makeSureEndpoint("cinderv2", "v2"); err != nil {
+		return nil, err
+	}
+	return c.doProxy(c.serviceEndpoint["nova"], u)
+}
+func (c *OpenstackManager) ProxyImage(u string) (*resty.Response, error) {
+	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
 	}
 	return c.doProxy(c.serviceEndpoint["nova"], u)
