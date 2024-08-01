@@ -40,6 +40,8 @@ func MiddlewareAuth(req *ghttp.Request) {
 	req.Middleware.Next()
 }
 
+var PROXY_PREFIXY = []string{"/networking", "/computing", "/volume", "/image"}
+
 var (
 	Main = gcmd.Command{
 		Name:  "main",
@@ -69,8 +71,9 @@ var (
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Bind(new(controller.Version))
 			})
-			s.BindObjectRest("/networking/*", new(controller.Networking))
-			s.BindObjectRest("/computing/*", new(controller.Computing))
+			for _, prefix := range PROXY_PREFIXY {
+				s.BindObjectRest(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
+			}
 
 			logging.Info("starting server")
 			s.Run()

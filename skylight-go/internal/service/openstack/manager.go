@@ -3,7 +3,9 @@ package openstack
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
@@ -34,16 +36,17 @@ func (c *OpenstackManager) isTokenExpired() (expired bool) {
 }
 
 func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, error) {
-	logging.Debug("proxy GET %s\n    Headers: %s", req.URL, req.Header)
+	logging.Debug("proxy %s %s ?%s Headers: %s",
+		req.Method, req.URL, req.QueryParam.Encode(), c.safeHeader(req.Header))
 	resp, err := req.Send()
 
-	proxyRespBody := "<...>"
+	proxyRespBody := "<Body>"
 	if resp.Header().Get("Content-Type") == "application/json" {
 		if resp.IsError() {
 			proxyRespBody = string(resp.Body())
 		}
 	}
-	logging.Debug("proxy Resp [%d]:\n     %s", resp.StatusCode(), proxyRespBody)
+	logging.Debug("proxy Resp [%d] %s", resp.StatusCode(), proxyRespBody)
 	return resp, err
 }
 
@@ -111,55 +114,56 @@ func (c *OpenstackManager) makeSureEndpoint(service, version string) (err error)
 	}
 	return
 }
-
-func (c *OpenstackManager) doProxy(endpoint string, u string) (*resty.Response, error) {
+func (c *OpenstackManager) safeHeader(h http.Header) http.Header {
+	headers := http.Header{}
+	for k, v := range h {
+		if k == "X-Auth-Token" {
+			headers.Set(k, "<TOKEN>")
+		} else {
+			headers.Set(k, strings.Join(v, ","))
+		}
+	}
+	return headers
+}
+func (c *OpenstackManager) doProxy(endpoint string, method string,
+	u string, q url.Values, body []byte) (*resty.Response, error) {
 	token, err := c.GetToken()
 	if err != nil {
 		return nil, err
 	}
-	req := c.session.NewRequest().SetHeader("X-Auth-Token", token)
 	reqUrl, err := url.JoinPath(endpoint, u)
 	if err != nil {
 		return nil, err
 	}
-	logging.Debug("proxy GET %s\n    Headers: %s", reqUrl, req.Header)
-
-	resp, err := req.Get(reqUrl)
-	proxyRespBody := "<...>"
-	if err != nil {
-		return nil, err
-	}
-	if resp.Header().Get("Content-Type") == "application/json" {
-		if resp.IsError() {
-			proxyRespBody = string(resp.Body())
-		}
-	}
-	logging.Debug("proxy Resp [%d]:\n     %s", resp.StatusCode(), proxyRespBody)
-	return resp, nil
+	req := c.session.NewRequest().SetHeader("X-Auth-Token", token).
+		SetQueryParamsFromValues(q).
+		SetBody(body)
+	req.Method, req.URL = method, reqUrl
+	return c.sendToBackend(req)
 }
-func (c *OpenstackManager) ProxyNetworking(u string) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyNetworking(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("neutron", "v2.0"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["neutron"], u)
+	return c.doProxy(c.serviceEndpoint["neutron"], method, url, q, body)
 }
-func (c *OpenstackManager) ProxyComputing(u string) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyComputing(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("nova", "v2.1"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["nova"], u)
+	return c.doProxy(c.serviceEndpoint["nova"], method, url, q, body)
 }
-func (c *OpenstackManager) ProxyVolume(u string) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("cinderv2", "v2"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["nova"], u)
+	return c.doProxy(c.serviceEndpoint["cinderv2"], method, url, q, body)
 }
-func (c *OpenstackManager) ProxyImage(u string) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyImage(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["nova"], u)
+	return c.doProxy(c.serviceEndpoint["glance"], method, url, q, body)
 }
 
 var TOKEN_CACHE map[string]*OpenstackManager
