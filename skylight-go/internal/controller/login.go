@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"skylight/apiv1"
+	"skylight/internal/service/openstack"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/gogf/gf/v2/frame/g"
@@ -46,15 +47,23 @@ type AuthInfo struct {
 }
 
 func (c *LoginController) Post(req *ghttp.Request) {
-	authInfo := struct{ Auth AuthInfo }{}
-	err := json.Unmarshal(req.GetBody(), &authInfo)
-	if err != nil {
-		req.Response.WriteStatusExit(400, HttpError{Code: 403, Message: "invalid auth info"})
+	if sessionId, err := req.Session.Id(); err != nil {
+		req.Response.WriteStatusExit(403, HttpError{Code: 500, Message: err.Error()})
+	} else {
+		authBody := struct{ Auth AuthInfo }{}
+		if err := json.Unmarshal(req.GetBody(), &authBody); err != nil {
+			req.Response.WriteStatusExit(400, HttpError{Code: 403, Message: "invalid auth info"})
+		}
+		if _, err := openstack.NewManager(sessionId,
+			authBody.Auth.Project, authBody.Auth.User, authBody.Auth.Password); err != nil {
+			req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "bad request", Data: err.Error()})
+		} else {
+			req.Session.Set("project", authBody.Auth.Project)
+			req.Session.Set("user", authBody.Auth.User)
+			req.Session.Set("password", authBody.Auth.Password)
+		}
 	}
-	req.Session.Set("user", authInfo.Auth.User)
-	req.Session.Set("project", authInfo.Auth.Project)
-	req.Session.Set("password", authInfo.Auth.Password)
-	req.Response.WriteStatusExit(200)
+	req.Response.WriteStatusExit(200, HttpError{Code: 200, Message: "login success"})
 }
 func (c *LoginController) Get(req *ghttp.Request) {
 	user, err := req.Session.Get("user", "")

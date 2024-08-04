@@ -10,9 +10,11 @@ import (
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
+	"github.com/gogf/gf/v2/net/ghttp"
 )
 
 type OpenstackManager struct {
+	AuthInfo        Auth
 	session         *resty.Client
 	token           string
 	tokenAlive      time.Duration
@@ -44,6 +46,9 @@ func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, e
 	if resp.Header().Get("Content-Type") == "application/json" {
 		if resp.IsError() {
 			proxyRespBody = string(resp.Body())
+			if resp.IsError() {
+				err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
+			}
 		}
 	}
 	logging.Debug("proxy Resp [%d] %s", resp.StatusCode(), proxyRespBody)
@@ -53,12 +58,13 @@ func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, e
 func (c *OpenstackManager) tokenIssue() error {
 	req := c.session.NewRequest()
 
-	req.SetBody(map[string]Auth{"auth": getAuth()})
+	req.SetBody(map[string]Auth{"auth": c.AuthInfo})
+	logging.Info("11111111 authinfo: %v", c.AuthInfo)
 	req.Method = resty.MethodPost
 	req.URL, _ = url.JoinPath("http://keystone-server:35357/v3", "/auth/tokens")
 	resp, err := c.sendToBackend(req)
 	if err != nil {
-		return nil
+		return err
 	}
 	c.token = resp.Header().Get("X-Subject-Token")
 	respBody := struct{ Token TokenBody }{}
@@ -166,21 +172,59 @@ func (c *OpenstackManager) ProxyImage(method string, url string, q url.Values, b
 	return c.doProxy(c.serviceEndpoint["glance"], method, url, q, body)
 }
 
-var TOKEN_CACHE map[string]*OpenstackManager
+var SESSION_MANAGERS map[string]*OpenstackManager
 
-func GetManager() *OpenstackManager {
-	// TODO use cookie
-	if client, ok := TOKEN_CACHE["cookie"]; ok {
-		return client
+func GetAuthInfo(project, user, password string) Auth {
+	return Auth{
+		Scope: Scope{
+			Project: Project{
+				Name:   project,
+				Domain: Domain{Name: "default"},
+			},
+		},
+		Identity: Identity{
+			Methods: []string{"password"},
+			Password: Password{
+				User: User{Name: user, Password: password, Domain: Domain{Name: "default"}},
+			},
+		},
+	}
+}
+func NewManager(sessionId string, project, user, password string) (*OpenstackManager, error) {
+	if client, ok := SESSION_MANAGERS[sessionId]; ok {
+		return client, nil
 	} else {
-		TOKEN_CACHE["cookie"] = &OpenstackManager{
+		manager := &OpenstackManager{
+			AuthInfo:   GetAuthInfo(project, user, password),
 			session:    resty.New(),
 			tokenAlive: time.Minute * 30,
 		}
+		if err := manager.tokenIssue(); err != nil {
+			return nil, err
+		}
+		SESSION_MANAGERS[sessionId] = manager
 	}
-	return TOKEN_CACHE["cookie"]
+	return SESSION_MANAGERS[sessionId], nil
+}
+func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error) {
+	if client, ok := SESSION_MANAGERS[sessionId]; ok {
+		return client, nil
+	} else {
+		project, _ := req.Session.Get("project", nil)
+		user, _ := req.Session.Get("user", nil)
+		password, _ := req.Session.Get("password", nil)
+		if project == nil || user == nil || password == nil {
+			return nil, fmt.Errorf("auth info not found")
+		}
+		manager, err := NewManager(sessionId, project.String(), user.String(), password.String())
+		if err != nil {
+			return nil, fmt.Errorf("create manager failed")
+		} else {
+			return manager, nil
+		}
+	}
 }
 
 func init() {
-	TOKEN_CACHE = map[string]*OpenstackManager{}
+	SESSION_MANAGERS = map[string]*OpenstackManager{}
 }

@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"skylight/internal/controller"
 
@@ -12,33 +11,6 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
 )
-
-func MiddlewareCORS(req *ghttp.Request) {
-	req.Response.CORSDefault()
-	req.Response.Header().Set("Access-Control-Expose-Headers", "X-Auth-Token")
-	req.Middleware.Next()
-}
-func MiddlewareLogResponse(r *ghttp.Request) {
-	startTime := time.Now()
-	r.Middleware.Next()
-	spentTime := time.Since(startTime).Seconds()
-	if r.Response.Status < 400 {
-		logging.Info("%s %s -> [%d] (%fs)", r.Method, r.URL, r.Response.Status, spentTime)
-	} else {
-		logging.Error("%s %s -> [%d] (%fs)\n    Resp: %s",
-			r.Method, r.URL, r.Response.Status, spentTime,
-			r.Response.BufferString())
-	}
-}
-func MiddlewareAuth(req *ghttp.Request) {
-	token := req.Header.Get("X-Auth-Token")
-	if token == "" {
-		logging.Error("no auth")
-		req.Response.WriteStatusExit(403, "not auth")
-		return
-	}
-	req.Middleware.Next()
-}
 
 var PROXY_PREFIXY = []string{"/networking", "/computing", "/volume", "/image"}
 
@@ -50,6 +22,7 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			port := parser.GetOpt("port", "8091").String()
 			debug := parser.ContainsOpt("debug")
+
 			level := logging.INFO
 			if debug {
 				level = logging.DEBUG
@@ -62,8 +35,9 @@ var (
 				s.SetAddr(fmt.Sprintf(":%s", port))
 			}
 			s.BindMiddlewareDefault(
-				MiddlewareCORS,
-				ghttp.MiddlewareHandlerResponse, MiddlewareLogResponse,
+				controller.MiddlewareCORS,
+				ghttp.MiddlewareHandlerResponse, controller.MiddlewareLogResponse,
+				controller.MiddlewareAuth,
 			)
 			// 注册路由
 			s.BindObjectRest("/login", controller.LoginController{})

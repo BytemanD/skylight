@@ -62,7 +62,7 @@ type TokenBody struct {
 	Catalogs []Catalog `json:"catalog"`
 }
 
-func getAuth() Auth {
+func getAdminAuth() Auth {
 	return Auth{
 		Identity: Identity{
 			Methods: []string{"password"},

@@ -5,6 +5,7 @@ import (
 	"skylight/internal/service/openstack"
 	"strings"
 
+	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
@@ -20,9 +21,19 @@ type OpenstackProxy struct {
 }
 
 func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
-	manager := openstack.GetManager()
 	var resp *resty.Response
 	var err error
+	sessionId, err := req.Session.Id()
+	if err != nil {
+		logging.Error("get session failed: %s", err)
+		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: "internal error"})
+	}
+
+	manager, err := openstack.GetManager(sessionId, req)
+	if err != nil {
+		req.Response.WriteStatus(500, HttpError{Code: 500, Message: "get manager faield"})
+
+	}
 
 	proxyUrl := strings.TrimPrefix(req.URL.Path, c.Prefix)
 	switch c.Prefix {
