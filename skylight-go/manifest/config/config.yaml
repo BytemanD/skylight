@@ -7,7 +7,9 @@ logger:
   level : "all"
   stdout: true
 
-
+session:
+  type: "file"
+  path: "/var/lib/skylight"
 
 database:
   type:  "sqlite"

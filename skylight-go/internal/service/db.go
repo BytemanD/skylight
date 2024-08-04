@@ -42,9 +42,9 @@ func CreatCluster(name string, authUrl string) (*model.Cluster, error) {
 	return dao.CreateCluster(DB, name, authUrl)
 }
 
-func DBInit(ctx context.Context, dbType, dbLink string) error {
-	if dbType != "sqlite" {
-		return fmt.Errorf("invalid databse link: %s", dbType)
+func DBInit(ctx context.Context, dbDriver, dbLink string) error {
+	if dbDriver != "sqlite" {
+		return fmt.Errorf("invalid databse driver: %s", dbDriver)
 	}
 	dir := filepath.Dir(dbLink)
 	if !gfile.Exists(dir) {

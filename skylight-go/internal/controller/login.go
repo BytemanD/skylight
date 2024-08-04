@@ -6,7 +6,6 @@ import (
 	"skylight/internal/service"
 	"skylight/internal/service/openstack"
 
-	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -40,12 +39,7 @@ func (c *LoginController) Post(req *ghttp.Request) {
 	req.Response.WriteStatusExit(200, HttpError{Code: 200, Message: "login success"})
 }
 func (c *LoginController) Get(req *ghttp.Request) {
-	user, err := req.Session.Get("user", "")
-	if err != nil || user.String() == "" {
-		req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "not login"})
-	}
-	logging.Info("user already login")
-
+	user, _ := req.Session.Get("user", nil)
 	project, _ := req.Session.Get("project", "")
 	authInfo := struct{ Auth model.AuthInfo }{
 		Auth: model.AuthInfo{
@@ -54,4 +48,10 @@ func (c *LoginController) Get(req *ghttp.Request) {
 		},
 	}
 	req.Response.WriteStatusExit(202, authInfo)
+}
+func (c *LoginController) Delete(req *ghttp.Request) {
+	if err := req.Session.RemoveAll(); err != nil {
+		req.Response.WriteStatusExit(400, HttpError{Code: 400, Message: "logout failed"})
+	}
+	req.Response.WriteStatusExit(200, HttpError{Code: 200, Message: "logout success"})
 }
