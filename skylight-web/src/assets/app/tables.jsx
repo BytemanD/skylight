@@ -59,15 +59,15 @@ class DataTable {
             try {
                 let item = await (this.api.show(itemId))
                 this.updateItem(item);
-                Utils.sleep(2)
             } catch (e) {
+                console.error(e)
                 if (e.response.status == 404) {
-                    console.error(e)
                     Notify.success(`${this.name} ${itemId} 已删除`)
                     this.removeItem(itemId)
                     break;
                 }
             }
+            await Utils.sleep(2)
         } while (true)
     }
     resetSelected() {
@@ -916,18 +916,21 @@ export class VolumeDataTable extends DataTable {
     }
     async waitVolumeDeleted(volumeId) {
         do {
+            console.log("11111111111")
             try {
                 let volume = (await API.volume.get(volumeId)).volume
                 this.updateItem(volume)
-                Utils.sleep(2)
             } catch (e) {
+                console.error(e)
                 if (e.response.status == 404) {
-                    console.error(e)
                     Notify.success(`卷 ${volumeId} 已删除`)
                     this.removeItem(volumeId)
                     break;
                 }
             }
+            console.log("222222222222222")
+            await Utils.sleep(2)
+            console.log("33333333333333")
         } while (true)
     }
 }

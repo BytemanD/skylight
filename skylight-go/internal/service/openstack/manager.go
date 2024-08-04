@@ -53,7 +53,7 @@ func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, e
 	if resp.Header().Get("Content-Type") == "application/json" {
 		if resp.IsError() {
 			proxyRespBody = string(resp.Body())
-			err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
+			// err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
 		}
 	}
 	logging.Debug("proxy Resp [%d] %s", resp.StatusCode(), proxyRespBody)

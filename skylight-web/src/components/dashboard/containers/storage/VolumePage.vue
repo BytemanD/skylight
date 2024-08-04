@@ -121,11 +121,11 @@ export default {
         deleteSelected: async function () {
             let selected = this.table.selected;
             await this.table.deleteSelected()
-            for (let i in selected) {
-                let serverId = selected[i];
-                await this.table.waitVolumeDeleted(serverId)
-                this.refreshTotalVolumes()
-            }
+            // for (let i in selected) {
+            //     let serverId = selected[i];
+            //     await this.table.waitVolumeDeleted(serverId)
+            //     this.refreshTotalVolumes()
+            // }
             // this.refreshTotlaServers()
         },
         refreshTotalVolumes: function () {

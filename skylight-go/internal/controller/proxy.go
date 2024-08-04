@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"skylight/internal/service/openstack"
 	"strings"
@@ -52,11 +51,9 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 		err = fmt.Errorf("invalid prefix %s", c.Prefix)
 	}
 	if err != nil {
-		data, _ := json.Marshal(HttpError{Code: 400, Message: err.Error()})
-		req.Response.WriteStatus(400, data)
+		req.Response.WriteStatusExit(400, HttpError{Code: 400, Message: err.Error()})
 	} else {
-		req.Response.WriteStatus(resp.StatusCode(), resp.Body())
-		req.Response.Header().Set("Content-Type", resp.Header().Get("Content-Type"))
+		req.Response.WriteStatusExit(resp.StatusCode(), resp.Body())
 	}
 }
 
