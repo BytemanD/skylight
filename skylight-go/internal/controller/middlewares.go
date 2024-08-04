@@ -14,20 +14,20 @@ func MiddlewareCORS(req *ghttp.Request) {
 	req.Middleware.Next()
 }
 
-func MiddlewareLogResponse(r *ghttp.Request) {
+func MiddlewareLogResponse(req *ghttp.Request) {
 	startTime := time.Now()
-	r.Middleware.Next()
+	req.Middleware.Next()
 	spentTime := time.Since(startTime).Seconds()
-	if r.Response.Status < 400 {
-		logging.Info("%s %s -> [%d] (%fs)", r.Method, r.URL, r.Response.Status, spentTime)
+	if req.Response.Status < 400 {
+		logging.Info("%s %s -> [%d] (%fs)", req.Method, req.URL, req.Response.Status, spentTime)
 	} else {
 		logging.Error("%s %s -> [%d] (%fs)\n    Resp: %s",
-			r.Method, r.URL, r.Response.Status, spentTime,
-			r.Response.BufferString())
+			req.Method, req.URL, req.Response.Status, spentTime,
+			req.Response.BufferString())
 	}
 }
 func mustAuth(req *ghttp.Request) bool {
-	if req.Request.URL.Path == "/clusters" {
+	if req.Request.URL.Path == "/clusters" || req.Request.URL.Path == "/version" {
 		return false
 	}
 	if req.Request.URL.Path == "/favicon.ico" {

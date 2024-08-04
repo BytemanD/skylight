@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"skylight/internal/model"
 	"strings"
 	"time"
 
@@ -24,6 +25,7 @@ type OpenstackManager struct {
 	expiredAt       time.Time
 	catalogs        []Catalog
 	serviceEndpoint map[string]string
+	microVesrion    map[string]string
 }
 
 func (c *OpenstackManager) isTokenExpired() (expired bool) {
@@ -41,7 +43,7 @@ func (c *OpenstackManager) isTokenExpired() (expired bool) {
 }
 
 func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, error) {
-	logging.Debug("proxy %s %s ?%s Headers: %s",
+	logging.Debug("-----proxy---> %s %s ?%s Headers: %s",
 		req.Method, req.URL, req.QueryParam.Encode(), c.safeHeader(req.Header))
 	resp, err := req.Send()
 	if err != nil {
@@ -139,17 +141,29 @@ func (c *OpenstackManager) safeHeader(h http.Header) http.Header {
 }
 func (c *OpenstackManager) doProxy(endpoint string, method string,
 	u string, q url.Values, body []byte) (*resty.Response, error) {
+	return c.doProxyWithHeaders(endpoint, method, u, q, nil, body)
+}
+func (c *OpenstackManager) doProxyWithHeaders(endpoint string, method string,
+	u string, q url.Values, headers map[string]string, body []byte) (*resty.Response, error) {
 	token, err := c.GetToken()
 	if err != nil {
 		return nil, err
 	}
-	reqUrl, err := url.JoinPath(endpoint, u)
+	var reqUrl string
+	if u != "" && u != "/" {
+		reqUrl, err = url.JoinPath(endpoint, u)
+	} else {
+		reqUrl = endpoint
+	}
 	if err != nil {
 		return nil, err
 	}
 	req := c.session.NewRequest().SetHeader("X-Auth-Token", token).
 		SetQueryParamsFromValues(q).
 		SetBody(body)
+	if headers != nil {
+		req = req.SetHeaders(headers)
+	}
 	req.Method, req.URL = method, reqUrl
 	return c.sendToBackend(req)
 }
@@ -177,11 +191,42 @@ func (c *OpenstackManager) ProxyNetworking(method string, url string, q url.Valu
 	}
 	return c.doProxy(c.serviceEndpoint["neutron"], method, url, q, body)
 }
+
+func (c *OpenstackManager) getMicroVersion(service string) (string, error) {
+	resp, err := c.doProxy(c.serviceEndpoint[service], resty.MethodGet, "/", nil, nil)
+	if err != nil {
+		return "", err
+	}
+	versionBody := struct {
+		Version model.Version
+	}{Version: model.Version{}}
+	if err := json.Unmarshal(resp.Body(), &versionBody); err != nil {
+		return "", err
+	}
+	return versionBody.Version.Version, nil
+}
 func (c *OpenstackManager) ProxyComputing(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("nova", "v2.1"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["nova"], method, url, q, body)
+	if _, ok := c.microVesrion["nova"]; !ok {
+		microVersion, err := c.getMicroVersion("nova")
+		if err != nil {
+			logging.Warning("get microversion failed: %s", err)
+			c.microVesrion["nova"] = ""
+		} else {
+			c.microVesrion["nova"] = microVersion
+		}
+	}
+	if microVersion, ok := c.microVesrion["nova"]; ok && microVersion != "" {
+		headers := map[string]string{
+			"X-OpenStack-Nova-API-Version": microVersion,
+			"OpenStack-API-Version":        microVersion,
+		}
+		return c.doProxyWithHeaders(c.serviceEndpoint["nova"], method, url, q, headers, body)
+	} else {
+		return c.doProxy(c.serviceEndpoint["nova"], method, url, q, body)
+	}
 }
 func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("cinderv2", "v2"); err != nil {
@@ -221,6 +266,7 @@ func NewManager(sessionId string, authUrl, project, user, password string) (*Ope
 		session:         resty.New(),
 		tokenAlive:      time.Minute * 30,
 		serviceEndpoint: map[string]string{},
+		microVesrion:    map[string]string{},
 	}
 	manager.SetAuthUrl(authUrl)
 	if err := manager.tokenIssue(); err != nil {
