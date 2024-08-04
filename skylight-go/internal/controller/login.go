@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"skylight/internal/model"
 	"skylight/internal/service"
 	"skylight/internal/service/openstack"
@@ -28,11 +27,11 @@ func (c *LoginController) Post(req *ghttp.Request) {
 		if err != nil {
 			req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: err.Error()})
 		}
-		fmt.Println("xxxxxx auth url", cluster.AuthUrl)
 		if _, err := openstack.NewManager(sessionId, cluster.AuthUrl,
 			reqBody.Auth.Project, reqBody.Auth.User, reqBody.Auth.Password); err != nil {
 			req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: err.Error()})
 		} else {
+			req.Session.Set("authUrl", cluster.AuthUrl)
 			req.Session.Set("project", reqBody.Auth.Project)
 			req.Session.Set("user", reqBody.Auth.User)
 			req.Session.Set("password", reqBody.Auth.Password)

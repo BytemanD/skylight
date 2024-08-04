@@ -27,10 +27,13 @@ func MiddlewareLogResponse(r *ghttp.Request) {
 	}
 }
 func mustAuth(req *ghttp.Request) bool {
-	if req.Request.URL.Path == "/login" && strings.ToUpper(req.Method) == "POST" {
+	if req.Request.URL.Path == "/clusters" {
 		return false
 	}
-	if req.Request.URL.Path == "/clusters" {
+	if req.Request.URL.Path == "/favicon.ico" {
+		return false
+	}
+	if req.Request.URL.Path == "/login" && strings.ToUpper(req.Method) == "POST" {
 		return false
 	}
 	return true

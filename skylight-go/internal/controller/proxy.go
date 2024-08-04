@@ -32,8 +32,8 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 
 	manager, err := openstack.GetManager(sessionId, req)
 	if err != nil {
-		req.Response.WriteStatus(500, HttpError{Code: 500, Message: "get manager faield"})
-
+		logging.Error("get manager faield: %s", err)
+		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: "get manager faield"})
 	}
 
 	proxyUrl := strings.TrimPrefix(req.URL.Path, c.Prefix)

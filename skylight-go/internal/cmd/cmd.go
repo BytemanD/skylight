@@ -30,7 +30,7 @@ var (
 			dbLink, _ := g.Cfg().Get(ctx, "database.link")
 			service.DBInit(ctx, dbType.String(), dbLink.String())
 			// 初始化日志
-			port := parser.GetOpt("port", "8091").String()
+			port := parser.GetOpt("port", "8081").String()
 			debug := parser.ContainsOpt("debug")
 
 			level := logging.INFO

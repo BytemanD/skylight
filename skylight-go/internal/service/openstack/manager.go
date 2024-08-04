@@ -10,11 +10,13 @@ import (
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
+	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
 type OpenstackManager struct {
 	AuthUrl         string
+	Region          string
 	AuthInfo        Auth
 	session         *resty.Client
 	token           string
@@ -42,14 +44,14 @@ func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, e
 	logging.Debug("proxy %s %s ?%s Headers: %s",
 		req.Method, req.URL, req.QueryParam.Encode(), c.safeHeader(req.Header))
 	resp, err := req.Send()
-
+	if err != nil {
+		return nil, err
+	}
 	proxyRespBody := "<Body>"
 	if resp.Header().Get("Content-Type") == "application/json" {
 		if resp.IsError() {
 			proxyRespBody = string(resp.Body())
-			if resp.IsError() {
-				err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
-			}
+			err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
 		}
 	}
 	logging.Debug("proxy Resp [%d] %s", resp.StatusCode(), proxyRespBody)
@@ -61,10 +63,11 @@ func (c *OpenstackManager) tokenIssue() error {
 
 	req.SetBody(map[string]Auth{"auth": c.AuthInfo})
 	req.Method = resty.MethodPost
-	// service.GetClusterByName(name)
-	fmt.Println("222222222222 auth url", c.AuthUrl)
-
-	req.URL, _ = url.JoinPath(c.AuthUrl, "/auth/tokens")
+	if reqUrl, err := url.JoinPath(c.AuthUrl, "/auth/tokens"); err != nil {
+		return err
+	} else {
+		req.URL = reqUrl
+	}
 	resp, err := c.sendToBackend(req)
 	if err != nil {
 		return err
@@ -95,17 +98,17 @@ func (c *OpenstackManager) GetEndpoint(service string) (string, error) {
 			continue
 		}
 		for _, endpoint := range catalog.Endpoints {
-			if endpoint.Interface == "public" {
+			if endpoint.Interface == "public" && endpoint.Region == c.Region {
 				return endpoint.Url, nil
 			}
 		}
 	}
 	return "", fmt.Errorf("endpoint for service %s not found", service)
 }
+func (c *OpenstackManager) clearEndpoints() {
+	c.serviceEndpoint = map[string]string{}
+}
 func (c *OpenstackManager) makeSureEndpoint(service, version string) (err error) {
-	if c.serviceEndpoint == nil {
-		c.serviceEndpoint = map[string]string{}
-	}
 	if _, ok := c.serviceEndpoint[service]; ok {
 		return
 	}
@@ -156,6 +159,10 @@ func (c *OpenstackManager) SetAuthUrl(authUrl string) {
 		authUrl, _ = url.JoinPath(authUrl, "v3")
 	}
 	c.AuthUrl = authUrl
+}
+func (c *OpenstackManager) SetRegion(region string) {
+	c.Region = region
+	c.clearEndpoints()
 }
 
 func (c *OpenstackManager) ProxyIdentity(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
@@ -208,40 +215,42 @@ func GetAuthInfo(project, user, password string) Auth {
 	}
 }
 func NewManager(sessionId string, authUrl, project, user, password string) (*OpenstackManager, error) {
-	if client, ok := SESSION_MANAGERS[sessionId]; ok {
-		return client, nil
-	} else {
-		manager := &OpenstackManager{
-			AuthInfo:   GetAuthInfo(project, user, password),
-			session:    resty.New(),
-			tokenAlive: time.Minute * 30,
-		}
-		manager.SetAuthUrl(authUrl)
-		if err := manager.tokenIssue(); err != nil {
-			return nil, err
-		}
-		SESSION_MANAGERS[sessionId] = manager
+	manager := &OpenstackManager{
+		Region:          "RegionOne",
+		AuthInfo:        GetAuthInfo(project, user, password),
+		session:         resty.New(),
+		tokenAlive:      time.Minute * 30,
+		serviceEndpoint: map[string]string{},
 	}
+	manager.SetAuthUrl(authUrl)
+	if err := manager.tokenIssue(); err != nil {
+		return nil, err
+	}
+	SESSION_MANAGERS[sessionId] = manager
 	return SESSION_MANAGERS[sessionId], nil
+}
+func getAuthFromSession(req *ghttp.Request) (map[string]*gvar.Var, error) {
+	authInfo := map[string]*gvar.Var{}
+	for _, key := range []string{"authUrl", "project", "user", "password"} {
+		value, err := req.Session.Get(key, nil)
+		if err != nil || value.IsNil() {
+			return nil, fmt.Errorf("get auth value '%s' failed: %v", key, err)
+		}
+		authInfo[key] = value
+	}
+	return authInfo, nil
 }
 func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error) {
 	if client, ok := SESSION_MANAGERS[sessionId]; ok {
 		return client, nil
+	}
+	if authInfo, err := getAuthFromSession(req); err != nil {
+		return nil, fmt.Errorf("get session auth info falied: %v", err)
 	} else {
-		authUrl, _ := req.Session.Get("authUrl", nil)
-		project, _ := req.Session.Get("project", nil)
-		user, _ := req.Session.Get("user", nil)
-		password, _ := req.Session.Get("password", nil)
-		if authUrl == nil || project == nil || user == nil || password == nil {
-			return nil, fmt.Errorf("auth info not found")
-		}
-		manager, err := NewManager(sessionId, authUrl.String(), project.String(),
-			user.String(), password.String())
-		if err != nil {
-			return nil, fmt.Errorf("create manager failed")
-		} else {
-			return manager, nil
-		}
+		return NewManager(
+			sessionId, authInfo["authUrl"].String(),
+			authInfo["project"].String(), authInfo["user"].String(),
+			authInfo["password"].String())
 	}
 }
 
