@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"skylight/internal/service/openstack"
 	"strings"
 
@@ -45,6 +46,10 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 		resp, err = manager.ProxyVolume(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
 	case "/image":
 		resp, err = manager.ProxyImage(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
+	case "/identity":
+		resp, err = manager.ProxyIdentity(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
+	default:
+		err = fmt.Errorf("invalid prefix %s", c.Prefix)
 	}
 	if err != nil {
 		data, _ := json.Marshal(HttpError{Code: 400, Message: err.Error()})

@@ -14,6 +14,7 @@ import (
 )
 
 type OpenstackManager struct {
+	AuthUrl         string
 	AuthInfo        Auth
 	session         *resty.Client
 	token           string
@@ -59,9 +60,11 @@ func (c *OpenstackManager) tokenIssue() error {
 	req := c.session.NewRequest()
 
 	req.SetBody(map[string]Auth{"auth": c.AuthInfo})
-	logging.Info("11111111 authinfo: %v", c.AuthInfo)
 	req.Method = resty.MethodPost
-	req.URL, _ = url.JoinPath("http://keystone-server:35357/v3", "/auth/tokens")
+	// service.GetClusterByName(name)
+	fmt.Println("222222222222 auth url", c.AuthUrl)
+
+	req.URL, _ = url.JoinPath(c.AuthUrl, "/auth/tokens")
 	resp, err := c.sendToBackend(req)
 	if err != nil {
 		return err
@@ -147,6 +150,20 @@ func (c *OpenstackManager) doProxy(endpoint string, method string,
 	req.Method, req.URL = method, reqUrl
 	return c.sendToBackend(req)
 }
+func (c *OpenstackManager) SetAuthUrl(authUrl string) {
+	u, _ := url.Parse(authUrl)
+	if u.Path == "" || u.Path == "/" {
+		authUrl, _ = url.JoinPath(authUrl, "v3")
+	}
+	c.AuthUrl = authUrl
+}
+
+func (c *OpenstackManager) ProxyIdentity(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+	if err := c.makeSureEndpoint("identity", "v3"); err != nil {
+		return nil, err
+	}
+	return c.doProxy(c.serviceEndpoint["identity"], method, url, q, body)
+}
 func (c *OpenstackManager) ProxyNetworking(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("neutron", "v2.0"); err != nil {
 		return nil, err
@@ -190,7 +207,7 @@ func GetAuthInfo(project, user, password string) Auth {
 		},
 	}
 }
-func NewManager(sessionId string, project, user, password string) (*OpenstackManager, error) {
+func NewManager(sessionId string, authUrl, project, user, password string) (*OpenstackManager, error) {
 	if client, ok := SESSION_MANAGERS[sessionId]; ok {
 		return client, nil
 	} else {
@@ -199,6 +216,7 @@ func NewManager(sessionId string, project, user, password string) (*OpenstackMan
 			session:    resty.New(),
 			tokenAlive: time.Minute * 30,
 		}
+		manager.SetAuthUrl(authUrl)
 		if err := manager.tokenIssue(); err != nil {
 			return nil, err
 		}
@@ -210,13 +228,15 @@ func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error)
 	if client, ok := SESSION_MANAGERS[sessionId]; ok {
 		return client, nil
 	} else {
+		authUrl, _ := req.Session.Get("authUrl", nil)
 		project, _ := req.Session.Get("project", nil)
 		user, _ := req.Session.Get("user", nil)
 		password, _ := req.Session.Get("password", nil)
-		if project == nil || user == nil || password == nil {
+		if authUrl == nil || project == nil || user == nil || password == nil {
 			return nil, fmt.Errorf("auth info not found")
 		}
-		manager, err := NewManager(sessionId, project.String(), user.String(), password.String())
+		manager, err := NewManager(sessionId, authUrl.String(), project.String(),
+			user.String(), password.String())
 		if err != nil {
 			return nil, fmt.Errorf("create manager failed")
 		} else {

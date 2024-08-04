@@ -9,3 +9,6 @@ logger:
 
 
 
+database:
+  type:  "sqlite"
+  link:  "/var/lib/skylight/skylight.db"

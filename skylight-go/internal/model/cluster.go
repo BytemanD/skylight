@@ -1,10 +1,17 @@
 package model
 
-import "k8s.io/apimachinery/pkg/version"
-
 type Cluster struct {
-	Host           string        `json:"host,omitempty"`
-	ApiPath        string        `json:"api_path,omitempty"`
-	CurrentContext string        `json:"current_context,omitempty"`
-	ServerVersion  *version.Info `json:"server_version,omitempty"`
+	Id      int    `gorm:"id,primary,autoinc" json:"id,omitempty"`
+	Name    string `gorm:"name,primary"        json:"name,omitempty"`
+	AuthUrl string `gorm:"auth_url"           json:"auth_url,omitempty"`
+}
+
+func (Cluster) TableName() string {
+	return "clusters"
+}
+
+type Clusters []Cluster
+
+func (Clusters) TableName() string {
+	return "clusters"
 }

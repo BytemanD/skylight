@@ -26,8 +26,17 @@ func MiddlewareLogResponse(r *ghttp.Request) {
 			r.Response.BufferString())
 	}
 }
+func mustAuth(req *ghttp.Request) bool {
+	if req.Request.URL.Path == "/login" && strings.ToUpper(req.Method) == "POST" {
+		return false
+	}
+	if req.Request.URL.Path == "/clusters" {
+		return false
+	}
+	return true
+}
 func MiddlewareAuth(req *ghttp.Request) {
-	if !(req.Request.URL.Path == "/login" && strings.ToUpper(req.Method) == "POST") {
+	if mustAuth(req) {
 		if _, err := req.Session.Id(); err != nil {
 			logging.Error("get session id failed: %s", err)
 			req.Response.WriteStatusExit(400, HttpError{Code: 500, Message: "internal error"})

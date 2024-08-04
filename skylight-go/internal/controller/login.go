@@ -1,66 +1,41 @@
 package controller
 
 import (
-	"context"
 	"encoding/json"
-	"skylight/apiv1"
+	"fmt"
+	"skylight/internal/model"
+	"skylight/internal/service"
 	"skylight/internal/service/openstack"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/util/guid"
 )
 
-type Login struct{}
-
-type Token struct {
-	UUID string
-}
-
-var tokens []Token = []Token{}
-
-func (c *Login) Post(ctx context.Context, apiReq *apiv1.LoginPostReq) (res *apiv1.LoginPostRes, err error) {
-	req := g.RequestFromCtx(ctx)
-	uuid := guid.S()
-	req.Response.Header().Set("X-Auth-Token", uuid)
-	tokens = append(tokens, Token{UUID: uuid})
-	req.Response.WriteStatusExit(200)
-	return
-}
-func (c *Login) Get(ctx context.Context, apiReq *apiv1.LoginGetReq) (res *apiv1.LoginGetRes, err error) {
-	req := g.RequestFromCtx(ctx)
-	token := req.Header.Get("X-Auth-Token")
-	if token == "" {
-		req.Response.WriteStatusExit(403, "not auth")
-	}
-	req.Response.WriteJson(nil)
-	return
-}
-
 type LoginController struct{}
-
-type AuthInfo struct {
-	Project  string
-	User     string
-	Password string
-}
 
 func (c *LoginController) Post(req *ghttp.Request) {
 	if sessionId, err := req.Session.Id(); err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Code: 500, Message: err.Error()})
 	} else {
-		authBody := struct{ Auth AuthInfo }{}
-		if err := json.Unmarshal(req.GetBody(), &authBody); err != nil {
+		reqBody := struct{ Auth model.AuthInfo }{}
+		if err := json.Unmarshal(req.GetBody(), &reqBody); err != nil {
 			req.Response.WriteStatusExit(400, HttpError{Code: 403, Message: "invalid auth info"})
 		}
-		if _, err := openstack.NewManager(sessionId,
-			authBody.Auth.Project, authBody.Auth.User, authBody.Auth.Password); err != nil {
-			req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "bad request", Data: err.Error()})
+		if reqBody.Auth.Cluster == "" {
+			req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: "cluster is empty"})
+		}
+		cluster, err := service.GetClusterByName(reqBody.Auth.Cluster)
+		if err != nil {
+			req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: err.Error()})
+		}
+		fmt.Println("xxxxxx auth url", cluster.AuthUrl)
+		if _, err := openstack.NewManager(sessionId, cluster.AuthUrl,
+			reqBody.Auth.Project, reqBody.Auth.User, reqBody.Auth.Password); err != nil {
+			req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: err.Error()})
 		} else {
-			req.Session.Set("project", authBody.Auth.Project)
-			req.Session.Set("user", authBody.Auth.User)
-			req.Session.Set("password", authBody.Auth.Password)
+			req.Session.Set("project", reqBody.Auth.Project)
+			req.Session.Set("user", reqBody.Auth.User)
+			req.Session.Set("password", reqBody.Auth.Password)
 		}
 	}
 	req.Response.WriteStatusExit(200, HttpError{Code: 200, Message: "login success"})
@@ -73,8 +48,8 @@ func (c *LoginController) Get(req *ghttp.Request) {
 	logging.Info("user already login")
 
 	project, _ := req.Session.Get("project", "")
-	authInfo := struct{ Auth AuthInfo }{
-		Auth: AuthInfo{
+	authInfo := struct{ Auth model.AuthInfo }{
+		Auth: model.AuthInfo{
 			Project: project.String(),
 			User:    user.String(),
 		},

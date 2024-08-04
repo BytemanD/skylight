@@ -5,14 +5,19 @@ import (
 	"fmt"
 
 	"skylight/internal/controller"
+	"skylight/internal/service"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-var PROXY_PREFIXY = []string{"/networking", "/computing", "/volume", "/image"}
+var PROXY_PREFIXY = []string{
+	"/identity",
+	"/networking", "/computing", "/volume", "/image",
+}
 
 var (
 	Main = gcmd.Command{
@@ -20,6 +25,11 @@ var (
 		Usage: "main",
 		Brief: "start http server",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			// 初始化DB
+			dbType, _ := g.Cfg().Get(ctx, "database.type")
+			dbLink, _ := g.Cfg().Get(ctx, "database.link")
+			service.DBInit(ctx, dbType.String(), dbLink.String())
+			// 初始化日志
 			port := parser.GetOpt("port", "8091").String()
 			debug := parser.ContainsOpt("debug")
 
@@ -41,6 +51,7 @@ var (
 			)
 			// 注册路由
 			s.BindObjectRest("/login", controller.LoginController{})
+			s.BindObjectRest("/clusters", controller.ClusterController{})
 
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Bind(new(controller.Version))
