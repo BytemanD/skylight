@@ -50,15 +50,15 @@ var (
 		Arguments: []gcmd.Argument{
 			{Name: "port", Short: "p", Brief: "The port of server"},
 			{Name: "debug", Short: "d", Orphan: true, Brief: "Show debug message"},
-			{Name: "static", Short: "d", Orphan: true, Brief: "The path of static"},
-			{Name: "template", Short: "d", Orphan: true, Brief: "The path of template"},
+			{Name: "static", Short: "S", Brief: "The path of static"},
+			{Name: "template", Short: "T", Brief: "The path of template"},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			// 初始化日志
 			port := parser.GetOpt("port", "8081").String()
 			debug := parser.ContainsOpt("debug")
-			templatePath := parser.GetOpt("template", "skylight-web/dist")
-			staticPath := parser.GetOpt("static", "skylight-web/dist/static")
+			templatePath := parser.GetOpt("template", "../skylight-web/dist")
+			staticPath := parser.GetOpt("static", "../skylight-web/dist/static")
 
 			level := logging.INFO
 			if debug {
@@ -75,9 +75,11 @@ var (
 			service.DBInit(ctx, dbDriver.String(), dbLink.String())
 
 			if gfile.Exists(staticPath.String()) {
+				logging.Info("static path: %s", staticPath.String())
 				s.AddStaticPath("/static", staticPath.String())
 			}
 			if gfile.Exists(templatePath.String()) {
+				logging.Info("template path: %s", templatePath.String())
 				s.AddSearchPath(templatePath.String())
 			}
 			if port != "" {
