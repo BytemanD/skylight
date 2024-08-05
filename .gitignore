@@ -23,3 +23,7 @@ go.work.sum
 
 # project
 ./skylight-go/skylight
+skylight-go/skylight
+
+release/skylight-*
+release/skylight-*.tar.gz

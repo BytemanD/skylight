@@ -74,6 +74,9 @@ func (c *OpenstackManager) tokenIssue() error {
 	if err != nil {
 		return err
 	}
+	if resp.IsError() {
+		return fmt.Errorf("login success: [%d] %s", resp.StatusCode(), resp.Body())
+	}
 	c.token = resp.Header().Get("X-Subject-Token")
 	respBody := struct{ Token TokenBody }{}
 	if err := json.Unmarshal(resp.Body(), &respBody); err != nil {

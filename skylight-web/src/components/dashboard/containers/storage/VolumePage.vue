@@ -119,7 +119,7 @@ export default {
     }),
     methods: {
         deleteSelected: async function () {
-            let selected = this.table.selected;
+            // let selected = this.table.selected;
             await this.table.deleteSelected()
             // for (let i in selected) {
             //     let serverId = selected[i];

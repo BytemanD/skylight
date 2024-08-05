@@ -17,33 +17,69 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var (
+	Version       string
+	GoVersion     string
+	BuildDate     string
+	BuildPlatform string
+)
+
 var PROXY_PREFIXY = []string{
 	"/identity",
 	"/networking", "/computing", "/volume", "/image",
 }
 
 var (
-	Main = gcmd.Command{
-		Name:  "main",
-		Usage: "main",
+	VersionCmd = gcmd.Command{
+		Name:  "version",
+		Usage: "version",
+		Brief: "show version",
+		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			fmt.Println("Version: ", Version)
+			fmt.Println("GoVersion: ", GoVersion)
+			fmt.Println("BuildDate: ", BuildDate)
+			fmt.Println("BuildPlatform: ", BuildPlatform)
+			return nil
+		},
+	}
+
+	ServeCmd = gcmd.Command{
+		Name:  "serve",
+		Usage: "serve",
 		Brief: "start http server",
+		Arguments: []gcmd.Argument{
+			{Name: "port", Short: "p", Brief: "The port of server"},
+			{Name: "debug", Short: "d", Orphan: true, Brief: "Show debug message"},
+			{Name: "static", Short: "d", Orphan: true, Brief: "The path of static"},
+			{Name: "template", Short: "d", Orphan: true, Brief: "The path of template"},
+		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			// 初始化日志
 			port := parser.GetOpt("port", "8081").String()
 			debug := parser.ContainsOpt("debug")
+			templatePath := parser.GetOpt("template", "skylight-web/dist")
+			staticPath := parser.GetOpt("static", "skylight-web/dist/static")
 
 			level := logging.INFO
 			if debug {
 				level = logging.DEBUG
 			}
+			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
+
+			s := g.Server()
 			// 初始化DB
 			logging.Info("init db driver ...")
 			dbDriver, _ := g.Cfg().Get(ctx, "database.type", "sqlite")
 			dbLink, _ := g.Cfg().Get(ctx, "database.link", "/var/lib/skylight/skylight.db")
+			logging.Info("dadtabase link: %s", dbLink.String())
 			service.DBInit(ctx, dbDriver.String(), dbLink.String())
-			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
 
-			s := g.Server()
+			if gfile.Exists(staticPath.String()) {
+				s.AddStaticPath("/static", staticPath.String())
+			}
+			if gfile.Exists(templatePath.String()) {
+				s.AddSearchPath(templatePath.String())
+			}
 			if port != "" {
 				s.SetAddr(fmt.Sprintf(":%s", port))
 			}
@@ -86,12 +122,9 @@ var (
 			return nil
 		},
 	}
+	Main = gcmd.Command{}
 )
 
 func init() {
-	Main.Arguments = append(
-		Main.Arguments,
-		gcmd.Argument{Name: "port", Short: "p", Brief: "The port of server"},
-		gcmd.Argument{Name: "debug", Short: "d", Orphan: true, Brief: "Show debug message"},
-	)
+	Main.AddCommand(&ServeCmd, &VersionCmd)
 }
