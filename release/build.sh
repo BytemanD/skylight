@@ -1,9 +1,20 @@
-# TODO: 动态生成项目版本
-VERSION=0.1.2
-RELEASE_PACKAGE="skylight-${VERSION}"
+VERSION=""
 
 function logInfo() {
     echo $(date "+%F %T") "INFO:" $@ 1>&2
+}
+
+function getVersion() {
+    latest_tag=$(git describe --tags --abbrev=0)
+    commit_count=$(git rev-list ${latest_tag}..HEAD --count)
+
+    is_dirty=$(git status --porcelain)
+    if [ -n "$is_dirty" ]; then
+        dirty="-dirty"
+    else
+        dirty=""
+    fi
+    echo "${latest_tag}-${commit_count}${dirty}"
 }
 
 function buildFrontend() {
@@ -55,6 +66,10 @@ function buildBackend() {
 }
 
 function main() {
+    logInfo ">>>>>> make semver"
+    VERSION=$(getVersion)
+    logInfo "version: ${VERSION}"
+
     logInfo ">>>>>> install packages"
     yum install -y tar upx wget || exit 1
     go version
@@ -88,6 +103,9 @@ function main() {
     cd -
 
     logInfo ">>>>>> make packages"
+
+    RELEASE_PACKAGE="skylight-${VERSION}"
+
     rm -rf release/${RELEASE_PACKAGE}
     mkdir release/${RELEASE_PACKAGE}
     mv skylight-go/skylight release/${RELEASE_PACKAGE} || exit 1
