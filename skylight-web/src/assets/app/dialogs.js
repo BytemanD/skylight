@@ -704,24 +704,14 @@ export class NewClusterDialog extends Dialog {
         super()
         this.name = null;
         this.authUrl = null;
-        this.authProject = null;
-        this.authUser = null;
-        this.authPassword = null;
-
-        this.hidePassword = true;
     }
     async commit() {
         if (!this.name) { throw Error("环境名不能为空") }
-        if (!this.authProject) { throw Error("租户名不能为空"); }
-        if (!this.authUser) { throw Error("用户名不能为空"); }
-        if (!this.authPassword) { throw Error("用户密码不能为空"); }
+        if (!this.authUrl) { throw Error("入口地址不能为空"); }
 
         let data = {
             name: this.name,
-            authUrl: this.authUrl,
-            authProject: this.authProject,
-            authUser: this.authUser,
-            authPassword: this.authPassword
+            auth_url: this.authUrl,
         }
         if (data.name.endsWith('/')) {
             data.name = data.name.slice(0, -1);

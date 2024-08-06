@@ -18,24 +18,6 @@
                             <span class="text-info">入口</span>
                         </template>
                     </v-text-field>
-                    <v-text-field density="compact" placeholder="请输入租户名" v-model="dialog.authProject">
-                        <template v-slot:prepend>
-                            <span class="text-info">租户</span>
-                        </template>
-                    </v-text-field>
-                    <v-text-field density="compact" placeholder="请输入用户名" v-model="dialog.authUser">
-                        <template v-slot:prepend>
-                            <span class="text-info">用户</span>
-                        </template>
-                    </v-text-field>
-                    <v-text-field density="compact" placeholder="请输入密码" v-model="dialog.authPassword"
-                        :append-inner-icon="dialog.hidePassword ? 'mdi-eye-off' : 'mdi-eye'"
-                        :type="dialog.hidePassword ? 'password' : 'text'"
-                        @click:append-inner="dialog.hidePassword = !dialog.hidePassword">
-                        <template v-slot:prepend>
-                            <span class="text-info">密码</span>
-                        </template>
-                    </v-text-field>
                 </v-col>
             </v-card-text>
             <v-divider></v-divider>
@@ -48,8 +30,6 @@
 </template>
 <script>
 import { NewClusterDialog } from '@/assets/app/dialogs';
-import { MESSAGE } from '@/assets/app/lib.js';
-import notify from '@/assets/app/notify';
 
 export default {
     data: () => ({
@@ -60,11 +40,12 @@ export default {
         commit: async function () {
             try {
                 await this.dialog.commit();
+                this.display = false;
+                this.$emit('completed');
             } catch (e) {
-                return;
+                console.error(e)
+                // notify.error(`集群添加失败: ${e}`);
             }
-            this.display = false;
-            this.$emit('completed');
         }
     },
     created() {

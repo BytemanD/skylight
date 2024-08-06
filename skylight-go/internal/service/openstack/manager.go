@@ -108,7 +108,7 @@ func (c *OpenstackManager) GetEndpoint(service string) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("endpoint for service %s not found", service)
+	return "", fmt.Errorf("endpoint for service %s:%s not found", c.Region, service)
 }
 func (c *OpenstackManager) clearEndpoints() {
 	c.serviceEndpoint = map[string]string{}

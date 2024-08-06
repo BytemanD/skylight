@@ -2,7 +2,7 @@ package model
 
 type Cluster struct {
 	Id      int    `gorm:"id,primary,autoinc" json:"id,omitempty"`
-	Name    string `gorm:"name,primary"        json:"name,omitempty"`
+	Name    string `gorm:"name,primary"       json:"name,omitempty"`
 	AuthUrl string `gorm:"auth_url"           json:"auth_url,omitempty"`
 }
 

@@ -47,7 +47,6 @@ export default {
         show(newVal) {
             this.display = newVal;
             if (this.display) {
-                console.log('xxxxx', this.resource, this.requestId)
                 this.dialog.init(this.resource, this.requestId);
             }
         },

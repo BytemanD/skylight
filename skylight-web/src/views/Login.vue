@@ -5,12 +5,12 @@
       <v-card-title>欢迎使用 Skylight</v-card-title>
       <v-card-text>
         <v-select density="compact" item-title="name" label="选择集群" item-value="name" class="rounded-0"
-        v-model="auth.cluster" :items="clusters" @update:modelValue="changeCluster()" prepend-icon="mdi-map">
-        <template v-slot:append>
-          <v-btn density="compact" color="info" variant="text" icon="mdi-refresh" @click="refreshClusters()"></v-btn>
-          <new-cluster @completed="refreshClusters()" />
-        </template>
-      </v-select>
+          v-model="auth.cluster" :items="clusters" @update:modelValue="changeCluster()" prepend-icon="mdi-map">
+          <template v-slot:append>
+            <v-btn density="compact" color="info" variant="text" icon="mdi-refresh" @click="refreshClusters()"></v-btn>
+            <new-cluster @completed="refreshClusters()" />
+          </template>
+        </v-select>
 
         <!-- <v-select density="compact" class="rounded-0" label="选择地区" v-model="auth.region" :items="regions"
           :disabled="refreshingRegion" prepend-icon="mdi-map-marker">
@@ -33,6 +33,7 @@
         <v-spacer></v-spacer>
       </v-card-actions>
     </v-card>
+    <select-region-dialog :regions="regions" :display="showRegions" @selected="selectedRegion" @cancle="cancleRegion" />
     <v-notifications location="bottom right" :timeout="3000" />
   </v-container>
 </template>
@@ -43,15 +44,16 @@ import { ref, getCurrentInstance } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
 import NewCluster from '@/components/welcome/NewCluster.vue';
+import SelectRegionDialog from '@/components/welcome/SelectRegionDialog.vue';
 
 var showPassword = ref(false);
-var refreshingRegion = ref(false);
 
 const auth = ref({ cluster: null, project: "admin", username: "admin", password: null, });
 const { proxy } = getCurrentInstance()
 
 const clusters = ref([])
 const regions = ref([])
+const showRegions = ref(false);
 
 async function refreshClusters() {
   clusters.value = (await API.cluster.list()).clusters
@@ -91,13 +93,29 @@ async function login() {
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
     notify.success('登录成功')
-    sessionStorage.setItem('region', "RegionOne");
-    proxy.$router.push('/dashboard')
+
   } catch (e) {
     notify.error('登录失败')
+    return
+  }
+  regions.value = (await API.region.list()).regions
+
+  if (regions.value.length == 1) {
+    sessionStorage.setItem('region', regions.value[0].id);
+    proxy.$router.push('/dashboard')
+  } else if (regions.value.length > 1) {
+    showRegions.value = true;
   }
 }
-
+async function selectedRegion(region){
+  showRegions.value = false
+  await API.system.changeRegion(region)
+  sessionStorage.setItem("region", region);
+  proxy.$router.push('/dashboard')
+}
+function cancleRegion(){
+  showRegions.value = false
+}
 refreshClusters()
 
 </script>

@@ -57,6 +57,27 @@ func (c *LoginController) Get(req *ghttp.Request) {
 	}
 	req.Response.WriteStatusExit(202, authInfo)
 }
+func (c *LoginController) Put(req *ghttp.Request) {
+	req.Response.Header().Set("Content-Type", "application/json")
+	reqBody := struct{ Auth model.AuthInfo }{}
+	if err := json.Unmarshal(req.GetBody(), &reqBody); err != nil {
+		req.Response.WriteStatusExit(400, HttpError{Code: 400, Message: "invalid body"})
+	}
+	if reqBody.Auth.Region == "" {
+		req.Response.WriteStatusExit(400, HttpError{Code: 400, Message: "region is empty"})
+	}
+	sessionId, err := req.Session.Id()
+	if err != nil {
+		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: err.Error()})
+	}
+	manager, err := openstack.GetManager(sessionId, req)
+	if err != nil {
+		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: "get manager failed", Data: err.Error()})
+		return
+	}
+	manager.SetRegion(reqBody.Auth.Region)
+	req.Response.WriteStatusExit(200, HttpError{Code: 200, Message: "update success"})
+}
 func (c *LoginController) Delete(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
 	if err := req.Session.RemoveAll(); err != nil {

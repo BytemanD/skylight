@@ -27,7 +27,6 @@ func MiddlewareLogResponse(req *ghttp.Request) {
 	}
 }
 func mustAuth(req *ghttp.Request) bool {
-	logging.Info("xxxxxxxxxxxxxx %s", req.Request.URL.Path)
 	if req.Request.URL.Path == "/" || req.Request.URL.Path == "/index.html" {
 		return false
 	}

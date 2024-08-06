@@ -33,10 +33,8 @@
         </v-select>
       </v-toolbar-title> -->
       <v-toolbar-title class="ml-1">
-        <v-select solo-inverted flat hide-details class="rounded-0" prepend-icon="mdi-map-marker"
-          v-model="context.region" item-title="id" item-value="id" :items="regionTable.items"
-          @update:modelValue="changeRegion()">
-        </v-select>
+        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0" :value="context.region">
+        </v-text-field>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <btn-home />

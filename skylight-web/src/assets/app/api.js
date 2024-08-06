@@ -159,6 +159,10 @@ class System extends Restfulclient {
         await this.delete('login')
         notify.success('成功退出')
     }
+    async changeRegion(region){
+        await this.put('login', {auth: {region: region}})
+        notify.success('更新成功')
+    }
 }
 
 class OpenstackProxyAPI extends Restfulclient {
