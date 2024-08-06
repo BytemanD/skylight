@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"skylight/internal/controller"
+	_ "skylight/internal/packed"
 	"skylight/internal/service"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
@@ -13,6 +14,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gres"
 	"github.com/gogf/gf/v2/os/gsession"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -22,6 +24,10 @@ var (
 	GoVersion     string
 	BuildDate     string
 	BuildPlatform string
+)
+var (
+	DEV_TEMPLATE = "../skylight-web/dist"
+	DEV_STATIC   = "../skylight-web/dist/static"
 )
 
 var PROXY_PREFIXY = []string{
@@ -42,7 +48,6 @@ var (
 			return nil
 		},
 	}
-
 	ServeCmd = gcmd.Command{
 		Name:  "serve",
 		Usage: "serve",
@@ -54,12 +59,10 @@ var (
 			{Name: "template", Short: "T", Brief: "The path of template"},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
-			// 初始化日志
 			port := parser.GetOpt("port", "8081").String()
 			debug := parser.ContainsOpt("debug")
-			templatePath := parser.GetOpt("template", "../skylight-web/dist")
-			staticPath := parser.GetOpt("static", "../skylight-web/dist/static")
 
+			// 初始化日志
 			level := logging.INFO
 			if debug {
 				level = logging.DEBUG
@@ -67,6 +70,22 @@ var (
 			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
 
 			s := g.Server()
+			// 初始化静态资源
+			if gres.IsEmpty() {
+				if gfile.Exists(DEV_TEMPLATE) {
+					logging.Info("add template path: %s", DEV_TEMPLATE)
+					s.AddSearchPath(DEV_TEMPLATE)
+				} else {
+					logging.Warning("template %s not exists", DEV_TEMPLATE)
+				}
+				if gfile.Exists(DEV_STATIC) {
+					logging.Info("static path: %s", DEV_STATIC)
+					s.AddStaticPath("/static", DEV_STATIC)
+				} else {
+					logging.Warning("static %s not exists", DEV_STATIC)
+				}
+			}
+
 			// 初始化DB
 			logging.Info("init db driver ...")
 			dbDriver, _ := g.Cfg().Get(ctx, "database.type", "sqlite")
@@ -74,18 +93,13 @@ var (
 			logging.Info("dadtabase link: %s", dbLink.String())
 			service.DBInit(ctx, dbDriver.String(), dbLink.String())
 
-			if gfile.Exists(staticPath.String()) {
-				logging.Info("static path: %s", staticPath.String())
-				s.AddStaticPath("/static", staticPath.String())
+			if gres.Contains("resources") {
+				s.AddSearchPath("resources")
 			}
-			if gfile.Exists(templatePath.String()) {
-				logging.Info("template path: %s", templatePath.String())
-				s.AddSearchPath(templatePath.String())
-			}
+
 			if port != "" {
 				s.SetAddr(fmt.Sprintf(":%s", port))
 			}
-
 			// 初始化 session 驱动
 			logging.Info("init session driver ...")
 			sessionDriver, _ := g.Cfg().Get(ctx, "session.type", "file")
