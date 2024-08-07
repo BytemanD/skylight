@@ -36,6 +36,9 @@ function buildBackend() {
     logInfo "========= build backend ========= "
     logInfo ">>>>>> pack resources"
     rm -rf internal/packed/resources.go
+    rm -rf internal/packed/config.go
+    gf pack manifest internal/packed/config.go --prefix manifest
+    sed -i 's|http://localhost:8081||g' ../skylight-web/dist/config.json
     gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources
 
     # wget -q https://dl.google.com/go/go1.21.4.linux-amd64.tar.gz
@@ -59,6 +62,7 @@ function buildBackend() {
         -X 'main.BuildDate=${BUILD_DATE}' \
         -X 'main.BuildPlatform=${UNAME}' -s -w" || exit 1
     rm -rf internal/packed/resources.go
+    rm -rf internal/packed/config.go
 
     logInfo ">>>>>> compress"
     upx -q skylight

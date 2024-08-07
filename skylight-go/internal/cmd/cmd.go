@@ -15,7 +15,6 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gres"
-	"github.com/gogf/gf/v2/os/gsession"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -86,6 +85,10 @@ var (
 				}
 			}
 
+			if !g.Cfg().Available(ctx) {
+				return fmt.Errorf("config is not available")
+			}
+
 			// 初始化DB
 			logging.Info("init db driver ...")
 			dbDriver, _ := g.Cfg().Get(ctx, "database.type", "sqlite")
@@ -102,7 +105,7 @@ var (
 			}
 			// 初始化 session 驱动
 			logging.Info("init session driver ...")
-			sessionDriver, _ := g.Cfg().Get(ctx, "session.type", "file")
+			// sessionDriver, _ := g.Cfg().Get(ctx, "session.type", "file")
 			sessionPath, _ := g.Cfg().Get(ctx, "session.path", "/var/lib/skylight")
 			gsessionPath := filepath.Join(sessionPath.String(), "gsessions")
 			if !gfile.Exists(gsessionPath) {
@@ -112,10 +115,10 @@ var (
 				}
 			}
 
-			if sessionDriver.String() != "file" {
-				return fmt.Errorf("invalid session driver: %s", sessionDriver.String())
-			}
-			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
+			// if sessionDriver.String() != "file" {
+			// 	return fmt.Errorf("invalid session driver: %s", sessionDriver.String())
+			// }
+			// s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
 
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,
