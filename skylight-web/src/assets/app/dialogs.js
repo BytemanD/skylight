@@ -755,6 +755,7 @@ export class NewServerDialog extends Dialog {
         this.volumeTypes = [];
         this.securityGroups = [];
         this.authInfo = null;
+        this.project = {};
         this.useBdm = SETTINGS.openstack.getItem('bootWithVolume').value;
         this.volumeSize = SETTINGS.openstack.getItem('volumeSizeDefault').value;
         this.volumeSizeMin = SETTINGS.openstack.getItem('volumeSizeMin').value;
@@ -798,9 +799,11 @@ export class NewServerDialog extends Dialog {
     }
     async refreshSecurityGroups() {
         if (!this.authInfo) {
-            this.authInfo = await API.authInfo.get();
+            this.authInfo = (await API.system.isLogin()).auth;
+            let projects = (await API.project.list({name: this.authInfo.project})).projects
+            this.project = projects[0]
         }
-        this.securityGroups = (await API.sg.list({ tenant_id: this.authInfo.project.id })).security_groups;
+        this.securityGroups = (await API.sg.list({ tenant_id: this.project.id })).security_groups;
     }
     validImage() {
         if (!this.image.id) { return '请选择镜像' }
@@ -2116,7 +2119,11 @@ export class TenantUsageDialog extends Dialog {
         return dateList;
     }
     async drawTenantUsage() {
-        let authInfo = await API.authInfo.get();
+        if (!this.authInfo) {
+            this.authInfo = (await API.system.isLogin()).auth;
+            let projects = (await API.project.list({name: this.authInfo.project})).projects
+            this.project = projects[0]
+        }
         let xData = this._getDateList();
 
         let vcpuUsageData = [],
@@ -2152,7 +2159,7 @@ export class TenantUsageDialog extends Dialog {
                 start: new Date(startDate).toISOString().slice(0, -1),
                 end: new Date(endDate).toISOString().slice(0, -1)
             }
-            let tenantUsage = (await API.usage.show(authInfo.project.id, filters)).tenant_usage;
+            let tenantUsage = (await API.usage.show(this.project.id, filters)).tenant_usage;
 
             let cpuNum = parseInt(tenantUsage.total_vcpus_usage || 0);
             minCPU = (minCPU == null || minCPU == 0) ? cpuNum : Math.min(minCPU, cpuNum);

@@ -22,18 +22,13 @@
     <v-app-bar density="compact">
       <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <v-text-field hide-details class="rounded-0" :value="clusterTable.selected && clusterTable.selected.name">
+        <v-text-field hide-details class="rounded-0" :value="authInfo && authInfo.cluster">
           <template v-slot:prepend>{{ $t('cluster') }} </template>
         </v-text-field>
       </v-toolbar-title>
-      <!-- <v-toolbar-title>
-        <v-select hide-details item-title="name" item-value="id" class="rounded-0"
-          v-model="clusterTable.selected" :items="clusterTable.items">
-          <template v-slot:prepend>{{ $t('cluster') }} </template>
-        </v-select>
-      </v-toolbar-title> -->
       <v-toolbar-title class="ml-1">
-        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0" :value="context.region">
+        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0"
+          :value="authInfo && authInfo.cluster">
         </v-text-field>
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -110,6 +105,7 @@ export default {
     I18N: i18n,
     name: 'Skylight',
     showSettingSheet: false,
+    authInfo: {},
     ui: {
       navigationWidth: SETTINGS.ui.getItem('navigatorWidth'),
     },
@@ -128,24 +124,6 @@ export default {
     regionTable: new RegionTable(),
   }),
   methods: {
-    async refresh() {
-      await this.clusterTable.refresh();
-      for (let i in this.clusterTable.items) {
-        if (parseInt(this.context.clusterId) != this.clusterTable.items[i].id) {
-          continue
-        }
-        this.clusterTable.selected = this.clusterTable.items[i];
-        break;
-      }
-      await this.regionTable.refresh();
-    },
-    initRegion() {
-      this.context.region = sessionStorage.getItem('region');
-      if (!this.context.region) {
-        this.context.region = SETTINGS.openstack.getItem('defaultRegion').value;
-        sessionStorage.setItem('region', this.context.region)
-      }
-    },
     selectItem(item, route) {
       this.navigation.selectedItem = item.title;
       Utils.setNavigationSelectedItem(item);
@@ -201,20 +179,14 @@ export default {
         }
       }
     },
-    changeRegion() {
-      sessionStorage.setItem('region', this.context.region);
-      location.reload();
-    }
   },
   created() {
-    console.log(this.$route.path)
     Init()
     let self = this;
-    API.system.isLogin().then(function () {
+    API.system.isLogin().then(function (resp) {
+      self.authInfo = resp.auth;
       self.initItem();
       self.$vuetify.theme.dark = SETTINGS.ui.getItem('themeDark').value;
-      self.refresh();
-      self.initRegion();
     }).catch((e) => {
       notify.error('请重新登录')
       self.$router.push('/login')

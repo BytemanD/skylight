@@ -33,6 +33,7 @@ func (c *LoginController) Post(req *ghttp.Request) {
 		reqBody.Auth.Project, reqBody.Auth.User, reqBody.Auth.Password); err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Code: 400, Message: "bad request", Data: err.Error()})
 	} else {
+		req.Session.Set("cluster", cluster.Name)
 		req.Session.Set("authUrl", cluster.AuthUrl)
 		req.Session.Set("project", reqBody.Auth.Project)
 		req.Session.Set("user", reqBody.Auth.User)
@@ -47,10 +48,12 @@ func (c *LoginController) Get(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
 	user, _ := req.Session.Get("user", nil)
 	project, _ := req.Session.Get("project", "")
+	cluster, _ := req.Session.Get("cluster", "")
 	authInfo := struct {
 		Auth model.AuthInfo `json:"auth"`
 	}{
 		Auth: model.AuthInfo{
+			Cluster: cluster.String(),
 			Project: project.String(),
 			User:    user.String(),
 		},

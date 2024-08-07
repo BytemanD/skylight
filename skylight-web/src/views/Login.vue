@@ -89,7 +89,7 @@ async function login() {
   if (!auth.value.username) { notify.error('请输入用户'); return }
   if (!auth.value.password) { notify.error('请输入密码'); return }
   try {
-    let resp = await API.system.login(
+    await API.system.login(
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
     notify.success('登录成功')
@@ -113,8 +113,9 @@ async function selectedRegion(region){
   sessionStorage.setItem("region", region);
   proxy.$router.push('/dashboard')
 }
-function cancleRegion(){
+async function cancleRegion(){
   showRegions.value = false
+  await API.system.logout()
 }
 refreshClusters()
 
