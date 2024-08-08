@@ -41,7 +41,9 @@ func CreatCluster(name string, authUrl string) (*model.Cluster, error) {
 	}
 	return dao.CreateCluster(DB, name, authUrl)
 }
-
+func DeleteCluster(id int) error {
+	return dao.DeleteClusterById(DB, id)
+}
 func DBInit(ctx context.Context, dbDriver, dbLink string) error {
 	if dbDriver != "sqlite" {
 		return fmt.Errorf("invalid databse driver: %s", dbDriver)

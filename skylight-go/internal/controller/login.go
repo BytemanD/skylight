@@ -11,8 +11,9 @@ import (
 )
 
 type LoginController struct{}
+type PostLoginController struct{}
 
-func (c *LoginController) Post(req *ghttp.Request) {
+func (c *PostLoginController) Post(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
 	sessionId, err := req.Session.Id()
 	if err != nil {

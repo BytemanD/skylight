@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"skylight/internal/consts"
 	"skylight/internal/controller"
 	_ "skylight/internal/packed"
 	"skylight/internal/service"
@@ -18,12 +19,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	Version       string
-	GoVersion     string
-	BuildDate     string
-	BuildPlatform string
-)
 var (
 	DEV_TEMPLATE = "../skylight-web/dist"
 	DEV_STATIC   = "../skylight-web/dist/static"
@@ -40,10 +35,10 @@ var (
 		Usage: "version",
 		Brief: "show version",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
-			fmt.Println("Version: ", Version)
-			fmt.Println("GoVersion: ", GoVersion)
-			fmt.Println("BuildDate: ", BuildDate)
-			fmt.Println("BuildPlatform: ", BuildPlatform)
+			fmt.Println("Version: ", consts.Version)
+			fmt.Println("GoVersion: ", consts.GoVersion)
+			fmt.Println("BuildDate: ", consts.BuildDate)
+			fmt.Println("BuildPlatform: ", consts.BuildPlatform)
 			return nil
 		},
 	}
@@ -105,7 +100,6 @@ var (
 			}
 			// 初始化 session 驱动
 			logging.Info("init session driver ...")
-			// sessionDriver, _ := g.Cfg().Get(ctx, "session.type", "file")
 			sessionPath, _ := g.Cfg().Get(ctx, "session.path", "/var/lib/skylight")
 			gsessionPath := filepath.Join(sessionPath.String(), "gsessions")
 			if !gfile.Exists(gsessionPath) {
@@ -115,26 +109,22 @@ var (
 				}
 			}
 
-			// if sessionDriver.String() != "file" {
-			// 	return fmt.Errorf("invalid session driver: %s", sessionDriver.String())
-			// }
-			// s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
-
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,
 				ghttp.MiddlewareHandlerResponse, controller.MiddlewareLogResponse,
-				controller.MiddlewareAuth,
 			)
 			// 注册路由
-			s.BindObjectRest("/login", controller.LoginController{})
-			s.BindObjectRest("/clusters", controller.ClusterController{})
-
-			s.Group("/", func(group *ghttp.RouterGroup) {
-				group.Bind(new(controller.Version))
+			s.BindObjectRest("/version", controller.Version{})
+			s.BindObjectRest("/clusters", controller.ClustersController{})
+			s.BindObjectRest("/clusters/:id", controller.ClusterController{})
+			s.BindObjectRest("/login", controller.PostLoginController{})
+			s.Group("", func(group *ghttp.RouterGroup) {
+				group.Middleware(controller.MiddlewareAuth)
+				group.REST("/login", controller.LoginController{})
+				for _, prefix := range PROXY_PREFIXY {
+					group.REST(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
+				}
 			})
-			for _, prefix := range PROXY_PREFIXY {
-				s.BindObjectRest(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
-			}
 
 			logging.Info("starting server")
 			s.Run()

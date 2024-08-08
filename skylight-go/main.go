@@ -1,6 +1,7 @@
 package main
 
 import (
+	"skylight/internal/consts"
 	_ "skylight/internal/packed"
 
 	"skylight/internal/cmd"
@@ -16,10 +17,13 @@ var (
 )
 
 func main() {
-	cmd.Version = Version
-	cmd.GoVersion = GoVersion
-	cmd.BuildDate = BuildDate
-	cmd.BuildPlatform = BuildPlatform
+	consts.Version = Version
+	consts.GoVersion = GoVersion
+	consts.BuildDate = BuildDate
+	consts.BuildPlatform = BuildPlatform
+	if consts.Version == "" {
+		consts.Version = "dev"
+	}
 
 	cmd.Main.Run(gctx.New())
 }

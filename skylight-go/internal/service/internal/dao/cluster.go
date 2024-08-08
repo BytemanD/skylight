@@ -38,3 +38,7 @@ func CreateCluster(db gdb.DB, name, authUrl string) (*model.Cluster, error) {
 	}
 	return &cluster, nil
 }
+func DeleteClusterById(db gdb.DB, id int) error {
+	_, err := queryCluster(db).Delete("id = ?", id)
+	return err
+}

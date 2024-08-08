@@ -28,11 +28,12 @@
       </v-toolbar-title>
       <v-toolbar-title class="ml-1">
         <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0"
-          :value="authInfo && authInfo.cluster">
+          :value="authInfo && authInfo.region">
         </v-text-field>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <btn-home />
+      <btn-about />
       <btn-theme />
       <SettingSheet />
       <btn-logout />
@@ -54,6 +55,7 @@ import SETTINGS from '@/assets/app/settings';
 
 import BtnTheme from '../components/plugins/BtnTheme.vue';
 import BtnHome from '../components/plugins/BtnHome.vue';
+import BtnAbout from '../components/plugins/BtnAbout.vue';
 import BtnLogout from '../components/plugins/BtnLogout.vue';
 import i18n from '@/assets/app/i18n';
 import SettingSheet from '@/components/dashboard/SettingSheet.vue';
@@ -96,7 +98,7 @@ const navigationGroup = [
 
 export default {
   components: {
-    BtnTheme, BtnHome,
+    BtnTheme, BtnHome, BtnAbout,
     SettingSheet,
     BtnLogout,
   },

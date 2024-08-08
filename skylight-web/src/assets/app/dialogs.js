@@ -716,18 +716,7 @@ export class NewClusterDialog extends Dialog {
         if (data.name.endsWith('/')) {
             data.name = data.name.slice(0, -1);
         }
-        try {
-            await API.cluster.add(data);
-        } catch (error) {
-            console.error(error.response)
-            if (error.response && error.response.data.error) {
-                notify.error(`环境 ${this.name} 添加失败, ${error.response.data.error}`);
-            } else {
-                notify.error(`环境 ${this.name} 添加失败, ${error}`);
-            }
-            throw error
-        }
-        notify.success(`环境 ${this.name} 添加成功`);
+        await API.cluster.add(data);
     }
 
 }

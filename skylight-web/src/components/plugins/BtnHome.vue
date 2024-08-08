@@ -1,23 +1,15 @@
 <template>
-    <v-tooltip location="bottom" text=" 进入首页">
-        <template v-slot:activator="{ props }">
-            <v-btn v-on:click="onclickCallback()" v-bind="props">
-                <!-- <v-icon>mdi-home</v-icon> -->
-                集群管理
-            </v-btn>
-        </template>
-       
-    </v-tooltip>
+    <v-btn v-on:click="onclickCallback()" v-bind="props" prepend-icon="mdi-home">首页</v-btn>
 </template>
 
 <script>
 
 export default {
-  methods: {
-    onclickCallback() {
-        this.$router.push('/welcome')
-    }
-  },
+    methods: {
+        onclickCallback() {
+            this.$router.push('/')
+        }
+    },
 }
 
 </script>

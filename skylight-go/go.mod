@@ -6,6 +6,7 @@ toolchain go1.21.5
 
 require (
 	github.com/go-resty/resty/v2 v2.13.1
+	github.com/gogf/gf v1.16.9
 	github.com/gogf/gf/v2 v2.0.0-rc.0.20220117131058-9345eb5e946f
 	github.com/mattn/go-sqlite3 v1.14.22
 	gorm.io/driver/sqlite v1.5.6
@@ -14,11 +15,12 @@ require (
 )
 
 require (
-	github.com/gogf/gf v1.16.9 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/wxnacy/wgo v1.0.4 // indirect
 )
 
 require (

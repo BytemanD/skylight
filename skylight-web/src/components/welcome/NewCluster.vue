@@ -1,8 +1,7 @@
 <template>
     <v-dialog v-model="display" width="500" scrollable>
         <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" variant="text" density="compact" icon="mdi-plus"
-                @click="openNewClusterDialog = true"></v-btn>
+            <v-btn v-bind="props" variant="text" color="success" icon="mdi-plus"></v-btn>
         </template>
         <v-card>
             <v-card-title class="headline primary lighten-2">添加集群</v-card-title>
@@ -30,6 +29,7 @@
 </template>
 <script>
 import { NewClusterDialog } from '@/assets/app/dialogs';
+import notify from '@/assets/app/notify';
 
 export default {
     data: () => ({
@@ -43,8 +43,7 @@ export default {
                 this.display = false;
                 this.$emit('completed');
             } catch (e) {
-                console.error(e)
-                // notify.error(`集群添加失败: ${e}`);
+                notify.error(`添加失败: ${e}`);
             }
         }
     },

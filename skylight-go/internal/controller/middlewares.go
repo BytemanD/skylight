@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"strings"
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
@@ -26,32 +25,21 @@ func MiddlewareLogResponse(req *ghttp.Request) {
 			req.Response.BufferString())
 	}
 }
-func mustAuth(req *ghttp.Request) bool {
-	if req.Request.URL.Path == "/" || req.Request.URL.Path == "/index.html" {
-		return false
-	}
-	if req.Request.URL.Path == "/clusters" || req.Request.URL.Path == "/version" {
-		return false
-	}
-	if req.Request.URL.Path == "/favicon.ico" {
-		return false
-	}
-	if req.Request.URL.Path == "/login" && strings.ToUpper(req.Method) == "POST" {
-		return false
-	}
-	return true
-}
-func MiddlewareAuth(req *ghttp.Request) {
-	if mustAuth(req) {
-		if _, err := req.Session.Id(); err != nil {
-			logging.Error("get session id failed: %s", err)
-			req.Response.WriteStatusExit(400, HttpError{Code: 500, Message: "internal error"})
-		}
-		if user, err := req.Session.Get("user", nil); err != nil || user.IsNil() {
-			logging.Error("invalid request: auth info not found in session")
-			req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "no login"})
-		}
-	}
 
+type NoAuthRule struct {
+	Method string
+	Path   string
+	Router string
+}
+
+func MiddlewareAuth(req *ghttp.Request) {
+	if _, err := req.Session.Id(); err != nil {
+		logging.Error("get session id failed: %s", err)
+		req.Response.WriteStatusExit(400, HttpError{Code: 500, Message: "internal error"})
+	}
+	if user, err := req.Session.Get("user", nil); err != nil || user.IsNil() {
+		logging.Error("invalid request: auth info not found in session")
+		req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "no login"})
+	}
 	req.Middleware.Next()
 }

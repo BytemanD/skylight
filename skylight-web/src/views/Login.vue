@@ -15,13 +15,14 @@
         <!-- <v-select density="compact" class="rounded-0" label="选择地区" v-model="auth.region" :items="regions"
           :disabled="refreshingRegion" prepend-icon="mdi-map-marker">
         </v-select> -->
-        <v-text-field density="compact" placeholder="请输入租户名" prepend-icon="mdi-account-multiple"
+        <v-text-field density="compact" class="mr-10" placeholder="请输入租户名" prepend-icon="mdi-account-multiple"
           v-model="auth.project"></v-text-field>
-        <v-text-field density="compact" placeholder="请输入用户名" prepend-icon="mdi-account" v-model="auth.username">
+        <v-text-field density="compact" class="mr-10" placeholder="请输入用户名" prepend-icon="mdi-account"
+          v-model="auth.username">
         </v-text-field>
         <v-text-field density="compact" placeholder="请输入密码" v-model="auth.password" prepend-icon="mdi-lock"
-          :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
-          @click:append-inner="showPassword = !showPassword">
+          :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
+          @click:append="showPassword = !showPassword">
         </v-text-field>
 
       </v-card-text>
@@ -107,13 +108,13 @@ async function login() {
     showRegions.value = true;
   }
 }
-async function selectedRegion(region){
+async function selectedRegion(region) {
   showRegions.value = false
   await API.system.changeRegion(region)
   sessionStorage.setItem("region", region);
   proxy.$router.push('/dashboard')
 }
-async function cancleRegion(){
+async function cancleRegion() {
   showRegions.value = false
   await API.system.logout()
 }

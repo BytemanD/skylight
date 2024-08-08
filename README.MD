@@ -10,8 +10,7 @@ Openstack Dashboard with Vuetify
 ## 1 环境要求
 
 + go >= 1.21.5
-+ npm
-+ nodjs
++ nodjs >= 22.5
 
 ## 2 运行（开发者模式）
 

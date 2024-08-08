@@ -1,16 +1,23 @@
 package controller
 
 import (
-	"context"
-	"skylight/apiv1"
+	"skylight/internal/consts"
 
-	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 )
 
 type Version struct{}
 
-func (c *Version) Get(ctx context.Context, apiReq *apiv1.VersionGetReq) (res *apiv1.VersionGetRes, err error) {
-	req := g.RequestFromCtx(ctx)
-	req.Response.WriteJson(map[string]string{"version": "dev"})
-	return
+func (c *Version) Get(req *ghttp.Request) {
+	respBody := struct {
+		Version map[string]string `json:"version"`
+	}{
+		Version: map[string]string{
+			"version":       consts.Version,
+			"goVersion":     consts.GoVersion,
+			"buildDate":     consts.BuildDate,
+			"buildPlatform": consts.BuildPlatform,
+		},
+	}
+	req.Response.WriteJsonExit(respBody)
 }
