@@ -7,7 +7,7 @@
 
         <template v-slot:top>
           <v-row>
-            <v-col cols="12" md="7" sm="12">
+            <v-col cols="12" md="6" sm="12">
               <v-toolbar density="compact" class="rounded-pill">
                 <v-btn icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
                 <v-spacer></v-spacer>
@@ -33,7 +33,12 @@
               <v-text-field density='compact' hide-details single-line v-model="table.filterName" label="搜索实例名"
                 @keyup.enter.native="refreshTable()"></v-text-field>
             </v-col>
-            <v-col cols="12" md="2" sm="6">
+            <v-col cols="2" md="1" sm="2">
+              <v-checkbox hide-details v-model="listAll" color="info" class="my-auto" label="所有" 
+                v-on:update:model-value="pageRefresh(1)">
+              </v-checkbox>
+            </v-col>
+            <v-col cols="12" md="2" sm="4">
               <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="pageRefresh(1)" />
               <v-tooltip bottom>
                 <template v-slot:activator="{ props }">
@@ -195,7 +200,7 @@ export default {
     showChangeNameDialog: false,
     showServerUpdateSGDialog: false,
     showServerGroupDialog: false,
-
+    listAll: false,
     totalServers: [],
   }),
   methods: {
@@ -214,12 +219,18 @@ export default {
     refreshTotlaServers: function () {
       let self = this;
       let filter = { 'deleted': this.table.deleted }
+      if (this.listAll) {
+        filter.all_tenants = 1
+      }
       API.server.list(filter).then((servers) => {
         self.totalServers = servers
       })
     },
     pageRefresh: function ({ page, itemsPerPage, sortBy }) {
       let filter = {}
+      if (this.listAll) {
+        filter.all_tenants = 1
+      }
       if (itemsPerPage) {
         if (itemsPerPage >= 0) {
           filter.limit = itemsPerPage

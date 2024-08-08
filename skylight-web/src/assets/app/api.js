@@ -295,7 +295,7 @@ class Server extends OpenstackProxyAPI {
     constructor() { super('/computing/servers') }
     async show(id) {return (await this.get(id)).server;}
     async detail(filters = {}) {
-        filters.all_tenants = 1
+        // filters.all_tenants = 1
         return await super.detail(filters)
     }
     async waitDeleted(item, serverTable) {
@@ -303,7 +303,7 @@ class Server extends OpenstackProxyAPI {
         await watcher.watch();
     }
     async list(filters = {}) {
-        filters.all_tenants = 1
+        // filters.all_tenants = 1
         return (await super.list(filters)).servers
     }
     _parseToQueryString(filters) {
