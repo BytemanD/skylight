@@ -37,9 +37,9 @@ function buildBackend() {
     logInfo ">>>>>> pack resources"
     rm -rf internal/packed/resources.go
     rm -rf internal/packed/config.go
-    gf pack manifest internal/packed/config.go --prefix manifest
+    gf pack manifest internal/packed/config.go --prefix manifest || exit 1
     sed -i 's|http://localhost:8081||g' ../skylight-web/dist/config.json
-    gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources
+    gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources || exit 1
 
     # wget -q https://dl.google.com/go/go1.21.4.linux-amd64.tar.gz
     # rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz
@@ -88,7 +88,7 @@ function main() {
         wget https://mirrors.aliyun.com/nodejs-release/v22.5.0/node-v22.5.0-linux-x64.tar.xz || exit
         # wget https://nodejs.org/dist/v22.5.0/node-v22.5.0-linux-x64.tar.xz  || exit 1
         tar xf node-v22.5.0-linux-x64.tar.xz || exit 1
-        cd node-v22.5.0-linux-x64
+        cd -
         ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/node /usr/bin/node
         ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/npm /usr/bin/npm
         ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/npx /usr/bin/npx
