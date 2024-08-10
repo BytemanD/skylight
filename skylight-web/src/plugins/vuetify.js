@@ -11,20 +11,14 @@ import 'vuetify/styles'
 // Composables
 import { createVuetify } from 'vuetify'
 
-import {
-  VDataTable,
-  VDataTableServer,
-  VDataTableVirtual,
-  VStepper, VStepperHeader, VStepperItem,
-  VDatePicker,
 
-} from 'vuetify/lib/labs/components.mjs'
+// import { VSnackbar } from "vuetify/lib/components/VSnackbar/VSnackbar.mjs";
+// import { VBtn } from "vuetify/lib/components/VBtn/VBtn.mjs";
+// import { VIcon } from "vuetify/lib/components/VIcon/VIcon.mjs";
+// import { VDataTable } from "vuetify/lib/components/VDataTable/VDataTable.mjs";
+// import { VStepper } from "vuetify/lib/components/VStepper/VStepper.mjs";
+// import { VDatePicker } from "vuetify/lib/components/VDatePicker/VDatePicker.mjs";
 
-import { VSnackbar } from "vuetify/lib/components/VSnackbar/VSnackbar.mjs";
-import { VBtn } from "vuetify/lib/components/VBtn/VBtn.mjs";
-import { VIcon } from "vuetify/lib/components/VIcon/VIcon.mjs";
-
-// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
   theme: {
     themes: {
@@ -43,11 +37,9 @@ export default createVuetify({
     },
   },
   components: {
-    VDataTable,
-    VDataTableServer,
-    VDataTableVirtual,
-    VStepper, VStepperHeader, VStepperItem,
-    VDatePicker,
-    VSnackbar, VBtn, VIcon,
+    // VDataTable,
+    // VStepper, 
+    // VDatePicker,
+    // VSnackbar,
   }
 })

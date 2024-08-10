@@ -3,8 +3,8 @@ package controller
 import (
 	"time"
 
-	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/glog"
 )
 
 func MiddlewareCORS(req *ghttp.Request) {
@@ -18,9 +18,9 @@ func MiddlewareLogResponse(req *ghttp.Request) {
 	req.Middleware.Next()
 	spentTime := time.Since(startTime).Seconds()
 	if req.Response.Status < 400 {
-		logging.Info("%s %s -> [%d] (%fs)", req.Method, req.URL, req.Response.Status, spentTime)
+		glog.Infof(req.GetCtx(), "%s %s -> [%d] (%fs)", req.Method, req.URL, req.Response.Status, spentTime)
 	} else {
-		logging.Error("%s %s -> [%d] (%fs)\n    Resp: %s",
+		glog.Errorf(req.GetCtx(), "%s %s -> [%d] (%fs)\n    Resp: %s",
 			req.Method, req.URL, req.Response.Status, spentTime,
 			req.Response.BufferString())
 	}
@@ -34,12 +34,12 @@ type NoAuthRule struct {
 
 func MiddlewareAuth(req *ghttp.Request) {
 	if _, err := req.Session.Id(); err != nil {
-		logging.Error("get session id failed: %s", err)
-		req.Response.WriteStatusExit(400, HttpError{Code: 500, Message: "internal error"})
+		glog.Errorf(req.GetCtx(), "get session id failed: %s", err)
+		req.Response.WriteStatusExit(400, NewHttpIntervalError())
 	}
 	if user, err := req.Session.Get("user", nil); err != nil || user.IsNil() {
-		logging.Error("invalid request: auth info not found in session")
-		req.Response.WriteStatusExit(403, HttpError{Code: 403, Message: "no login"})
+		glog.Errorf(req.GetCtx(), "invalid request: auth info not found in session")
+		req.Response.WriteStatusExit(403, HttpError{Error: "no login"})
 	}
 	req.Middleware.Next()
 }

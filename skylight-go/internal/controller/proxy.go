@@ -5,15 +5,18 @@ import (
 	"skylight/internal/service/openstack"
 	"strings"
 
-	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/glog"
 )
 
 type HttpError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    string `json:"data"`
+	Error   string `json:"error,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func NewHttpIntervalError() HttpError {
+	return HttpError{Error: "internal error"}
 }
 
 type OpenstackProxy struct {
@@ -25,14 +28,14 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 	var err error
 	sessionId, err := req.Session.Id()
 	if err != nil {
-		logging.Error("get session failed: %s", err)
-		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: "internal error"})
+		glog.Error(req.GetCtx(), "get session failed: %s", err)
+		req.Response.WriteStatusExit(500, NewHttpIntervalError())
 	}
 
 	manager, err := openstack.GetManager(sessionId, req)
 	if err != nil {
-		logging.Error("get manager faield: %s", err)
-		req.Response.WriteStatusExit(500, HttpError{Code: 500, Message: "get manager faield"})
+		glog.Error(req.GetCtx(), "get manager faield: %s", err)
+		req.Response.WriteStatusExit(500, NewHttpIntervalError())
 	}
 
 	proxyUrl := strings.TrimPrefix(req.URL.Path, c.Prefix)
@@ -51,7 +54,7 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 		err = fmt.Errorf("invalid prefix %s", c.Prefix)
 	}
 	if err != nil {
-		req.Response.WriteStatusExit(400, HttpError{Code: 400, Message: err.Error()})
+		req.Response.WriteStatusExit(400, HttpError{Error: err.Error()})
 	} else {
 		req.Response.WriteStatusExit(resp.StatusCode(), resp.Body())
 	}

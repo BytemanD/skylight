@@ -7,10 +7,10 @@ import (
 	"skylight/internal/model"
 	"skylight/internal/service/internal/dao"
 
-	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/glog"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -50,7 +50,7 @@ func DBInit(ctx context.Context, dbDriver, dbLink string) error {
 	}
 	dir := filepath.Dir(dbLink)
 	if !gfile.Exists(dir) {
-		logging.Info("create dir '%s'", dir)
+		glog.Infof(ctx, "create dir '%s'", dir)
 		if err := gfile.Mkdir(dir); err != nil {
 			return fmt.Errorf("create dir '%s' failed: %s", dir, err)
 		}
@@ -59,7 +59,7 @@ func DBInit(ctx context.Context, dbDriver, dbLink string) error {
 	if err != nil {
 		return err
 	}
-	logging.Info("migrate db ...")
+	glog.Infof(ctx, "migrate db ...")
 	if err := db.AutoMigrate(&model.Cluster{}); err != nil {
 		return err
 	}
