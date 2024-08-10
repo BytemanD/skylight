@@ -1034,14 +1034,11 @@ export class NewKeypairDialog extends Dialog {
     }
     async commit() {
         if (!this.newKeypair.name) {
-            notify.error(`密钥对名字不能为空`);
-            return;
+            throw `密钥对名字不能为空`;
         }
         this.newKeypair.name = this.newKeypair.name.trim();
         let body = await API.keypair.post({ keypair: this.newKeypair })
-        notify.success(`密钥对创建成功`);
         this.privateKey = body.keypair.private_key;
-        // keypairTable.refresh()
     }
 }
 export class NewAggDialog extends Dialog {
@@ -2427,6 +2424,7 @@ export class ImagePropertiesDialog extends Dialog {
     constructor() {
         super();
         this.image = {};
+        this.visibility = ""
         this.properties = {};
         this.propertyContent = null;
         this.customizeProperties = [
@@ -2437,6 +2435,7 @@ export class ImagePropertiesDialog extends Dialog {
     }
     async init(image) {
         this.image = image;
+        this.visibility = image.visibility;
         let imageData = await API.image.show(this.image.id)
         this.properties = {};
         for (let key in imageData) {
@@ -2449,14 +2448,21 @@ export class ImagePropertiesDialog extends Dialog {
     async removeProperty(key) {
         await API.image.removeProperties(this.image.id, [key]);
         // Vue.delete(this.properties, key);
+        delete this.properties[key]
         notify.success(`属性 ${key} 删除成功`);
     }
     async addProperty(key, value) {
         let properties = {};
         properties[key] = value;
-        await API.image.addProperties(this.image.id, properties);
+        try {
+            await API.image.addProperties(this.image.id, properties);
+            notify.success(`属性 ${key} 添加成功`);
+            this.properties[key] = properties[key]
+        } catch(e) {
+            notify.error(`属性 ${key} 添加失败`);
+            throw e
+        }
         // Vue.set(this.properties, key, value)
-        notify.success(`属性 ${key} 添加成功`);
     }
     async addProperties() {
         if (!this.propertyContent) {
@@ -2483,6 +2489,7 @@ export class ImagePropertiesDialog extends Dialog {
         notify.success(`属性添加成功`);
         for (let key in properties) {
             // Vue.set(this.properties, key, properties[key])
+            this.properties[key] = properties[key]
             console.warn(`set image property ${key}`)
         }
     }

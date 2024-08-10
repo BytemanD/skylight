@@ -47,7 +47,7 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 	case "/volume":
 		resp, err = manager.ProxyVolume(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
 	case "/image":
-		resp, err = manager.ProxyImage(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
+		resp, err = manager.ProxyImage(proxyUrl, req)
 	case "/identity":
 		resp, err = manager.ProxyIdentity(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
 	default:
@@ -70,5 +70,8 @@ func (c *OpenstackProxy) Post(req *ghttp.Request) {
 	c.doProxy(req)
 }
 func (c *OpenstackProxy) Put(req *ghttp.Request) {
+	c.doProxy(req)
+}
+func (c *OpenstackProxy) Patch(req *ghttp.Request) {
 	c.doProxy(req)
 }

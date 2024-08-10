@@ -581,6 +581,13 @@ class Image extends Restfulclient {
         }
         return await this.patch(id, data, { 'Content-Type': 'application/openstack-images-v2.1-json-patch' })
     }
+    async replaceProperties(id, properties) {
+        let data = [];
+        for (let key in properties) {
+            data.push({ path: `/${key}`, value: properties[key], op: 'replace' });
+        }
+        return await this.patch(id, data, { 'Content-Type': 'application/openstack-images-v2.1-json-patch' })
+    }
     async uploadSlice(id, binary, size, blockSize, uploadCallback = null) {
         // TODO: What is the right maxSize
         let maxSize = 1024 * 1024 * parseInt(blockSize);

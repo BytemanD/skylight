@@ -35,6 +35,7 @@
 import i18n from '@/assets/app/i18n';
 import { NewKeypairDialog } from '@/assets/app/dialogs';
 import { Utils } from '@/assets/app/lib';
+import notify from '@/assets/app/notify';
 
 export default {
     props: {
@@ -47,8 +48,13 @@ export default {
     }),
     methods: {
         commit: async function () {
-            await this.dialog.commit();
-            this.$emit('completed');
+            try {
+                await this.dialog.commit();
+                notify.success(`密钥对创建成功`);
+                this.$emit('completed');
+            } catch(e) {
+                notify.error(`创建失败 ${e}`);
+            }
         }
     },
     watch: {

@@ -81,6 +81,9 @@ const MESSAGES = {
         'resize_migrated': 'resize migrated',
         'resize_finish': 'resize finish',
         'migrating': 'migrating',
+        'shelving': 'shelving',
+        'unshelving': 'unshelving',
+
         'networking': 'networking',
         // server actions
         migrate: 'migrate',
@@ -190,7 +193,9 @@ const MESSAGES = {
         'resize_migrated': '变更迁移完成',
         'resize_finish': '变更结束',
         'migrating': '迁移中',
-
+        'shelving': '搁置中',
+        'unshelving': '取消搁置中',
+        'SHELVED_OFFLOADED': '搁置',
         migrate: '迁移',
         reboot: '重启',
         pause: '暂停',

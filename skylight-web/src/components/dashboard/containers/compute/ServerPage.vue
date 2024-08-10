@@ -64,21 +64,18 @@
                 <v-icon v-else-if="item.status.toUpperCase() == 'ACTIVE'" color="success">mdi-play</v-icon>
                 <v-icon v-else-if="item.status.toUpperCase() == 'SHUTOFF'" color="warning">mdi-stop</v-icon>
                 <v-icon v-else-if="item.status.toUpperCase() == 'PAUSED'" color="warning">mdi-pause</v-icon>
-                <v-icon v-else-if="item.status.toUpperCase() == 'ERROR'" size='small'
-                  color="red">mdi-alpha-x-circle</v-icon>
-                <v-icon v-else-if="item.status.toUpperCase() == 'HARD_REBOOT'" size='small' color="warning"
-                  class="mdi-spin">mdi-rotate-right</v-icon>
-                <v-icon
-                  v-else-if="['REBOOT', 'BUILD', 'REBUILD', 'RESIZE', 'VERIFY_RESIZE', 'MIGRATING'].indexOf(item.status.toUpperCase()) >= 0"
-                  color="warning" class="mdi-spin">mdi-rotate-right</v-icon>
-                <span v-else>{{ item.status.toUpperCase() }}</span>
+                <v-icon v-else-if="item.status.toUpperCase() == 'ERROR'" size='small' color="red">mdi-alpha-x-circle</v-icon> 
+                <v-chip v-else size='small' label color="warning">{{ $t(item.status) }} </v-chip>
               </div>
             </template>
           </chip-link>
-
-          <div v-if='item["OS-EXT-STS:task_state"]' class="text-warning text-center">
-            {{ $t(item["OS-EXT-STS:task_state"]) }} ...
-          </div>
+          <br>  
+          <v-chip v-if='item["OS-EXT-STS:task_state"]' color="warning" size="small" variant="text">
+              {{ $t(item["OS-EXT-STS:task_state"]) }}
+              <template v-slot:prepend>
+                <v-icon color="warning" class="mdi-spin">mdi-rotate-right</v-icon>
+              </template>
+          </v-chip>
         </template>
         <template v-slot:[`item.power_state`]="{ item }">
           <v-icon size='small' v-if="item['OS-EXT-STS:power_state'] == 1" color="success">mdi-power</v-icon>

@@ -237,11 +237,18 @@ func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, 
 	}
 	return c.doProxy(c.serviceEndpoint["cinderv2"], method, url, q, body)
 }
-func (c *OpenstackManager) ProxyImage(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["glance"], method, url, q, body)
+	headers := map[string]string{}
+	if req.Header.Get("content-type") != "" {
+		headers["content-type"] = req.Header.Get("content-type")
+	}
+	return c.doProxyWithHeaders(
+		c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
+		headers, req.GetBody(),
+	)
 }
 
 var SESSION_MANAGERS map[string]*OpenstackManager
