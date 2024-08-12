@@ -10,11 +10,11 @@ function getVersion() {
 
     is_dirty=$(git status --porcelain)
     if [ -n "$is_dirty" ]; then
-        dirty="-dirty"
+        dirty="-dev"
     else
         dirty=""
     fi
-    echo "${latest_tag}-${commit_count}${dirty}"
+    echo "${latest_tag}.${commit_count}${dirty}"
 }
 
 function buildFrontend() {
