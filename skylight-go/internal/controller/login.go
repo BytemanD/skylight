@@ -15,8 +15,8 @@ type PostLoginController struct{}
 
 func (c *PostLoginController) Post(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
-	sessionId := req.GetSessionId()
-	if sessionId == "" {
+	sessionId, err := req.Session.Id()
+	if err != nil || sessionId == "" {
 		req.Response.WriteStatusExit(500, NewHttpIntervalError())
 	}
 	reqBody := struct{ Auth model.AuthInfo }{}

@@ -435,11 +435,11 @@ export class KeypairDataTable extends DataTable {
 
 export class ServerDataTable extends DataTable {
     constructor() {
-        super([{ title: '实例名字', key: 'name' },
+        super([{ title: '实例名字', key: 'name', maxWidth: 500 },
         { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
-        { title: '规格', key: 'flavor' },
-        { title: '镜像', key: 'image' },
-        { title: 'IP地址', key: 'addresses' },
+        { title: '规格', key: 'flavor', maxWidth: 250 },
+        { title: '镜像', key: 'image', maxWidth: 250 },
+        { title: 'IP地址', key: 'addresses', maxWidth: 250 },
         { title: '电源', key: 'power_state' },
         { title: '操作', key: 'action' },
         ], API.server, 'servers', '实例');
@@ -1442,23 +1442,23 @@ export class AggDataTable extends DataTable {
 export class ImageDataTable extends DataTable {
     constructor() {
         super([
-            { title: '名字', key: 'name' },
+            { title: '名字', key: 'name', maxWidth: 500 },
+            { title: '发行版', key: 'os_distro' },
+            { title: '架构', key: 'architecture' },
             { title: '状态', key: 'status' },
             { title: '大小', key: 'size', align: 'end' },
             { title: '可见性', key: 'visibility' },
-            { title: '容器格式', key: 'container_format', align: 'center' },
-            { title: '磁盘格式', key: 'disk_format', align: 'center' },
             { title: '操作', key: 'actions', align: 'center' },
         ], API.image, 'images')
         this.extendItems = [
             { title: 'id', key: 'id' },
+            { title: 'checksum', key: 'checksum' },
             { title: 'protected', key: 'protected' },
+            { title: 'os_version', key: 'os_version' },
             { title: 'direct_url', key: 'direct_url' },
             { title: 'container_format', key: 'container_format' },
             { title: 'disk_format', key: 'disk_format' },
             { title: 'created_at', key: 'created_at' },
-            { title: 'checksum', key: 'checksum' },
-            { title: 'block_device_mapping', key: 'block_device_mapping' },
         ]
         this.KB = 1024;
         this.MB = this.KB * 1024;
@@ -1704,7 +1704,7 @@ export class ServerTaskWaiter {
             Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
         }
     }
-    async waitMigrated(action="迁移") {
+    async waitMigrated(action = "迁移") {
         // TODO: show server first
         let srcHost = this.server['OS-EXT-SRV-ATTR:host'];
         await this.waitServerStatus(['ACTIVE', 'SHUTOFF', 'ERROR'])
@@ -1729,16 +1729,16 @@ export class ServerTaskWaiter {
         }
     }
     async waitResized(oldFlavorName) {
-            let action = "规格变更"
-            // TODO: show server first
-            await this.waitServerStatus(['ACTIVE', 'SHUTOFF', 'ERROR'])
-            if (this.server.flavor.original_name != oldFlavorName) {
-                Notify.success(`${this.server.name || this.server.id} ${action} 成功`)
-            } else {
-                Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
-            }
+        let action = "规格变更"
+        // TODO: show server first
+        await this.waitServerStatus(['ACTIVE', 'SHUTOFF', 'ERROR'])
+        if (this.server.flavor.original_name != oldFlavorName) {
+            Notify.success(`${this.server.name || this.server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
         }
     }
+}
 
 export class VolumeTaskWaiter {
     constructor(volume, onUpdatedVolume = null) {

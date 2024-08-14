@@ -69,6 +69,16 @@
           <p v-else>{{ item.status }}</p>
         </template>
 
+        <template v-slot:[`item.os_distro`]="{ item }">
+          <v-icon v-if="item.os_distro=='windows'" color="info">mdi-microsoft-windows</v-icon>
+          <v-icon v-else-if="item.os_distro=='ubuntu'" color="orange">mdi-ubuntu</v-icon>
+          <v-icon v-else-if="item.os_distro=='centos'" color="blue">mdi-centos</v-icon>
+          <v-icon v-else-if="item.os_distro=='ArchLinux'">mdi-arch</v-icon>
+          <v-icon v-else-if="item.os_distro=='redhat'" color="red">mdi-redhat</v-icon>
+          <v-icon v-else-if="item.os_distro=='linux'" color="orange">mdi-linux</v-icon>
+          <span v-else>{{ item.os_distro }}</span>
+        </template>
+
         <template v-slot:[`item.size`]="{ item }"><span class="blue--text">{{ table.humanSize(item) }}</span></template>
         <template v-slot:[`item.actions`]="{ item }">
           <v-btn size="small" variant='text' color="purple" @click="openImagePropertiesDialog(item)">设置属性</v-btn>

@@ -2425,7 +2425,9 @@ export class ImagePropertiesDialog extends Dialog {
         super();
         this.image = {};
         this.visibility = ""
-        this.properties = {};
+        this.architecture = null
+        this.osDistro = null
+        this.osVersion = null;
         this.propertyContent = null;
         this.customizeProperties = [
             { key: 'hw_qemu_guest_agent', value: 'true' },
@@ -2435,7 +2437,10 @@ export class ImagePropertiesDialog extends Dialog {
     }
     async init(image) {
         this.image = image;
+        this.architecture = image.architecture;
         this.visibility = image.visibility;
+        this.osDistro = image.os_distro;
+        this.osVersion = image.os_version;
         let imageData = await API.image.show(this.image.id)
         this.properties = {};
         for (let key in imageData) {
