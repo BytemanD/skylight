@@ -28,7 +28,13 @@ npm install
 npm run dev
 ```
 
-## 3 构建
+## 3 构建并推送镜像
+
+```bash
+sh release/build.sh
+```
+
+## 单独构建前端和后端项目
 
 构建后端项目
 ```bash

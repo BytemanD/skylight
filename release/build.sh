@@ -18,7 +18,7 @@ function getVersion() {
 }
 
 function buildFrontend() {
-    logInfo "========= build frontend ========= "
+    logInfo "========= 构建前端工程 ========= "
     # npm config set registry https://npmmirror.com/
     npm config set registry https://registry.npmmirror.com/
 
@@ -33,7 +33,7 @@ function buildFrontend() {
 }
 
 function buildBackend() {
-    logInfo "========= build backend ========= "
+    logInfo "========= 构建后端工程 ========= "
     logInfo ">>>>>> pack resources"
     rm -rf internal/packed/resources.go
     rm -rf internal/packed/config.go
@@ -119,6 +119,22 @@ function main() {
     rm -rf ${RELEASE_PACKAGE}
     cd -
     rm -rf skylight-web/dist
+
+    cd release
+
+    logInfo "========= 构建容器镜像 ========= "
+    TAR=$(ls -1 skylight* |sort -V |tail -n1)
+    PACKAGE="${TAR%.tar.gz*}"
+    VERSION="${PACKAGE##skylight-}"
+    docker build --network=host --no-cache --build-arg PACKAGE=${PACKAGE} --build-arg DATE="$(date)" -t skylight:${VERSION} ./ || exit 1
+
+    logInfo "========= 推送镜像 ========= "
+    docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}   || exit 1
+    docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight              || exit 1
+    docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}      || exit 1
+    docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight                 || exit 1
+
+    cd -
 }
 
 main
