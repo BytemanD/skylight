@@ -1,7 +1,7 @@
 <template>
     <v-dialog v-model="display" width="500">
         <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" :variant="variant" :size="size" color="warning">重置密码</v-btn>
+            <v-btn v-bind="props" :variant="variant" :size="size" :disabled="disabled" color="warning">重置密码</v-btn>
         </template>
         <v-card>
             <v-card-title>重置密码</v-card-title>
@@ -17,7 +17,7 @@
             <v-divider></v-divider>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="warning" block @click="resetPassword()" :disabled="newName == ''">重置</v-btn>
+                <v-btn color="warning" block @click="resetPassword()" :disabled="newPwd == ''">重置</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -33,6 +33,7 @@ const progs = defineProps({
     server: { type: Object, required: true, },
     variant: { type: String, default: 'text' },
     size: { type: String, default: 'default' },
+    disabled: { type: Boolean, default: false },
 })
 
 var display = ref(false)

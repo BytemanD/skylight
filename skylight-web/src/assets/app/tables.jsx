@@ -1698,10 +1698,19 @@ export class ServerTaskWaiter {
     async waitPaused() {
         let action = 'start'
         await this.waitServerStatus(['PAUSED', 'ERROR'])
-        if (this.server.status.toUpperCase() == 'PAUSED') {
-            Notify.success(`${this.server.name || this.server.id} ${action} 成功`)
-        } else {
+        if (this.server.status.toUpperCase() == 'ERROR') {
             Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
+        } else {
+            Notify.success(`${this.server.name || this.server.id} ${action} 成功`)
+        }
+    }
+    async waitShelved() {
+        let action = 'shelve'
+        await this.waitServerStatus(['SHELVED', 'SHELVED_OFFLOAD',  'ERROR'])
+        if (this.server.status.toUpperCase() == 'ERROR') {
+            Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
+        } else {
+            Notify.success(`${this.server.name || this.server.id} ${action} 成功`)
         }
     }
     async waitMigrated(action = "迁移") {

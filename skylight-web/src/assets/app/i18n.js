@@ -92,6 +92,8 @@ const MESSAGES = {
         unpause: 'unpause',
         stop: 'stop',
         start: 'start',
+        shelve: 'shelve',
+        unshelve: 'unshelve',
 
         about: 'about',
         version: 'version',
@@ -109,6 +111,13 @@ const MESSAGES = {
 
         'migration': 'migration',
         'live-migration': 'live-migration',
+
+        'ACTIVE': 'ACTIVE',
+        'ERROR': 'ERROR',
+        'REBOOT': 'REBOOT',
+        'HARD_REBOOT': 'HARD REBOOT',
+        'SHELVED': 'SHELVED',
+        'SHELVED_OFFLOADED': 'SHELVED OFFLOADED',
 
     },
     'zh-CN': {
@@ -186,7 +195,7 @@ const MESSAGES = {
         'reboot_pending_hard': '等待硬重启',
         'reboot_pending': '等待重启',
         'reboot_started_hard': '开始硬重启',
-        
+
         'rebuilding': "重建中",
         'resize_prep': '变更准备中',
         'resize_migrating': '变更迁移中',
@@ -195,13 +204,15 @@ const MESSAGES = {
         'migrating': '迁移中',
         'shelving': '搁置中',
         'unshelving': '取消搁置中',
-        'SHELVED_OFFLOADED': '搁置',
+
         migrate: '迁移',
         reboot: '重启',
         pause: '暂停',
         unpause: '取消暂停',
         stop: '关机',
         start: '开机',
+        shelve: '搁置',
+        unshelve: '取消搁置',
 
         about: '关于',
         version: '版本',
@@ -223,8 +234,10 @@ const MESSAGES = {
 
         'ACTIVE': '运行中',
         'ERROR': '错误',
-        'HARD_REBOOT': '硬重启',
         'REBOOT': '软重启',
+        'HARD_REBOOT': '硬重启',
+        'SHELVED': '搁置',
+        'SHELVED_OFFLOADED': '搁置',
     },
 };
 

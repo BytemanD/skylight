@@ -413,7 +413,14 @@ class Server extends OpenstackProxyAPI {
         let resp = await this.doAction(id, { 'unpause': null });
         return resp.data;
     }
-
+    async shelve(id) {
+        let resp = await this.doAction(id, { 'shelve': null });
+        return resp;
+    }
+    async unshelve(id) {
+        let resp = await this.doAction(id, { 'unshelve': null });
+        return resp.data;
+    }
     async attachVolume(id, volumeId) {
         return await this.post(
             { volumeAttachment: { volumeId: volumeId } },

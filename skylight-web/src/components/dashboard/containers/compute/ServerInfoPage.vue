@@ -10,19 +10,23 @@
       <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
     </v-col>
     <v-col cols="12" md="12" lg="6" class="pb-0">
+      <btn-server-reset-state :servers="[server]" @update-server="updateServer" />
       <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
-      <btn-server-change-pwd v-if="server.name" :server="server" />
-      <v-btn variant="text" color="warning" v-if="this.server.status == 'ACTIVE'" @click="stop()">
+      <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
+      <v-btn variant="text" color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
         {{ $t('stop') }}</v-btn>
-      <v-btn variant="text" color="success" v-if="this.server.status == 'SHUTOFF'" @click="start()">
+      <v-btn variant="text" color="success" v-if="server.status == 'SHUTOFF'" @click="start()">
         {{ $t('start') }}</v-btn>
-      <v-btn variant="text" color="warning" v-if="this.server.status == 'ACTIVE'" @click="pause()">
+      <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
         {{ $t('pause') }}</v-btn>
-      <v-btn variant="text" color="success" v-if="this.server.status == 'PAUSED'" @click="unpause()">
+      <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
         {{ $t('unpause') }}</v-btn>
+      <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="shelve()">
+        {{ $t('shelve') }}</v-btn>
+      <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
+        @click="unshelve()">{{ $t('unshelve') }}</v-btn>
       <btn-server-migrate :servers="[server]" @updateServer="updateServer" />
       <btn-server-evacuate :servers="[server]" @updateServer="updateServer" />
-      <btn-server-reset-state :servers="[server]" @update-server="updateServer" />
     </v-col>
     <v-col cols="12">
       <server-base-info-card :server="server"></server-base-info-card>
@@ -59,7 +63,8 @@
                       <tr>
                         <td>安全组</td>
                         <td>
-                          <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">{{ sg.name }}</v-chip>
+                          <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">{{ sg.name
+                            }}</v-chip>
                         </td>
                       </tr>
                     </table>
@@ -215,7 +220,6 @@ import BtnServerRebuild from '@/components/plugins/button/BtnServerRebuild.vue';
 import ChangeServerNameDialog from './dialogs/ChangeServerNameDialog.vue';
 import ServerActionDialog from './dialogs/ServerActionDialog.vue';
 import ServerResetStateDialog from './dialogs/ServerResetStateDialog.vue';
-import ServerChangePassword from './dialogs/ServerChangePassword.vue';
 import ServerVolumes from './dialogs/ServerVolumes.vue';
 import BtnAttachInterfaces from '@/components/plugins/button/BtnAttachInterfaces.vue';
 import BtnAttachVolumes from '@/components/plugins/button/BtnAttachVolumes.vue';
@@ -244,7 +248,7 @@ export default {
     ServerResetStateDialog,
     ChangeServerNameDialog, ServerActionDialog,
 
-    ServerChangePassword, ServerVolumes, BtnAttachInterfaces, BtnAttachVolumes,
+    ServerVolumes, BtnAttachInterfaces, BtnAttachVolumes,
     CardServerConsoleLog, CardServerConsole, CardServerActions, TabWindows, ServerUpdateSG,
     ServerRebuild, ServerGroupDialog, MigrationTable,
     DialogLiveMigrateAbort, BtnServerChangePwd, BtnServerResize,
@@ -375,6 +379,18 @@ export default {
     unpause: async function () {
       if (!this.server.id) { return }
       await API.server.unpause(this.serverId)
+      let waiter = new ServerTaskWaiter(this.server)
+      waiter.waitStarted()
+    },
+    shelve: async function () {
+      if (!this.server.id) { return }
+      await API.server.shelve(this.serverId)
+      let waiter = new ServerTaskWaiter(this.server)
+      waiter.waitShelved()
+    },
+    unshelve: async function () {
+      if (!this.server.id) { return }
+      await API.server.unshelve(this.serverId)
       let waiter = new ServerTaskWaiter(this.server)
       waiter.waitStarted()
     },

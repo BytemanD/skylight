@@ -23,15 +23,11 @@
                         <tr>
                             <td style="min-width: 50px">状态</td>
                             <td>
-                                <v-chip density="compact" v-if="server.status == 'ACTIVE'" color="success">{{
-                                    server.status
-                                    }}</v-chip>
-                                <v-chip density="compact" v-else-if="server.status == 'SHUTOFF'" color="warning">
+                                <v-chip density="compact" v-if="server.status == 'ACTIVE'" color="success">
                                     {{ server.status }}</v-chip>
-                                <v-chip density="compact" v-else-if="server.status == 'ERROR'" color="red">{{
-                                    server.status
-                                    }}</v-chip>
-                                <v-chip density="compact" color="warning" v-else>{{ server.status }}</v-chip>
+                                <v-chip density="compact" v-else-if="server.status == 'ERROR'" color="red">
+                                    {{ $t(server.status) }}</v-chip>
+                                <v-chip density="compact" color="warning" v-else>{{ server.status && $t(server.status) }}</v-chip>
                             </td>
                         </tr>
                         <tr>

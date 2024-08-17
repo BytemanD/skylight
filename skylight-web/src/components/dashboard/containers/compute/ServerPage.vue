@@ -110,16 +110,10 @@
             </template>
             <v-list density='compact'>
               <v-list-item @click="openServerUpdateSGDialog(item)">
-                <v-list-item-title>重命名</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="openServerUpdateSGDialog(item)">
                 <v-list-item-title>更新安全组</v-list-item-title>
               </v-list-item>
               <v-list-item @click="openServerGroupDialog(item)">
                 <v-list-item-title>查看群组</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="openServerResizeDialog(item)">
-                <v-list-item-title class="orange--text">规格变更</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -271,10 +265,6 @@ export default {
     openServerUpdateSGDialog: async function (server) {
       this.selectedServer = server;
       this.showServerUpdateSGDialog = !this.showServerUpdateSGDialog;
-    },
-    openServerResizeDialog: async function (server) {
-      this.selectedServer = server;
-      this.showServerResizeDialog = !this.showServerResizeDialog;
     },
     openServerGroupDialog: function (server) {
       this.selectedServer = server;
