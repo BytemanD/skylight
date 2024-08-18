@@ -74,10 +74,6 @@ export default {
         }
     }),
     methods: {
-        getVersion: async function () {
-            this.version = await (API.version.get());
-            this.SETTINGS.updateVersion(this.version)
-        },
         save: function () {
             this.SETTINGS.save()
             this.alert = { message: '配置保存成功', type: 'success' }
@@ -96,7 +92,7 @@ export default {
         }
     },
     created() {
-        this.getVersion();
+
     },
     watch: {
         display(newVal) {

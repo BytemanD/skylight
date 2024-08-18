@@ -128,13 +128,6 @@ export class AppSettings {
                 bootWithVolume: new BooleanSetting(true),
                 supportResourceAction: new BooleanSetting(false),
             }
-            
-        )
-        this.about = new SettingGroup(
-            'about',
-            {
-                version: new LabelSetting(''),
-            }
         )
     }
     save(){

@@ -1577,30 +1577,6 @@ export class Overview {
         this.refreshing = false
     }
 }
-
-export class UserCard {
-    constructor() {
-        this.loginInfo = {}
-        this.user = {}
-        this.userRoles = []
-        this.loading = false
-    }
-    async refresAuthInfo() {
-        this.loading = true
-        this.loginInfo = (await API.login.get()).auth
-        this.user = await API.user.getByName(this.loginInfo.user)
-        let assignments = (await API.roleAssignments.listByUserId(this.user.id))
-        this.userRoles = [];
-        for (let i in assignments) {
-            let role = (await API.role.show(assignments[i].role.id)).role
-            this.userRoles.push(role)
-        }
-        this.loading = false;
-    }
-    async refresh() {
-        this.refresAuthInfo()
-    }
-}
 export class LimitsCard {
     constructor() {
         this.loading = false

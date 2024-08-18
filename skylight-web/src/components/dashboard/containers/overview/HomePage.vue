@@ -100,7 +100,7 @@
       <limits-card />
     </v-col>
     <v-col cols="12" md="4">
-      <user-card />
+      <user-card :user="context.user" :project="context.project" :roles="context.roles || []" />
     </v-col>
   </v-row>
 </template>
@@ -113,6 +113,9 @@ import SETTINGS from '@/assets/app/settings';
 
 import UserCard from './UserCard.vue';
 import LimitsCard from './LimitsCard.vue';
+import { GetLocalContext } from '@/assets/app/context';
+
+var context = GetLocalContext()
 
 var table = reactive(new Overview())
 var resourceWarningPercent = SETTINGS.ui.getItem('resourceWarningPercent')
@@ -120,9 +123,5 @@ var resourceWarningPercent = SETTINGS.ui.getItem('resourceWarningPercent')
 table.loading = ref(false);
 
 table.refresh()
-
-// setInterval(()=>{
-//   table.refreshStatics()
-// }, 1000 * 2)
 
 </script>

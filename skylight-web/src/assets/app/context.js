@@ -1,20 +1,59 @@
+// import { reject } from "core-js/fn/promise"
+import API from "./api"
 
-export class CookieContext{
-    constructor() {
+export class Context {
+    constructor(data) {
+        this.cluster = data.cluster
+        this.region = data.region
+        this.project = data.project
+        this.user = data.user
+        this.roles = data.roles || []
     }
-    setClusterId(clusterId){
-        return localStorage.setItem('clusterId', clusterId)
+    setCluster(cluster) {
+        this.cluster = cluster
+        this.save()
     }
-    setRegion(region){
-        return localStorage.setItem('region', region)
+    setRegion(region) {
+        this.region = region
+        this.save()
     }
-    getClusterId(){
-        return localStorage.getItem('clusterId')
+    isAdmin() {
+        return this.roles.indexOf('admin') >= 0
     }
-    getClusterName(){
-        return localStorage.getItem('clusterName')
+    save() {
+        let data = JSON.stringify(this)
+        localStorage.setItem('context', data)
     }
-    getRegion(){
-        return localStorage.getItem('region')
+}
+
+var _CONTEXT = {};
+
+function loadFromLocalStorage() {
+    let data = localStorage.getItem('context')
+    if (!data) {
+        return null
     }
+    return new Context(JSON.parse(data))
+}
+async function loadFromServer() {
+    let auth = (await API.system.isLogin()).auth
+    let roles = []
+    for (let i in auth.roles) { roles.push(auth.roles[i].name) }
+    return new Context({
+        cluster: auth.cluster, region: auth.region,
+        project: auth.project, user: auth.user, roles: roles,
+    })
+}
+
+export async function GetContext() {
+    if (!_CONTEXT.user) {
+        _CONTEXT = await loadFromServer()
+    }
+    return _CONTEXT || {}
+}
+export function GetLocalContext() {
+    if (!_CONTEXT.user) {
+        _CONTEXT = loadFromLocalStorage()
+    }
+    return _CONTEXT || {}
 }

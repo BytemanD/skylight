@@ -37,7 +37,7 @@ func MiddlewareAuth(req *ghttp.Request) {
 		glog.Errorf(req.GetCtx(), "get session id failed: %s", err)
 		req.Response.WriteStatusExit(400, NewHttpIntervalError())
 	}
-	if user, err := req.Session.Get("user", nil); err != nil || user.IsNil() {
+	if user, err := req.Session.Get("loginInfo", nil); err != nil || user.IsNil() {
 		glog.Errorf(req.GetCtx(), "invalid request: auth info not found in session")
 		req.Response.WriteStatusExit(403, HttpError{Error: "no login"})
 	}

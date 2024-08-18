@@ -22,16 +22,22 @@
     <v-app-bar density="compact">
       <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <v-text-field hide-details class="rounded-0" :value="authInfo && authInfo.cluster">
+        <v-text-field hide-details class="rounded-0" :value="context && context.cluster">
           <template v-slot:prepend>{{ $t('cluster') }} </template>
         </v-text-field>
       </v-toolbar-title>
       <v-toolbar-title class="ml-1">
-        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0"
-          :value="authInfo && authInfo.region">
+        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0" :value="context && context.region">
         </v-text-field>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-chip prepend-icon="mdi-account-star" class="mr-1" color="info">
+        <template v-slot:prepend>
+          <v-icon v-if="context && context.roles && context.isAdmin()">mdi-account-star</v-icon>
+          <v-icon v-else="context && context.roles && context.isAdmin()">mdi-account</v-icon>
+        </template>
+        {{ context && context.user && context.user.name }}
+      </v-chip>
       <btn-home />
       <btn-about />
       <btn-theme />
@@ -40,7 +46,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid>
+      <v-container fluid v-if="context && context.user">
         <router-view></router-view>
       </v-container>
     </v-main>
@@ -61,7 +67,7 @@ import i18n from '@/assets/app/i18n';
 import SettingSheet from '@/components/dashboard/SettingSheet.vue';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
-import API from '@/assets/app/api';
+import { GetContext } from '@/assets/app/context';
 
 const navigationGroup = [
   {
@@ -107,7 +113,6 @@ export default {
     I18N: i18n,
     name: 'Skylight',
     showSettingSheet: false,
-    authInfo: {},
     ui: {
       navigationWidth: SETTINGS.ui.getItem('navigatorWidth'),
     },
@@ -118,10 +123,7 @@ export default {
       drawer: true,
       itemIndex: 0,
     },
-    context: {
-      clusterId: localStorage.getItem('clusterId'),
-      region: null,
-    },
+    context: {},
     clusterTable: new ClusterTable(),
     regionTable: new RegionTable(),
   }),
@@ -155,10 +157,11 @@ export default {
           }
         }
       }
-      return { index: 0, item: navigationGroup[0][0] };
+      return { index: 0, item: navigationGroup[0].items[0] };
     },
     initItem() {
       let selectedItem = this.getItem();
+      console.log(selectedItem)
       this.navigation.itemIndex = selectedItem.index;
       if (this.$route.path == '/dashboard/server/new') {
         this.selectItem(selectedItem.item, '/dashboard/server/new');
@@ -181,18 +184,25 @@ export default {
         }
       }
     },
+    async confirmIsLogin() {
+      try {
+        this.context = await GetContext()
+        if (!this.context) {
+          throw Error("get context failed")
+        }
+        this.context.save()
+        this.initItem()
+        this.$vuetify.theme.dark = SETTINGS.ui.getItem('themeDark').value;
+      } catch (e) {
+        console.error(e)
+        notify.error('请重新登录')
+        this.$router.push('/login')
+      }
+    },
   },
   created() {
+    this.confirmIsLogin()
     Init()
-    let self = this;
-    API.system.isLogin().then(function (resp) {
-      self.authInfo = resp.auth;
-      self.initItem();
-      self.$vuetify.theme.dark = SETTINGS.ui.getItem('themeDark').value;
-    }).catch((e) => {
-      notify.error('请重新登录')
-      self.$router.push('/login')
-    })
   },
 }
 </script>

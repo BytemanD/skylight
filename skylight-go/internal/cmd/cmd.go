@@ -17,6 +17,7 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/gres"
+	"github.com/gogf/gf/v2/os/gsession"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -112,6 +113,8 @@ var (
 					return fmt.Errorf("create dir '%s' failed: %s", gsessionPath, err)
 				}
 			}
+			glog.Infof(ctx, "session path: %s", gsessionPath)
+			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
 
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,

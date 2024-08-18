@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"skylight/internal/model"
+	"skylight/internal/service"
 	"strings"
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
-	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -23,7 +23,7 @@ type OpenstackManager struct {
 	token           string
 	tokenAlive      time.Duration
 	expiredAt       time.Time
-	catalogs        []Catalog
+	tokenData       TokenBody
 	serviceEndpoint map[string]string
 	microVesrion    map[string]string
 }
@@ -82,7 +82,7 @@ func (c *OpenstackManager) tokenIssue() error {
 	if err := json.Unmarshal(resp.Body(), &respBody); err != nil {
 		return err
 	}
-	c.catalogs = respBody.Token.Catalogs
+	c.tokenData = respBody.Token
 	c.expiredAt = time.Now().Add(c.tokenAlive)
 	return nil
 }
@@ -98,7 +98,7 @@ func (c *OpenstackManager) GetEndpoint(service string) (string, error) {
 	if _, err := c.GetToken(); err != nil {
 		return "", err
 	}
-	for _, catalog := range c.catalogs {
+	for _, catalog := range c.tokenData.Catalogs {
 		if catalog.Type != service && catalog.Name != service {
 			continue
 		}
@@ -177,11 +177,27 @@ func (c *OpenstackManager) SetAuthUrl(authUrl string) {
 	}
 	c.AuthUrl = authUrl
 }
-func (c *OpenstackManager) SetRegion(region string) {
+func (c *OpenstackManager) SetRegion(req *ghttp.Request, region string) error {
+	if loginInfo, err := GetAuthFromSession(req); err != nil {
+		return fmt.Errorf("get session auth info falied: %v", err)
+	} else {
+		loginInfo.Region = region
+		req.Session.Set("loginInfo", loginInfo)
+	}
+
 	c.Region = region
 	c.clearEndpoints()
+	return nil
 }
-
+func (c *OpenstackManager) GetUser() User {
+	return c.tokenData.User
+}
+func (c *OpenstackManager) GetProject() Project {
+	return c.tokenData.Project
+}
+func (c *OpenstackManager) GetRoles() []Role {
+	return c.tokenData.Roles
+}
 func (c *OpenstackManager) ProxyIdentity(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("identity", "v3"); err != nil {
 		return nil, err
@@ -285,28 +301,29 @@ func NewManager(sessionId string, authUrl, project, user, password string) (*Ope
 	SESSION_MANAGERS[sessionId] = manager
 	return SESSION_MANAGERS[sessionId], nil
 }
-func getAuthFromSession(req *ghttp.Request) (map[string]*gvar.Var, error) {
-	authInfo := map[string]*gvar.Var{}
-	for _, key := range []string{"authUrl", "project", "user", "password"} {
-		value, err := req.Session.Get(key, nil)
-		if err != nil || value.IsNil() {
-			return nil, fmt.Errorf("get auth value '%s' failed: %v", key, err)
-		}
-		authInfo[key] = value
+func GetAuthFromSession(req *ghttp.Request) (*LoginInfo, error) {
+	sessionLoginInfo, _ := req.Session.Get("loginInfo", nil)
+	loginInfo := LoginInfo{}
+	if err := sessionLoginInfo.Struct(&loginInfo); err != nil {
+		return nil, fmt.Errorf("get login info failed: %s", err)
 	}
-	return authInfo, nil
+	return &loginInfo, nil
 }
 func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error) {
 	if client, ok := SESSION_MANAGERS[sessionId]; ok {
 		return client, nil
 	}
-	if authInfo, err := getAuthFromSession(req); err != nil {
+	if loginInfo, err := GetAuthFromSession(req); err != nil {
 		return nil, fmt.Errorf("get session auth info falied: %v", err)
 	} else {
+		cluster, err := service.GetClusterByName(loginInfo.Cluster)
+		if err != nil {
+			return nil, fmt.Errorf("get cluster %s failed: %s", loginInfo.Cluster, err)
+		}
 		return NewManager(
-			sessionId, authInfo["authUrl"].String(),
-			authInfo["project"].String(), authInfo["user"].String(),
-			authInfo["password"].String())
+			sessionId, cluster.AuthUrl,
+			loginInfo.Project.Name, loginInfo.User.Name,
+			loginInfo.Password)
 	}
 }
 

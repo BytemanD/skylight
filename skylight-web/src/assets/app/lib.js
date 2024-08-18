@@ -1,6 +1,5 @@
 
 import API from "./api.js";
-import { CookieContext } from "./context.js";
 import notify from "./notify.js";
 import SETTINGS from "./settings.js";
 
@@ -192,12 +191,7 @@ export class Logger {
 }
 
 export class ContextLocalStorage {
-    constructor() {
-        this.context = new CookieContext();
-    }
-    domain() {
-        return `${this.context.getClusterId()}_${this.context.getRegion() || 'default'}`;
-    }
+    constructor() {}
     getAll(name) {
         let itemName = `${this.domain()}_${name}`
         LOG.debug(`localStorage get Item ${itemName}`)

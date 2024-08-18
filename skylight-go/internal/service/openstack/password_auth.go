@@ -20,13 +20,13 @@ type Project struct {
 }
 type User struct {
 	Id          string `json:"id,omitempty"`
-	Name        string `json:"name"`
-	Password    string `json:"password"`
+	Name        string `json:"name,omitempty"`
+	Password    string `json:"password,omitempty"`
 	Project     string `json:"project,omitempty"`
 	Description string `json:"description,omitempty"`
 	Email       string `json:"email,omitempty"`
 	Enabled     bool   `json:"enabled,omitempty"`
-	Domain      Domain `json:"domain"`
+	Domain      Domain `json:"domain,omitempty"`
 	DomainId    string `json:"domain_id,omitempty"`
 }
 type Password struct {
@@ -57,24 +57,15 @@ type Catalog struct {
 	Id        string     `json:"id"`
 	Endpoints []Endpoint `json:"endpoints"`
 }
-
-type TokenBody struct {
-	Catalogs []Catalog `json:"catalog"`
+type Role struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
-func getAdminAuth() Auth {
-	return Auth{
-		Identity: Identity{
-			Methods: []string{"password"},
-			Password: Password{
-				User: User{Name: "admin", Password: "admin123", Domain: Domain{Name: "default"}},
-			},
-		},
-		Scope: Scope{
-			Project: Project{
-				Name:   "admin",
-				Domain: Domain{Name: "default"},
-			},
-		},
-	}
+type TokenBody struct {
+	IsDomain bool      `json:"is_domain"`
+	User     User      `json:"user"`
+	Project  Project   `json:"project"`
+	Roles    []Role    `json:"roles"`
+	Catalogs []Catalog `json:"catalog"`
 }

@@ -161,7 +161,6 @@ class System extends Restfulclient {
     }
     async changeRegion(region){
         await this.put('login', {auth: {region: region}})
-        notify.success('更新成功')
     }
 }
 
@@ -523,6 +522,13 @@ class Project extends Restfulclient {
     constructor() { super('/identity/projects') }
     async addUser(id, user, role) {
         return await this.put(`${id}/users/${user}/roles/${role}`, {})
+    }
+    async getByName(name) {
+        let projects = (await this.list({name: name})).projects
+        if (projects.length == 0) {
+            throw Error(`user ${name} not found`)
+        }
+        return projects[0]
     }
 }
 class Role extends Restfulclient {

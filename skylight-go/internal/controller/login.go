@@ -30,37 +30,38 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 	if err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Error: err.Error()})
 	}
-	if _, err := openstack.NewManager(sessionId, cluster.AuthUrl,
+	if manager, err := openstack.NewManager(sessionId, cluster.AuthUrl,
 		reqBody.Auth.Project, reqBody.Auth.User, reqBody.Auth.Password); err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Error: err.Error()})
 	} else {
-		req.Session.Set("cluster", cluster.Name)
-		req.Session.Set("authUrl", cluster.AuthUrl)
-		req.Session.Set("region", reqBody.Auth.Region)
-		req.Session.Set("project", reqBody.Auth.Project)
-		req.Session.Set("user", reqBody.Auth.User)
-		req.Session.Set("password", reqBody.Auth.Password)
+		loginInfo := openstack.LoginInfo{
+			Cluster:  cluster.Name,
+			Region:   reqBody.Auth.Region,
+			Project:  manager.GetProject(),
+			User:     manager.GetUser(),
+			Roles:    manager.GetRoles(),
+			Password: reqBody.Auth.Password,
+		}
+		req.Session.Set("loginInfo", loginInfo)
 	}
 
 	glog.Infof(req.GetCtx(), "login success")
-	req.Response.Header().Set("Session-Id", sessionId)
 	req.Response.WriteStatusExit(200, HttpError{Message: "login success"})
 }
 func (c *LoginController) Get(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
-	user, _ := req.Session.Get("user", nil)
-	project, _ := req.Session.Get("project", "")
-	cluster, _ := req.Session.Get("cluster", "")
-	region, _ := req.Session.Get("region", "")
+
+	sessionLoginInfo, _ := req.Session.Get("loginInfo", nil)
+	loginInfo := openstack.LoginInfo{}
+
+	if err := sessionLoginInfo.Struct(&loginInfo); err != nil {
+		req.Response.WriteStatusExit(500, HttpError{Error: "get login info failed"})
+	}
+	loginInfo.Password = ""
 	authInfo := struct {
-		Auth model.AuthInfo `json:"auth"`
+		Auth openstack.LoginInfo `json:"auth"`
 	}{
-		Auth: model.AuthInfo{
-			Cluster: cluster.String(),
-			Region:  region.String(),
-			Project: project.String(),
-			User:    user.String(),
-		},
+		Auth: loginInfo,
 	}
 	req.Response.WriteJson(authInfo)
 }
@@ -82,8 +83,8 @@ func (c *LoginController) Put(req *ghttp.Request) {
 		req.Response.WriteStatusExit(500, HttpError{Error: "get manager failed", Message: err.Error()})
 		return
 	}
-	req.Session.Set("region", reqBody.Auth.Region)
-	manager.SetRegion(reqBody.Auth.Region)
+	manager.SetRegion(req, reqBody.Auth.Region)
+
 	req.Response.WriteStatusExit(200, HttpError{Message: "update success"})
 }
 func (c *LoginController) Delete(req *ghttp.Request) {

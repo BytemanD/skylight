@@ -46,6 +46,7 @@ import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
 import NewCluster from '@/components/welcome/NewCluster.vue';
 import SelectRegionDialog from '@/components/welcome/SelectRegionDialog.vue';
+import { Context } from '@/assets/app/context';
 
 var showPassword = ref(false);
 
@@ -83,7 +84,16 @@ async function refreshRegions(force = false) {
   //   auth.value.region = regions.value[0]
   // }
 }
-
+async function saveContext(auth) {
+  let roles = []
+  for (let role in auth.roles) { roles.push(role.name) }
+  let ctx = new Context({
+    cluster: auth.cluster, region: auth.region,
+    project: auth.project, user: auth.user, roles: roles,
+  })
+  ctx.save()
+  return ctx
+}
 async function login() {
   if (!auth.value.cluster) { notify.error('请选择集群'); return }
   if (!auth.value.project) { notify.error('请输入租户名'); return }
@@ -94,7 +104,6 @@ async function login() {
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
     notify.success('登录成功')
-
   } catch (e) {
     notify.error('登录失败')
     return
@@ -102,7 +111,9 @@ async function login() {
   regions.value = (await API.region.list()).regions
 
   if (regions.value.length == 1) {
-    sessionStorage.setItem('region', regions.value[0].id);
+    await API.system.changeRegion(regions.value[0].id)
+    let auth = (await API.system.isLogin()).auth
+    saveContext(auth)
     proxy.$router.push('/dashboard')
   } else if (regions.value.length > 1) {
     showRegions.value = true;
@@ -111,7 +122,8 @@ async function login() {
 async function selectedRegion(region) {
   showRegions.value = false
   await API.system.changeRegion(region)
-  sessionStorage.setItem("region", region);
+  let auth = (await API.system.isLogin()).auth
+  saveContext(auth)
   proxy.$router.push('/dashboard')
 }
 async function cancleRegion() {

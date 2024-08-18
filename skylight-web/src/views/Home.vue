@@ -31,13 +31,15 @@ import { ref } from "vue"
 import API from '@/assets/app/api';
 import ClusterDialog from '@/components/welcome/ClusterDialog.vue';
 
-var authInfo = ref({})
 var isLogin = ref(false)
 
 async function refresh() {
-  isLogin.value = false
-  authInfo.value = await (API.system.isLogin())
-  isLogin.value = true
+  try {
+    await API.system.isLogin()
+    isLogin.value = true
+  } catch (e) {
+    isLogin.value = false
+  }
 }
 async function logout() {
   await API.system.logout()
