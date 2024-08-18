@@ -1,24 +1,28 @@
 <template>
     <v-col>
         <migration-table :table="table" refresh-btn />
+        <alert-require-admin />
     </v-col>
 </template>
 
 <script>
 import { MigrationDataTable } from '@/assets/app/tables.jsx';
-import { Utils } from '@/assets/app/lib.js';
 import MigrationTable from '@/components/plugins/tables/MigrationTable.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
     components: {
-        MigrationTable
+        MigrationTable, AlertRequireAdmin,
     },
     data: () => ({
-        Utils: Utils,
-        table: new MigrationDataTable()
+        table: new MigrationDataTable(),
+        context: GetLocalContext(),
     }),
     created() {
-        this.table.refresh();
+        if (this.context.isAdmin()) {
+            this.table.refresh();
+        }
     }
 };
 </script>

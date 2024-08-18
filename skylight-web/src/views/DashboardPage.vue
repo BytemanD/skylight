@@ -10,11 +10,20 @@
       <v-list rounded="xl" density='compact' class="pt-4" open-strategy="single">
         <div v-for="group in navigation.group" v-bind:key="group.name">
           <v-list-subheader class="text-primary">{{ group.name }}</v-list-subheader>
-          <v-list-item v-for="(item, i) in group.items" v-bind:key="i" :title="item.title" :value="item" color="primary"
+          <template v-for="(item, i) in group.items" v-bind:key="i">
+            <v-list-item :title="item.title" :value="item" color="primary" @click="selectItem(item)"
+              :disabled="$route.path.startsWith('/dashboard' + item.router)"
+              :active="$route.path.startsWith('/dashboard' + item.router)">
+              <!-- {{ item }} -->
+              <template v-slot:prepend><v-icon :icon="item.icon"></v-icon></template>
+            </v-list-item>
+          </template>
+          <!-- <v-list-item v-for="(item, i) in group.items" v-bind:key="i" :title="item.title" :value="item" color="primary"
             @click="selectItem(item)" :disabled="$route.path.startsWith('/dashboard' + item.router)"
             :active="$route.path.startsWith('/dashboard' + item.router)">
+            {{ item }}
             <template v-slot:prepend><v-icon :icon="item.icon"></v-icon></template>
-          </v-list-item>
+          </v-list-item> -->
         </div>
       </v-list>
     </v-navigation-drawer>
@@ -74,7 +83,7 @@ const navigationGroup = [
     name: '概览',
     items: [
       { title: '首页', icon: 'mdi-home', router: '/home' },
-      { title: '虚拟化资源', icon: 'mdi-alpha-h-circle', router: '/hypervisor' },
+      { title: '虚拟化资源', icon: 'mdi-alpha-h-circle', router: '/hypervisor', requireAdmin: true },
     ]
   },
   {

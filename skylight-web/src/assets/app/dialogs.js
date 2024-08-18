@@ -17,6 +17,7 @@ import {
     qosPolicyTable, portTable, sgTable,
 } from './objects.js'
 import notify from './notify.js';
+import { GetLocalContext } from './context.js';
 
 class Dialog {
     constructor(params) {
@@ -1265,10 +1266,8 @@ export class UpdateServerSG extends Dialog {
     async init(server) {
         this.server = server;
         this.interfaces = (await API.port.list({ device_id: this.server.id })).ports;
-        if (!this._authInfo) {
-            this._authInfo = await API.authInfo.get();
-        }
-        this.securityGroups = (await API.sg.list({ tenant_id: this._authInfo.project.id })).security_groups;
+        let context = GetLocalContext()
+        this.securityGroups = (await API.sg.list({ tenant_id: context.project.id })).security_groups;
     }
     async commit() {
         for (let i in this.selectedInterfaces) {

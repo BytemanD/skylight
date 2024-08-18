@@ -2,7 +2,7 @@
 import API from "./api"
 
 export class Context {
-    constructor(data) {
+    constructor(data={}) {
         this.cluster = data.cluster
         this.region = data.region
         this.project = data.project
@@ -22,11 +22,9 @@ export class Context {
     }
     save() {
         let data = JSON.stringify(this)
-        console.log("save context", data)
         localStorage.setItem('context', data)
     }
 }
-
 
 function loadFromLocalStorage() {
     let data = localStorage.getItem('context')

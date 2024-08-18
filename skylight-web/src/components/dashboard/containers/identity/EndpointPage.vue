@@ -31,8 +31,8 @@
 
         <template v-slot:[`item.service_name`]="{ item }">{{ serviceMap[item.service_id] && serviceMap[item.service_id].name }}</template>
         <template v-slot:[`item.service_type`]="{ item }">{{ serviceMap[item.service_id] &&  serviceMap[item.service_id].type }}</template>
-
       </v-data-table>
+      <alert-require-admin />
     </v-col>
   </v-row>
 </template>
@@ -46,10 +46,13 @@ import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialo
 import NewEndpointDialog from './dialogs/NewEndpointDialog.vue';
 import ServiceDialogVue from './dialogs/ServiceDialog.vue';
 import RegionDialogVue from './dialogs/RegionDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
   components: {
     NewEndpointDialog, ServiceDialogVue, RegionDialogVue, DeleteComfirmDialog,
+    AlertRequireAdmin,
   },
 
   data: () => ({
@@ -59,6 +62,7 @@ export default {
     showServiceDialog: false,
     showRegionDialog: false,
     serviceMap: {},
+    context: GetLocalContext(),
   }),
   methods: {
     async getServices() {
@@ -78,7 +82,9 @@ export default {
     }
   },
   created() {
-    this.refresh();
+    if (this.context.isAdmin()) {
+      this.refresh();
+    }
   }
 };
 </script>

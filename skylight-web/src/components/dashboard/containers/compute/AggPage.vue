@@ -2,8 +2,8 @@
     <v-row>
         <v-col>
             <v-data-table density='compact' show-select show-expand single-expand :loading="table.loading"
-                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-                class="elevation-1" v-model="table.selected">
+                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
+                :search="table.search" class="elevation-1" v-model="table.selected">
                 <template v-slot:top>
                     <v-row>
                         <v-col cols="12" md="7" sm="12">
@@ -26,8 +26,9 @@
                 </template>
 
                 <template v-slot:[`item.host_num`]="{ item }">
-                    <v-btn size="small" variant="text" icon color="info" @click="editAggHosts(item)">{{ item.hosts.length
-                    }}</v-btn>
+                    <v-btn size="small" variant="text" icon color="info" @click="editAggHosts(item)">{{
+                        item.hosts.length
+                        }}</v-btn>
                     <v-btn size="small" variant="text" icon="mdi-plus" color="primary"
                         @click="openAggAddHostsDialog(item)"></v-btn>
                 </template>
@@ -43,14 +44,17 @@
                     </td>
                 </template>
             </v-data-table>
+            <alert-require-admin />
         </v-col>
-
-        <AggHostDialog :show="openAggHostsDialog"  @update:show="(e) => openAggHostsDialog = e" :aggregate="editAgg" @completed="table.refresh()" />
-        <AggAddHostsDialog :show="showAggAddHostsDialog" @update:show="(e) => showAggAddHostsDialog = e" :aggregate="editAgg" @completed="table.refresh()" />
+        <AggHostDialog :show="openAggHostsDialog" @update:show="(e) => openAggHostsDialog = e" :aggregate="editAgg"
+            @completed="table.refresh()" />
+        <AggAddHostsDialog :show="showAggAddHostsDialog" @update:show="(e) => showAggAddHostsDialog = e"
+            :aggregate="editAgg" @completed="table.refresh()" />
     </v-row>
 </template>
 
 <script>
+import { GetLocalContext } from '@/assets/app/context';
 import { AggDataTable } from '@/assets/app/tables.jsx';
 import { Utils } from '@/assets/app/lib.js';
 
@@ -58,10 +62,12 @@ import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialo
 import NewAggDialog from './dialogs/NewAggDialog.vue';
 import AggHostDialog from './dialogs/AggHostsDialog';
 import AggAddHostsDialog from './dialogs/AggAddHostsDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 export default {
     components: {
         NewAggDialog, AggHostDialog, AggAddHostsDialog, DeleteComfirmDialog,
+        AlertRequireAdmin,
     },
 
     data: () => ({
@@ -70,7 +76,8 @@ export default {
         openAggHostsDialog: false,
         showAggAddHostsDialog: false,
         editAgg: null,
-        table: new AggDataTable()
+        table: new AggDataTable(),
+        context: GetLocalContext(),
     }),
     methods: {
         editAggHosts: function (agg) {
@@ -83,7 +90,9 @@ export default {
         }
     },
     created() {
-        this.table.refresh();
+        if (this.context.isAdmin()) {
+            this.table.refresh();
+        }
     }
 };
 </script>

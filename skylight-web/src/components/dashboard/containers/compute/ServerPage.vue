@@ -19,10 +19,12 @@
                   {{ $t('stop') }}
                 </v-btn>
                 <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
-                <btn-server-migrate :servers="table.selected" @updateServer="updateServer" />
-                <btn-server-evacuate :servers="table.selected" @updateServer="updateServer" />
+                <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
+                  v-if="context && context.isAdmin()" />
+                <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
+                  v-if="context && context.isAdmin()" />
                 <btn-server-reset-state :servers="table.selected"
-                  @updateServer="(server) => { table.updateItem(server) }" />
+                  @updateServer="(server) => { table.updateItem(server) }" v-if="context && context.isAdmin()" />
 
                 <v-spacer></v-spacer>
                 <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
@@ -34,8 +36,8 @@
                 @keyup.enter.native="refreshTable()"></v-text-field>
             </v-col>
             <v-col cols="2" md="1" sm="2">
-              <v-checkbox hide-details v-model="listAll" color="info" class="my-auto" label="所有" 
-                v-on:update:model-value="pageRefresh(1)">
+              <v-checkbox hide-details v-model="listAll" color="info" class="my-auto" label="所有"
+                v-on:update:model-value="pageRefresh(1)" v-if="context && context.isAdmin()">
               </v-checkbox>
             </v-col>
             <v-col cols="12" md="2" sm="4">
@@ -64,17 +66,18 @@
                 <v-icon v-else-if="item.status.toUpperCase() == 'ACTIVE'" color="success">mdi-play</v-icon>
                 <v-icon v-else-if="item.status.toUpperCase() == 'SHUTOFF'" color="warning">mdi-stop</v-icon>
                 <v-icon v-else-if="item.status.toUpperCase() == 'PAUSED'" color="warning">mdi-pause</v-icon>
-                <v-icon v-else-if="item.status.toUpperCase() == 'ERROR'" size='small' color="red">mdi-alpha-x-circle</v-icon> 
+                <v-icon v-else-if="item.status.toUpperCase() == 'ERROR'" size='small'
+                  color="red">mdi-alpha-x-circle</v-icon>
                 <v-chip v-else size='small' label color="warning">{{ $t(item.status) }} </v-chip>
               </div>
             </template>
           </chip-link>
-          <br>  
+          <br>
           <v-chip v-if='item["OS-EXT-STS:task_state"]' color="warning" size="small" variant="text">
-              {{ $t(item["OS-EXT-STS:task_state"]) }}
-              <template v-slot:prepend>
-                <v-icon color="warning" class="mdi-spin">mdi-rotate-right</v-icon>
-              </template>
+            {{ $t(item["OS-EXT-STS:task_state"]) }}
+            <template v-slot:prepend>
+              <v-icon color="warning" class="mdi-spin">mdi-rotate-right</v-icon>
+            </template>
           </v-chip>
         </template>
         <template v-slot:[`item.power_state`]="{ item }">
@@ -167,6 +170,7 @@ import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialo
 import BtnServerMigrate from '@/components/plugins/BtnServerMigrate.vue';
 import BtnServerReboot from '@/components/plugins/BtnServerReboot.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
+import { Context, GetLocalContext } from '@/assets/app/context';
 
 
 export default {
@@ -193,6 +197,7 @@ export default {
     showServerGroupDialog: false,
     listAll: false,
     totalServers: [],
+    context: new Context(),
   }),
   methods: {
     refreshTable: function () {
@@ -272,6 +277,7 @@ export default {
     }
   },
   created() {
+    this.context = GetLocalContext()
   }
 };
 </script>

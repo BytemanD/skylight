@@ -10,7 +10,7 @@
       <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
     </v-col>
     <v-col cols="12" md="12" lg="6" class="pb-0">
-      <btn-server-reset-state :servers="[server]" @update-server="updateServer" />
+      <btn-server-reset-state :servers="[server]" @update-server="updateServer" v-if="context && context.isAdmin()" />
       <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
       <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
       <v-btn variant="text" color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
@@ -25,8 +25,8 @@
         {{ $t('shelve') }}</v-btn>
       <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
         @click="unshelve()">{{ $t('unshelve') }}</v-btn>
-      <btn-server-migrate :servers="[server]" @updateServer="updateServer" />
-      <btn-server-evacuate :servers="[server]" @updateServer="updateServer" />
+      <btn-server-migrate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()"/>
+      <btn-server-evacuate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()"/>
     </v-col>
     <v-col cols="12">
       <server-base-info-card :server="server"></server-base-info-card>
@@ -193,6 +193,7 @@
           </v-window-item>
           <v-window-item>
             <migration-table v-if="serverId" :table="migrationTable" />
+            <alert-require-admin />
           </v-window-item>
         </template>
       </tab-windows>
@@ -208,9 +209,7 @@ import API from '@/assets/app/api';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
 
-
 import { ServerTaskWaiter, MigrationDataTable } from '@/assets/app/tables.jsx';
-
 
 import ServerInterfaceCard from '../../../plugins/ServerInterfaceCard.vue';
 import ServerVolumeCard from '@/components/plugins/ServerVolumeCard.vue';
@@ -240,6 +239,8 @@ import BtnServerChangePwd from '@/components/plugins/BtnServerChangePwd.vue';
 import BtnServerResize from '@/components/plugins/BtnServerResize.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
 import ServerBaseInfoCard from '@/components/plugins/ServerBaseInfoCard.vue';
+import { GetLocalContext } from '@/assets/app/context';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 export default {
   components: {
@@ -253,7 +254,7 @@ export default {
     ServerRebuild, ServerGroupDialog, MigrationTable,
     DialogLiveMigrateAbort, BtnServerChangePwd, BtnServerResize,
     BtnServerEvacuate,
-    ServerBaseInfoCard,
+    ServerBaseInfoCard, AlertRequireAdmin,
   },
 
   data: () => ({
@@ -278,6 +279,7 @@ export default {
     migrationTable: {},
     consoleUrl: '',
     consoleError: '',
+    context: GetLocalContext()
   }),
   methods: {
     loginVnc: async function () {
@@ -320,6 +322,9 @@ export default {
       this.serverActions = (await API.server.actionList(this.serverId)).reverse();
     },
     refreshMigrations: async function () {
+      if (! this.context.isAdmin()) {
+        return
+      }
       this.migrationTable.refresh();
     },
     refresh: async function () {

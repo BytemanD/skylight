@@ -28,6 +28,7 @@
             @click="table.toggleEnabled(item)"></v-switch>
         </template>
       </v-data-table>
+      <alert-require-admin />
     </v-col>
   </v-row>
 </template>
@@ -37,19 +38,25 @@ import { DomainTable } from '@/assets/app/tables';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 import NewDomainDialog from './dialogs/NewDomainDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
   components: {
-    NewDomainDialog, DeleteComfirmDialog,
+    NewDomainDialog, DeleteComfirmDialog, AlertRequireAdmin,
   },
 
   data: () => ({
     table: new DomainTable(),
     showNewDoaminDialog: false,
+    context: GetLocalContext(),
   }),
   methods: {
     async refresh() {
-      this.table.refresh();
+      if (!this.context.isAdmin()) {
+        return
+      }
+      this.table.refresh()
     }
   },
   created() {

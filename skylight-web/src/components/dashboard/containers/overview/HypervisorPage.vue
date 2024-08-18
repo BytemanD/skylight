@@ -72,23 +72,29 @@
           </td>
         </template>
       </v-data-table>
+      <alert-require-admin />
     </v-col>
   </v-row>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue';
+import { GetLocalContext } from '@/assets/app/context';
 import { HypervisortTable } from '@/assets/app/tables';
 import ChipLink from '@/components/plugins/ChipLink.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
+var context = GetLocalContext()
 var table = reactive(new HypervisortTable())
-
 table.loading = ref(false);
 
 async function refresh() {
   await table.refresh();
 }
 
-refresh();
+if (context.isAdmin()) {
+  refresh();
+}
+
 
 </script>

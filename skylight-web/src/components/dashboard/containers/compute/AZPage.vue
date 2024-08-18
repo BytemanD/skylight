@@ -45,22 +45,26 @@
                 </v-card-text>
             </v-card>
         </v-col>
+        <alert-require-admin />
     </v-row>
 </template>
 
 <script>
 import { AZDataTable } from '@/assets/app/tables.jsx';
 import { Utils } from '@/assets/app/lib.js';
+import { GetLocalContext } from '@/assets/app/context';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 export default {
     components: {
-
+        AlertRequireAdmin,
     },
 
     data: () => ({
         Utils: Utils,
         displayType: 0,
-        table: new AZDataTable()
+        table: new AZDataTable(),
+        context: GetLocalContext(),
     }),
     methods: {
         drawAz: async function () {
@@ -71,7 +75,9 @@ export default {
         }
     },
     created() {
-        this.table.refresh();
+        if (this.context.isAdmin()) {
+            this.table.refresh();
+        }
     }
 };
 </script>

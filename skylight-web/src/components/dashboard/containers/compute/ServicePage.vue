@@ -47,32 +47,24 @@
                     <v-icon v-else color="red">mdi-emoticon-sad</v-icon>
                 </template>
             </v-data-table>
+            <alert-require-admin />
         </v-col>
     </v-row>
 </template>
 
-<script>
-import { Utils } from '@/assets/app/lib.js';
+<script setup>
+import { reactive } from 'vue';
+import { GetLocalContext } from '@/assets/app/context';
 import { ComputeServiceTable } from '@/assets/app/tables.jsx';
-
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
-export default {
-    components: {
-        DeleteComfirmDialog,
-    },
+var context = GetLocalContext()
 
-    data: () => ({
-        Utils: Utils,
-        table: new ComputeServiceTable()
+var table = reactive(new ComputeServiceTable())
 
-        // miniVariant: false,
-    }),
-    methods: {
+if (context.isAdmin()) {
+    table.refresh()
+}
 
-    },
-    created() {
-        this.table.refresh();
-    }
-};
 </script>

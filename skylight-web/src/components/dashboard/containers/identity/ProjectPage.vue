@@ -13,7 +13,7 @@
                 <NewProjectDialog @completed="table.refresh()" />
                 <v-spacer></v-spacer>
                 <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除项目?"
-                  @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()"/>
+                  @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
               </v-toolbar>
             </v-col>
             <v-col cols="12" md="3" sm="4">
@@ -25,7 +25,8 @@
                 hide-details></v-text-field>
             </v-col>
             <v-col cols="12" md="1" sm="2">
-              <v-btn icon="mdi-refresh" variant="text" color="info" v-on:click="table.refresh()"><v-icon></v-icon></v-btn>
+              <v-btn icon="mdi-refresh" variant="text" color="info"
+                v-on:click="table.refresh()"><v-icon></v-icon></v-btn>
             </v-col>
           </v-row>
         </template>
@@ -51,6 +52,7 @@
           </td>
         </template>
       </v-data-table>
+      <alert-require-admin />
       <ProjectUserDialog :show="showProjectUserDialog" :project="selectProject"
         @update:show="(e) => showProjectUserDialog = e" />
     </v-col>
@@ -66,11 +68,13 @@ import NewProjectDialog from './dialogs/NewProjectDialog.vue';
 import UserDialog from './dialogs/UserDialog.vue';
 import RoleDialog from './dialogs/RoleDialog.vue';
 import ProjectUserDialog from './dialogs/ProjectUserDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
   components: {
     NewProjectDialog, UserDialog, RoleDialog, ProjectUserDialog,
-    DeleteComfirmDialog,
+    DeleteComfirmDialog, AlertRequireAdmin,
   },
 
   data: () => ({
@@ -81,6 +85,7 @@ export default {
     showUserDialog: false,
     showProjectUserDialog: false,
     selectProject: null,
+    context: GetLocalContext(),
   }),
   methods: {
     async refresh() {
@@ -92,7 +97,9 @@ export default {
     }
   },
   created() {
-    this.refresh();
+    if (this.context.isAdmin()) {
+      this.refresh();
+    }
   }
 };
 </script>

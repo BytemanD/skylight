@@ -4,7 +4,8 @@
       <v-card elevation="4" title="平台概况">
         <v-divider></v-divider>
         <v-card-text>
-          <v-row>
+          <alert-require-admin />
+          <v-row v-if="context.isAdmin()">
             <v-col class="text-center">
               <h1 class="ma-8">{{ table.projects.length }}</h1>
               <v-chip variant="text" prepend-icon="mdi-dots-grid">
@@ -48,11 +49,12 @@
     <v-col cols="12" md="5">
       <v-card elevation="4" title="资源使用量">
         <template v-slot:append>
-          <v-btn density="compact" variant="text" icon="mdi-refresh" @click="table.refreshAndWait()"></v-btn>
+          <v-btn density="compact" variant="text" icon="mdi-refresh" @click="table.refreshAndWait()" v-if="context.isAdmin()"></v-btn>
         </template>
         <v-divider></v-divider>
         <v-card-text>
-          <v-row>
+          <alert-require-admin />
+          <v-row v-if="context.isAdmin()">
             <v-col class="text-center">
               <h4>{{ $t('memory') }}</h4>
               <v-tooltip end>
@@ -114,6 +116,7 @@ import SETTINGS from '@/assets/app/settings';
 import UserCard from './UserCard.vue';
 import LimitsCard from './LimitsCard.vue';
 import { GetLocalContext } from '@/assets/app/context';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 var context = GetLocalContext()
 
@@ -122,6 +125,8 @@ var resourceWarningPercent = SETTINGS.ui.getItem('resourceWarningPercent')
 
 table.loading = ref(false);
 
-table.refresh()
+if (context.isAdmin()) {
+  table.refresh()
+}
 
 </script>
