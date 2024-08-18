@@ -2,10 +2,10 @@
   <v-container class="text-center">
     <v-card width="500" class="mx-auto " elevation="10">
       <v-img height="80" src="@/assets/favicon.svg" class="mt-4" />
-      <v-card-title>欢迎使用 Skylight</v-card-title>
+      <v-card-title>登录 Skylight</v-card-title>
       <v-card-text>
         <v-select density="compact" item-title="name" label="选择集群" item-value="name" class="rounded-0"
-          v-model="auth.cluster" :items="clusters" @update:modelValue="changeCluster()" prepend-icon="mdi-map">
+          v-model="auth.cluster" :items="clusters" prepend-icon="mdi-map">
           <template v-slot:append>
             <v-btn density="compact" color="info" variant="text" icon="mdi-refresh" @click="refreshClusters()"></v-btn>
             <new-cluster @completed="refreshClusters()" />
@@ -50,7 +50,7 @@ import { Context } from '@/assets/app/context';
 
 var showPassword = ref(false);
 
-const auth = ref({ cluster: null, project: "admin", username: "admin", password: null, });
+const auth = ref({ cluster: null, project: null, username: null, password: null, });
 const { proxy } = getCurrentInstance()
 
 const clusters = ref([])
@@ -62,28 +62,8 @@ async function refreshClusters() {
   if (clusters.value.length > 0 && !auth.value.cluster) {
     auth.value.cluster = clusters.value[0].name
   }
-  // refreshRegions(true)
-}
-function changeCluster() {
-  // auth.value.region = null;
-  // regions.value = [];
-  // refreshRegions(true)
 }
 
-async function refreshRegions(force = false) {
-  if (!force && regions.value.length > 0) {
-    return
-  }
-  if (!auth.value.cluster) {
-    return
-  }
-  // refreshingRegion.value = true;
-  // regions.value = await API.cluster.regions(auth.value.cluster)
-  // refreshingRegion.value = false;
-  // if (regions.value.length > 0 && !auth.value.region) {
-  //   auth.value.region = regions.value[0]
-  // }
-}
 async function saveContext(auth) {
   let roles = []
   for (let i in auth.roles) { roles.push(auth.roles[i].name) }
@@ -114,7 +94,6 @@ async function login() {
   if (regions.value.length == 1) {
     await API.system.changeRegion(regions.value[0].id)
     let auth = (await API.system.isLogin()).auth
-    console.log("xxxxxxxxxxxxxxx auth", auth)
     saveContext(auth)
     proxy.$router.push('/dashboard')
   } else if (regions.value.length > 1) {
