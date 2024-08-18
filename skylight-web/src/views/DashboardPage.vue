@@ -67,7 +67,7 @@ import i18n from '@/assets/app/i18n';
 import SettingSheet from '@/components/dashboard/SettingSheet.vue';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
-import { GetContext } from '@/assets/app/context';
+import { GetContext, GetLocalContext } from '@/assets/app/context';
 
 const navigationGroup = [
   {
@@ -186,11 +186,14 @@ export default {
     },
     async confirmIsLogin() {
       try {
-        this.context = await GetContext()
-        if (!this.context) {
+        let context = GetLocalContext()
+        if (!context || !context.user) {
+          context = await GetContext()
+        }
+        if (!context) {
           throw Error("get context failed")
         }
-        this.context.save()
+        this.context = context
         this.initItem()
         this.$vuetify.theme.dark = SETTINGS.ui.getItem('themeDark').value;
       } catch (e) {

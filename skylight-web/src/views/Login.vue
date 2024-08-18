@@ -86,7 +86,7 @@ async function refreshRegions(force = false) {
 }
 async function saveContext(auth) {
   let roles = []
-  for (let role in auth.roles) { roles.push(role.name) }
+  for (let i in auth.roles) { roles.push(auth.roles[i].name) }
   let ctx = new Context({
     cluster: auth.cluster, region: auth.region,
     project: auth.project, user: auth.user, roles: roles,
@@ -108,11 +108,13 @@ async function login() {
     notify.error('登录失败')
     return
   }
+  localStorage.removeItem('context')
   regions.value = (await API.region.list()).regions
 
   if (regions.value.length == 1) {
     await API.system.changeRegion(regions.value[0].id)
     let auth = (await API.system.isLogin()).auth
+    console.log("xxxxxxxxxxxxxxx auth", auth)
     saveContext(auth)
     proxy.$router.push('/dashboard')
   } else if (regions.value.length > 1) {

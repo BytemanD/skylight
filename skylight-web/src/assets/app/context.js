@@ -22,11 +22,11 @@ export class Context {
     }
     save() {
         let data = JSON.stringify(this)
+        console.log("save context", data)
         localStorage.setItem('context', data)
     }
 }
 
-var _CONTEXT = {};
 
 function loadFromLocalStorage() {
     let data = localStorage.getItem('context')
@@ -46,14 +46,10 @@ async function loadFromServer() {
 }
 
 export async function GetContext() {
-    if (!_CONTEXT.user) {
-        _CONTEXT = await loadFromServer()
-    }
-    return _CONTEXT || {}
+    let context = await loadFromServer()
+    context.save()
+    return context
 }
 export function GetLocalContext() {
-    if (!_CONTEXT.user) {
-        _CONTEXT = loadFromLocalStorage()
-    }
-    return _CONTEXT || {}
+    return loadFromLocalStorage()
 }

@@ -19,7 +19,7 @@ async function logout() {
     } catch (e) {
         notify.error("退出失败")
     }
-    localStorage.removeItem('X-Token')
+    localStorage.removeItem('context')
     proxy.$router.push('/login')
 }
 
