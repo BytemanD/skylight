@@ -3,7 +3,6 @@
     <v-card>
       <v-card-title class="headline warning" primary-title>重置快照状态</v-card-title>
       <v-card-text>
-        {{ snapshots }}
         <v-select outlined hide-details class="mt-5" :items="dialog.statusList" label="重置为"
           v-model="dialog.status"></v-select>
       </v-card-text>

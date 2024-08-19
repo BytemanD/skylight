@@ -140,16 +140,19 @@ export class Utils {
     static isEmpty(value) {
         return !value || value == '' || value == {} || value == [];
     }
-    static getNavigationSelectedItem(){
+    static getNavigationSelectedItem() {
         let localItem = localStorage.getItem('navigationSelectedItem');
-        return localItem ? JSON.parse(localItem): null;
+        return localItem ? JSON.parse(localItem) : null;
     }
-    static setNavigationSelectedItem(item){
-        if (! item) {
+    static setNavigationSelectedItem(item) {
+        if (!item) {
             console.warn('item is null when navigationSelectedItem')
             return
         }
         localStorage.setItem('navigationSelectedItem', JSON.stringify(item));
+    }
+    static itemProps(item) {
+        return { name: item.name, title: item.id, subtitle: item.name }
     }
 }
 
@@ -191,7 +194,7 @@ export class Logger {
 }
 
 export class ContextLocalStorage {
-    constructor() {}
+    constructor() { }
     getAll(name) {
         let itemName = `${this.domain()}_${name}`
         LOG.debug(`localStorage get Item ${itemName}`)
@@ -282,7 +285,7 @@ export class Message {
         let positionXY = position.split('-');
         this.y = positionXY[0];
         this.x = positionXY[1];
-        this.notify = function (msg){
+        this.notify = function (msg) {
             console.log(msg)
         };
     }

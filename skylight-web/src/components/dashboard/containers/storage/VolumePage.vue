@@ -8,7 +8,7 @@
                     <v-row>
                         <v-col cols="12" md="6" sm="12">
                             <v-toolbar density="compact" class="rounded-pill ma-0 pa-0">
-                                <NewVolumeVue @completed="table.refresh()" />
+                                <new-volume-dialog @create="(item) => {table.createItem(item)}"  />
                                 <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume"></VolumeExtendVue>
                                 <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />
                                 <v-spacer></v-spacer>
@@ -96,14 +96,15 @@ import { Utils } from '@/assets/app/lib.js';
 import SETTINGS from '@/assets/app/settings';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
-import NewVolumeVue from './dialogs/NewVolume.vue';
+import NewVolumeDialog from './dialogs/NewVolume.vue';
 import VolumeStatusResetDialog from './dialogs/VolumeStatusResetDialog.vue';
 import VolumeExtendVue from './dialogs/VolumeExtend.vue';
 import ResourceActionsDialog from './dialogs/ResourceActionsDialog.vue';
+import notify from '@/assets/app/notify';
 
 export default {
     components: {
-        NewVolumeVue, VolumeStatusResetDialog, VolumeExtendVue,
+        NewVolumeDialog, VolumeStatusResetDialog, VolumeExtendVue,
         ResourceActionsDialog, DeleteComfirmDialog,
     },
 
@@ -160,7 +161,7 @@ export default {
         },
         updateVolume: async function(item) {
             this.table.updateItem(item)
-        }
+        },
     },
     created() {
         // this.table.refresh();

@@ -40,28 +40,22 @@
                     </td>
                 </template>
             </v-data-table>
+            <alert-require-admin />
         </v-col>
     </v-row>
 </template>
 
-<script>
+<script setup>
+import { reactive } from 'vue';
+
+import { GetLocalContext } from '@/assets/app/context';
 import { VolumeServiceTable } from '@/assets/app/tables.jsx';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
-export default {
-    components: {
+var context = GetLocalContext()
+var table = reactive(new VolumeServiceTable())
 
-    },
-
-    data: () => ({
-        table: new VolumeServiceTable()
-        // miniVariant: false,
-    }),
-    methods: {
-
-    },
-    created() {
-        this.table.refresh();
-    }
-};
+if (context.isAdmin()) {
+    table.refresh()
+}
 </script>
-    

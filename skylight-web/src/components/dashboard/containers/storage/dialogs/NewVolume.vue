@@ -9,33 +9,32 @@
       <v-card-text>
         <v-row>
           <v-col cols="10">
-            <v-text-field label="名字" placeholder="请输入卷名" v-model="dialog.name" hide-details
-              :rules="[dialog.checkNotNull]"></v-text-field>
+            <v-text-field label="名字" placeholder="请输入卷名" v-model="volume.name" hide-details
+              :rules="[checkNotNull]"></v-text-field>
           </v-col>
           <v-col cols="2" class="my-auto">
-            <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+            <v-btn variant="text" color="primary" @click="refreshName()">随机生成</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-select density='compact' outlined :items="dialog.params.types" clearable label="卷类型" item-title="name"
-              item-value="name" v-model="dialog.params.type" hide-details></v-select>
+            <v-select outlined clearable label="卷类型" v-model="volume.type" hide-details :items="volumeTypes"
+              item-value="id" :item-props="Utils.itemProps"></v-select>
           </v-col>
           <v-col cols="4">
-            <v-text-field density='compact' outlined label="大小(GB)" placeholder="请输入卷大小" hide-details
-              v-model="dialog.params.size"></v-text-field>
+            <v-text-field outlined label="大小(GB)" placeholder="请输入卷大小" hide-details type="number"
+              v-model="volume.size"></v-text-field>
           </v-col>
           <v-col cols="2">
-            <v-text-field hide-details label="数量" placeholder="请输入新建数量" type="number" v-model="dialog.params.nums" density='compact'
-              outlined>
+            <v-text-field hide-details label="数量" placeholder="请输入新建数量" type="number" v-model="nums" outlined>
             </v-text-field>
           </v-col>
           <v-col cols="6">
-            <v-select density='compact' outlined hide-details :items="dialog.params.images" clearable label="镜像"
-              item-value="id" :item-props="dialog.itemProps" v-model="dialog.params.image">
+            <v-select outlined hide-details v-model="volume.image" clearable label="镜像" :items="images" item-value="id"
+              :item-props="Utils.itemProps">
             </v-select>
           </v-col>
           <v-col cols="6">
-            <v-select density='compact' outlined hide-details :items="dialog.params.snapshots" clearable label="快照"
-            :item-props="dialog.itemProps" item-value="id" v-model="dialog.params.snapshot">
+            <v-select outlined hide-details v-model="volume.snapshot" clearable label="快照" :items="snapshots"
+              item-value="id" :item-props="Utils.itemProps">
             </v-select>
           </v-col>
           <v-alert type="info" density='compact' variant="text">
@@ -46,41 +45,76 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="dialog.commit()">创建</v-btn>
+        <v-btn color="primary" @click="commit()">创建</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
-<script>
-import i18n from '@/assets/app/i18n';
-import { NewVolumeDialog } from '@/assets/app/dialogs';
+
+<script setup>
+import { ref, defineEmits, watch } from 'vue'
+import SETTINGS from '@/assets/app/settings';
 import { Utils } from '@/assets/app/lib';
+import API from '@/assets/app/api';
+import notify from '@/assets/app/notify';
 
-export default {
-  data: () => ({
-    i18n: i18n,
-    display: false,
-    dialog: new NewVolumeDialog(),
-    Utils: Utils
-  }),
-  methods: {
-    commit: async function () {
-      await this.dialog.commit();
-      this.display = false;
-      this.$emit('completed');
-    }
-  },
-  created() {
+var display = ref(false)
+const emits = defineEmits(['create', 'updateServer'])
 
-  },
-  watch: {
-    display(newVal) {
-      this.display = newVal;
-      if (this.display) {
-        this.dialog.init();
-      }
-      this.$emit("update:show", this.display);
+
+var volume = ref({
+  name: null,
+  size: SETTINGS.openstack.getItem('dataVolumeSizeDefault').value,
+  image: null,
+  type: null,
+  snapshot: null,
+})
+var nums = 1;
+var snapshots = []
+var images = []
+var volumeTypes = []
+
+async function init() {
+  refreshName()
+  nums = 1
+  images = (await API.image.list()).images
+  snapshots = (await API.snapshot.detail()).snapshots
+  volumeTypes = (await API.volumeType.list()).volume_types
+}
+
+function refreshName() {
+  volume.value.name = Utils.getRandomName("volume")
+}
+function checkNotNull(value) {
+  if (!value) {
+    return '该选项不能为空';
+  }
+  return true;
+}
+async function commit() {
+  if (!volume.value.name) {
+    notify.warning('卷名字不能为空');
+    return;
+  }
+
+  for (var i = 1; i <= nums; i++) {
+    let data = {
+      name: nums > 1 ? `${volume.value.name}-${i}` : volume.value.name,
+      size: parseInt(volume.value.size)
     }
-  },
-};
+    if (volume.value.image) { data.imageRef = volume.value.image; }
+    if (volume.value.snapshot) { data.snapshot_id = volume.value.snapshot; }
+    if (volume.value.type) { data.volume_type = volume.value.type; }
+    let body = await API.volume.create(data)
+    notify.info(`卷 ${volume.value.name} 创建中`);
+    emits('create', body.volume);
+  }
+  display.value = false;
+}
+watch(() => display.value, (newValue, oldValue) => {
+  if (newValue) {
+    init()
+  }
+})
+init()
 </script>

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"skylight/internal/model"
 	"skylight/internal/service"
+	"skylight/utility"
 	"strings"
 	"time"
 
@@ -43,6 +44,9 @@ func (c *OpenstackManager) isTokenExpired() (expired bool) {
 }
 
 func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, error) {
+	if req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	logging.Debug("-----proxy---> %s %s ?%s Headers: %s",
 		req.Method, req.URL, req.QueryParam.Encode(), c.safeHeader(req.Header))
 	resp, err := req.Send()
@@ -52,6 +56,11 @@ func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, e
 	proxyRespBody := "<Body>"
 	if resp.Header().Get("Content-Type") == "application/json" {
 		if resp.IsError() {
+			if reqBody, err := utility.StructToJson(req.Body); err == nil {
+				logging.Debug("req body: %s", reqBody)
+			} else {
+				logging.Error("parse req body failed: %s", err)
+			}
 			proxyRespBody = string(resp.Body())
 			// err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
 		}

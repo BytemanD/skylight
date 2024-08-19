@@ -1341,11 +1341,11 @@ export class NewSnapshotDialog extends Dialog {
     constructor() {
         super();
         this.resource = 'snapshot';
-        this.name = '';
-        this.volume_id = '';
+        this.name = null;
+        this.volume_id = null;
         this.volumes = [];
         this.force = false;
-        this.description = '';
+        this.description = null;
         this.metadata = {}
     }
     randomName() {

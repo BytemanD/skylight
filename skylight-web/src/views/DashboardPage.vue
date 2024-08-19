@@ -170,7 +170,6 @@ export default {
     },
     initItem() {
       let selectedItem = this.getItem();
-      console.log(selectedItem)
       this.navigation.itemIndex = selectedItem.index;
       if (this.$route.path == '/dashboard/server/new') {
         this.selectItem(selectedItem.item, '/dashboard/server/new');

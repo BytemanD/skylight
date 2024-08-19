@@ -15,7 +15,7 @@
             <v-btn variant="text" color="primary" @click="dialog.randomName()">随机名字</v-btn>
           </v-col>
           <v-col>
-            <v-select hide-details :items="dialog.volumes" label="请选择卷" item-value="id" :item-props="dialog.itemProps"
+            <v-select hide-details :items="dialog.volumes" label="请选择卷" item-value="id" :item-props="Utils.itemProps"
               outlined v-model="dialog.volume_id">
             </v-select>
             <v-switch color="warning" v-model="dialog.force" label="强制" hint="非强制模式下，只能对可用状态的卷创建快照。"
@@ -46,9 +46,6 @@ export default {
     Utils: Utils
   }),
   methods: {
-    itemProps: function (item) {
-      return { name: item.name, title: item.id, subtitle: item.name }
-    },
     commit: async function () {
       await this.dialog.commit();
       this.display = false;

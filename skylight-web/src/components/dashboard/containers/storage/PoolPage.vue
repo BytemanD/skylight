@@ -29,7 +29,8 @@
                                 :model-value="item.capabilities.total_capacity_gb - item.capabilities.free_capacity_gb">
                             </v-progress-linear>
                         </template>
-                        总容量: {{ item.capabilities.total_capacity_gb }} <br>剩余容量: {{ item.capabilities.free_capacity_gb }}
+                        总容量: {{ item.capabilities.total_capacity_gb }} <br>剩余容量: {{ item.capabilities.free_capacity_gb
+                        }}
                     </v-tooltip>
 
                 </template>
@@ -54,30 +55,24 @@
                             </tr>
                         </table>
                     </td>
-
                 </template>
             </v-data-table>
+            <alert-require-admin />
         </v-col>
     </v-row>
 </template>
 
-<script>
+<script setup>
+import { reactive } from 'vue';
+
+import { GetLocalContext } from '@/assets/app/context';
 import { VolumePoolTable } from '@/assets/app/tables.jsx';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
-export default {
-    components: {
+var context = GetLocalContext()
+var table = reactive(new VolumePoolTable())
 
-    },
-
-    data: () => ({
-        table: new VolumePoolTable()
-    }),
-    methods: {
-
-    },
-    created() {
-        this.table.refresh();
-    }
-};
+if (context.isAdmin()) {
+    table.refresh()
+}
 </script>
-    

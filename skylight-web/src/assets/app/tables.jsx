@@ -24,6 +24,7 @@ class DataTable {
         this.newItemDialog = null;
         this.loading = false;
         this.columns = this.headers.map((header) => { return header.key });
+        this.creatingStatusList = ['creating', 'building']
     }
     async openNewItemDialog() {
         if (this.newItemDialog) {
@@ -83,6 +84,23 @@ class DataTable {
                     continue
                 }
                 this.items[i][key] = newItem[key];
+            }
+            break
+        }
+    }
+    async createItem(item) {
+        this.items.unshift(item)
+        while (true) {
+            let newItem = await this.api.show(item.id)
+            this.updateItem(newItem)
+            if (this.creatingStatusList.indexOf(newItem.status.toLowerCase()) >= 0) {
+                Utils.sleep(3)
+                continue
+            }
+            if (newItem.status.toLowerCase() == 'error') {
+                Notify.error(`${this.name} ${newItem.name || newItem.id} 创建失败`)
+            } else {
+                Notify.success(`卷 ${newItem.name || newItem.id} 创建成功`)
             }
             break
         }
