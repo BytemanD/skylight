@@ -8,7 +8,7 @@
             <template v-slot:top>
               <v-row>
                 <v-col cols="12" md="6" sm="12">
-                  <v-toolbar density="compact" class="rounded-pill">
+                  <v-toolbar density="compact" class="rounded">
                     <NewDomainDialog @completed="table.refresh()" />
                     <v-spacer></v-spacer>
                     <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除域?"

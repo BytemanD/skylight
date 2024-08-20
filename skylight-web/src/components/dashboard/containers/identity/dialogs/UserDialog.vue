@@ -13,7 +13,7 @@
                     <template v-slot:top>
                         <v-row>
                             <v-col>
-                                <v-toolbar density="compact" class="rounded-pill">
+                                <v-toolbar density="compact" class="rounded">
                                     <v-spacer></v-spacer>
                                     <delete-comfirm-dialog :disabled="dialog.table.selected.length == 0" title="确定删除用户?"
                                         @click:comfirm="dialog.table.deleteSelected()" :items="dialog.table.getSelectedItems()"/>

@@ -1,17 +1,20 @@
 <template>
-    <v-row>
-        <v-col cols="12">
+    <alert-require-admin :context="context">
+        <template v-slot:content>
+
+
             <v-data-table show-select show-expand single-expand density='compact' :loading="table.loading"
-                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-                v-model="table.selected">
+                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
+                :search="table.search" v-model="table.selected">
+
                 <template v-slot:top>
                     <v-row>
                         <v-col cols="12" md="7" sm="12">
                             <v-toolbar density="compact" class="rounded">
-                                <NewSecurityGroup @completed="table.refresh()" />
                                 <v-spacer></v-spacer>
-                                <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除安全组?"
-                                    @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
+                                <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除代理?"
+                                    @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()"
+                                    :item-value-func="(item) => { return `${item.binary}@${item.host}` }" />
                             </v-toolbar>
                         </v-col>
                         <v-col>
@@ -24,10 +27,13 @@
                         </v-col>
                     </v-row>
                 </template>
-
-                <template v-slot:[`item.actions`]="{ item }">
-                    <!-- TODO -->
-                    <v-btn size="small" variant="text" color="purple" @click="openSGRulesDialog(item)">规则管理</v-btn>
+                <template v-slot:[`item.alive`]="{ item }">
+                    <v-icon v-if="item.alive" color="success">mdi-emoticon-happy</v-icon>
+                    <v-icon v-else color="red">mdi-emoticon-sad</v-icon>
+                </template>
+                <template v-slot:[`item.admin_state_up`]="{ item }">
+                    <v-switch hide-details density="compact" class="my-auto" color="success"
+                        v-model="item.admin_state_up" @click="table.adminStateDown(item)"></v-switch>
                 </template>
                 <template v-slot:expanded-row="{ columns, item }">
                     <td></td>
@@ -41,36 +47,21 @@
                     </td>
                 </template>
             </v-data-table>
-        </v-col>
-        <SGRulesDialog :show="showSGRulesDialog" @update:show="(e) => showSGRulesDialog = e" :securityGroup="selectedSG" />
-    </v-row>
+        </template>
+    </alert-require-admin>
 </template>
 
-<script>
-import { SecurityGroupDataTable } from '@/assets/app/tables';
+<script setup>
+import { reactive } from 'vue';
 
+import { GetLocalContext } from '@/assets/app/context';
+import { NetAgentDataTable } from '@/assets/app/tables.jsx';
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
-import NewSecurityGroup from './dialogs/NewSecurityGroup.vue';
-import SGRulesDialog from './dialogs/SGRulesDialog.vue';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
-export default {
-    components: {
-        NewSecurityGroup, SGRulesDialog, DeleteComfirmDialog,
-    },
-    data: () => ({
-        table: new SecurityGroupDataTable(),
-        openNewSGDialog: false,
-        showSGRulesDialog: false,
-        selectedSG: {},
-    }),
-    methods: {
-        openSGRulesDialog(sg) {
-            this.selectedSG = sg;
-            this.showSGRulesDialog = !this.showSGRulesDialog;
-        }
-    },
-    created() {
-        this.table.refresh();
-    }
-};
+var context = GetLocalContext()
+var table = reactive(new NetAgentDataTable())
+
+table.refresh()
+
 </script>

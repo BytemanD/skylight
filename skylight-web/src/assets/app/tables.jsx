@@ -374,6 +374,35 @@ export class QosPolicyDataTable extends DataTable {
         }
     }
 }
+export class NetAgentDataTable extends DataTable {
+    constructor() {
+        super([
+            { title: 'ID', key: 'id' },
+            { title: '类型', key: 'agent_type' },
+            { title: '服务', key: 'binary' },
+            { title: '可用区', key: 'availability_zone' },
+            { title: '节点', key: 'host' },
+            { title: 'Alive', key: 'alive' },
+            { title: '启用', key: 'admin_state_up' },
+        ], API.networkAgents, 'agents', '代理');
+        this.extendItems = [
+            { title: 'description', key: 'description' },
+            { title: 'configurations', key: 'configurations' },
+            { title: 'heartbeat_timestamp', key: 'heartbeat_timestamp' },
+            { title: 'started_at', key: 'started_at' },
+            { title: 'created_at', key: 'created_at' },
+        ];
+    }
+    adminStateDown(item) {
+        this.api.put(item.id, { agent: { admin_state_up: !item.admin_state_up } }).then(() => {
+            if (item.admin_state_up) {
+                Notify.success(`${this.name} ${item.name} 已设置为 UP`)
+            } else {
+                Notify.success(`${this.name} ${item.name} 已设置为 DOWN`)
+            }
+        })
+    }
+}
 export class FlavorDataTable extends DataTable {
     constructor() {
         super([{ title: 'ID', key: 'id' },

@@ -7,7 +7,7 @@
                 <template v-slot:top>
                     <v-row>
                         <v-col cols="12" md="6" sm="12">
-                            <v-toolbar density="compact" class="rounded-pill ma-0 pa-0">
+                            <v-toolbar density="compact" class="rounded ma-0 pa-0">
                                 <new-volume-dialog @create="(item) => {table.createItem(item)}"  />
                                 <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume"></VolumeExtendVue>
                                 <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />

@@ -6,7 +6,7 @@
         <template v-slot:top>
             <v-row>
                 <v-col cols="12" md="6" sm="12">
-                    <v-toolbar density="compact" class="rounded-pill">
+                    <v-toolbar density="compact" class="rounded">
                         <NewSnapshotDialog @completed="table.refresh()" />
                         <v-btn small class="mr-1" color="warning"
                             @click="showSnapshotResetStateDialog = !showSnapshotResetStateDialog"

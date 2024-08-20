@@ -12,7 +12,7 @@
                     <template v-slot:top>
                         <v-row>
                             <v-col>
-                                <v-toolbar density="compact" class="rounded-pill">
+                                <v-toolbar density="compact" class="rounded">
                                     <NewRoleDialog @completed="table.refresh()" />
                                     <v-spacer></v-spacer>
                                     <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除角色?"

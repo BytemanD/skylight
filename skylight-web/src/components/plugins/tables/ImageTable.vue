@@ -37,7 +37,7 @@
         <template v-slot:top>
           <v-row>
             <v-col cols="4">
-              <v-toolbar density="compact" class="rounded-pill">
+              <v-toolbar density="compact" class="rounded">
                 <NewImageVue :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
                 <v-spacer></v-spacer>
                 <ImageDeleteSmartDialog :images="table.selected" @completed="table.resetSelected(); table.refresh()" />

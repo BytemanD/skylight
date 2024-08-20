@@ -691,7 +691,10 @@ class QosPolicy extends Restfulclient {
     }
 }
 class Router extends Restfulclient {
-    constructor() { super('/networking/routers'), this.portClient = new Port() }
+    constructor() {
+        super('/networking/routers')
+        this.portClient = new Port()
+    }
     // interface=public
     async listInterface(id) {
         return (await this.portClient.list({ device_id: id })).ports
@@ -703,6 +706,10 @@ class Router extends Restfulclient {
         return await this.put(`${id}/remove_router_interface`, { subnet_id: subnet_id })
     }
 }
+class NetworkAgents extends Restfulclient {
+    constructor() { super('/networking/agents')}
+}
+
 class Volume extends OpenstackProxyAPI {
     constructor() { super('/volume/volumes', true) }
     async show(id) { return (await super.show(id)).volume }
@@ -888,6 +895,7 @@ export class SkylightAPI {
         this.sg = new SecurityGroup();
         this.sgRule = new SecurityGroupRule();
         this.qosPolicy = new QosPolicy();
+        this.networkAgents = new NetworkAgents();
         // cinder
         this.volume = new Volume();
         this.volumeType = new VolumeType();

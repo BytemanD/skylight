@@ -8,7 +8,7 @@
         <template v-slot:top>
           <v-row>
             <v-col cols="12" md="6" sm="12">
-              <v-toolbar density="compact" class="rounded-pill">
+              <v-toolbar density="compact" class="rounded">
                 <v-btn icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
                 <v-spacer></v-spacer>
                 <v-btn color="success" @click="table.startSelected()" :disabled="table.selected.length == 0"

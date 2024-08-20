@@ -13,7 +13,7 @@
                     <template v-slot:top>
                         <v-row>
                             <v-col cols="6">
-                                <v-toolbar density="compact" class="rounded-pill">
+                                <v-toolbar density="compact" class="rounded">
                                     <!-- TODO -->
                                     <v-btn color="primary" icon="mdi-plus"></v-btn>
                                     <v-spacer></v-spacer>

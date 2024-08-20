@@ -10,7 +10,7 @@
             <template v-slot:top>
               <v-row>
                 <v-col cols="12" md="5" sm="12">
-                  <v-toolbar density="compact" class="rounded-pill">
+                  <v-toolbar density="compact" class="rounded">
                     <NewEndpointDialog @completed="table.refresh()" />
                     <v-spacer></v-spacer>
                     <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除Endpoint?"
@@ -47,6 +47,7 @@
 <script>
 import API from '@/assets/app/api';
 import I18N from '@/assets/app/i18n';
+import { GetLocalContext } from '@/assets/app/context';
 import { EndpointTable } from '@/assets/app/tables';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
@@ -54,7 +55,6 @@ import NewEndpointDialog from './dialogs/NewEndpointDialog.vue';
 import ServiceDialogVue from './dialogs/ServiceDialog.vue';
 import RegionDialogVue from './dialogs/RegionDialog.vue';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
-import { GetLocalContext } from '@/assets/app/context';
 
 export default {
   components: {

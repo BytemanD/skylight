@@ -8,7 +8,7 @@
                 <template v-slot:top>
                     <v-row>
                         <v-col cols="12" md="6" sm="12">
-                            <v-toolbar density="compact" class="rounded-pill">
+                            <v-toolbar density="compact" class="rounded">
                                 <NewBackupVue @completed="table.refresh()" />
                                 <v-btn color="warning" @click="showBackupStateResetDialog = !showBackupStateResetDialog"
                                     :disabled="table.selected.length == 0">状态重置</v-btn>

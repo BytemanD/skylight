@@ -6,6 +6,7 @@
           <v-window-item> <PortPage /> </v-window-item>
           <v-window-item> <SGPage /> </v-window-item>
           <v-window-item> <QosPolicyPage /> </v-window-item>
+          <v-window-item> <agent-page /> </v-window-item>
         </template>
     </tab-windows>
 </template>
@@ -19,6 +20,7 @@ import RouterPage from './RouterPage.vue';
 import PortPage from './PortPage.vue';
 import SGPage from './SGPage.vue';
 import QosPolicyPage from './QosPolicyPage.vue';
+import AgentPage from './AgentPage.vue';
 
 var tabs = ref([
   {text: '网络', icon: 'mdi-network'},
@@ -26,6 +28,7 @@ var tabs = ref([
   {text: '端口', icon: 'mdi-ethernet'},
   {text: '安全组', icon: 'mdi-security'},
   {text: 'QoS策略', icon: 'mdi-speedometer'},
+  {text: '网络代理', icon: 'mdi-puzzle'},
 ])
 
 </script>
