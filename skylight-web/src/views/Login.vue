@@ -57,8 +57,25 @@ const clusters = ref([])
 const regions = ref([])
 const showRegions = ref(false);
 
+function saveSessionCluster(){
+  sessionStorage.setItem("cluster", auth.value.cluster)
+}
+function pickSessionCluster(){
+  return sessionStorage.getItem("cluster")
+}
 async function refreshClusters() {
   clusters.value = (await API.cluster.list()).clusters
+  auth.value.cluster = null;
+  let sessionCluster = pickSessionCluster()
+  if (sessionCluster) {
+    for (let i in clusters.value) {
+      let cluster = clusters.value[i]
+      if (cluster.name == sessionCluster) {
+        auth.value.cluster = cluster.name
+        break
+      }
+    }
+  }
   if (clusters.value.length > 0 && !auth.value.cluster) {
     auth.value.cluster = clusters.value[0].name
   }
@@ -71,6 +88,7 @@ async function saveContext(auth) {
     cluster: auth.cluster, region: auth.region,
     project: auth.project, user: auth.user, roles: roles,
   })
+  saveSessionCluster()
   ctx.save()
   return ctx
 }
