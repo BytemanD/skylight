@@ -788,12 +788,8 @@ export class NewServerDialog extends Dialog {
         }
     }
     async refreshSecurityGroups() {
-        if (!this.authInfo) {
-            this.authInfo = (await API.system.isLogin()).auth;
-            let projects = (await API.project.list({name: this.authInfo.project})).projects
-            this.project = projects[0]
-        }
-        this.securityGroups = (await API.sg.list({ tenant_id: this.project.id })).security_groups;
+        let context = GetLocalContext()
+        this.securityGroups = (await API.sg.list({ tenant_id: context.project.id })).security_groups;
     }
     validImage() {
         if (!this.image.id) { return '请选择镜像' }

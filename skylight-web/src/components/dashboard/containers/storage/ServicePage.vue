@@ -1,8 +1,9 @@
 <template>
-    <v-row>
-        <v-col cols="12">
+    <alert-require-admin :context="context">
+        <template v-slot:content>
             <v-data-table show-expand single-expand density='compact' :loading="table.loading" :headers="table.headers"
-                :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected">
+                :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
+                v-model="table.selected">
 
                 <template v-slot:top>
                     <v-row>
@@ -25,7 +26,8 @@
                     <v-icon v-else color="red">mdi-emoticon-sad</v-icon>
                 </template>
                 <template v-slot:[`item.image_name`]="{ item }">
-                    <v-chip x-small label v-if="item.volume_image_metadata">{{ item.volume_image_metadata.image_name
+                    <v-chip x-small label v-if="item.volume_image_metadata">{{
+                        item.volume_image_metadata.image_name
                     }}</v-chip>
                 </template>
 
@@ -40,9 +42,9 @@
                     </td>
                 </template>
             </v-data-table>
-            <alert-require-admin />
-        </v-col>
-    </v-row>
+        </template>
+    </alert-require-admin>
+
 </template>
 
 <script setup>

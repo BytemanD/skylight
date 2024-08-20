@@ -41,6 +41,7 @@
 import i18n from '@/assets/app/i18n';
 import { Utils } from '@/assets/app/lib';
 import { RegionDialog } from '@/assets/app/dialogs';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
     props: {

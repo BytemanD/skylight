@@ -1,8 +1,9 @@
 <template>
-    <v-col>
-        <migration-table :table="table" refresh-btn />
-        <alert-require-admin />
-    </v-col>
+    <alert-require-admin :context="context">
+        <template v-slot:content>
+            <migration-table :table="table" refresh-btn />
+        </template>
+    </alert-require-admin>
 </template>
 
 <script>

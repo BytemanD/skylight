@@ -49,7 +49,7 @@
                 </template>
             </v-data-table>
         </v-col>
-        <BackupStatusResetDialog :show.sync="showBackupStateResetDialog" :backups="table.selected"
+        <BackupStatusResetDialog v-model="showBackupStateResetDialog" show.sync="showBackupStateResetDialog" :backups="table.selected"
             @completed="table.refresh()" />
     </v-row>
 </template>

@@ -119,34 +119,49 @@
                 </v-window-item>
                 <v-window-item value="custome">
                     <v-col>
+                        <v-card elevation="2" >
+                            <v-card-text>
+                                <v-text-field hide-details density='compact' placeholder="请输入描述信息"
+                                    v-model="dialog.description">
+                                    <template v-slot:prepend>描述</template>
+                                </v-text-field>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col class="pt-0" v-if="context.isAdmin()">
                         <v-card elevation="2">
                             <v-card-text>
-                                <v-col lg="6" md="8" class="mt-0">
-                                    <v-text-field density='compact' placeholder="请输入描述信息" v-model="dialog.description">
-                                        <template v-slot:prepend>描述</template>
-                                    </v-text-field>
-                                    <v-select density='compact' :items="dialog.azList" clearable placeholder="请选择AZ"
-                                        item-title="zoneName" v-model="dialog.params.az"
-                                        @click="dialog.refreshAzList()">
-                                        <template v-slot:prepend>AZ</template>
-                                    </v-select>
-                                    <v-select density='compact' :disabled="!dialog.params.az"
-                                        :items="dialog.azHosts[dialog.params.az]" clearable placeholder="请选择节点"
-                                        v-model="dialog.params.host" item-value="value" item-title="title">
-                                        <template v-slot:prepend>节点</template>
-                                    </v-select>
-                                </v-col>
+                                <v-row>
+                                    <v-col lg="6" md="6" sm="12">
+                                        <v-select hide-details density='compact' :items="dialog.azList" clearable
+                                            placeholder="请选择AZ" item-title="zoneName" v-model="dialog.params.az"
+                                            @click="dialog.refreshAzList()">
+                                            <template v-slot:prepend>AZ</template>
+                                        </v-select>
+                                    </v-col>
+                                    <v-col lg="6" md="6" sm="12">
+                                        <v-select hide-details density='compact' :disabled="!dialog.params.az"
+                                            :items="dialog.azHosts[dialog.params.az]" clearable placeholder="请选择节点"
+                                            v-model="dialog.params.host" item-value="value" item-title="title">
+                                            <template v-slot:prepend>节点</template>
+                                        </v-select>
+                                    </v-col>
+                                </v-row>
 
                             </v-card-text>
                         </v-card>
-                        <v-card elevation="2" class="mt-1">
+                    </v-col>
+                    <v-col class="pt-0">
+                        <v-card elevation="2">
                             <v-card-text>
                                 <v-range-slider v-model="dialog.params.nums" label="实例数量" max="20" min="1" step="1"
                                     show-ticks="always" tick-size="4" color="info" hide-details strict>
-                                    <template v-slot:prepend><v-chip label small>{{ dialog.params.nums[0]
-                                            }}</v-chip></template>
-                                    <template v-slot:append><v-chip label small>{{ dialog.params.nums[1]
-                                            }}</v-chip></template>
+                                    <template v-slot:prepend>
+                                        <v-chip label small> {{ dialog.params.nums[0] }}</v-chip>
+                                    </template>
+                                    <template v-slot:append>
+                                        <v-chip label small>{{ dialog.params.nums[1] }}</v-chip>
+                                    </template>
                                 </v-range-slider>
                             </v-card-text>
                         </v-card>
@@ -165,6 +180,7 @@ import SETTINGS from '@/assets/app/settings';
 
 import ImageTable from '@/components/plugins/tables/ImageTable.vue';
 import FlavorTable from '@/components/plugins/tables/FlavorTable.vue';
+import { GetLocalContext } from '@/assets/app/context';
 
 export default {
     components: {
@@ -192,6 +208,7 @@ export default {
         selectedImage: {},
         selectedFlavor: {},
         imageSearch: null,
+        context: GetLocalContext()
     }),
     methods: {
         selectImage: function (item) {

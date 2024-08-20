@@ -119,6 +119,7 @@ const MESSAGES = {
         'SHELVED': 'SHELVED',
         'SHELVED_OFFLOADED': 'SHELVED OFFLOADED',
 
+        'noPermissions': 'No permissions',
     },
     'zh-CN': {
         language: '语言',
@@ -238,6 +239,9 @@ const MESSAGES = {
         'HARD_REBOOT': '硬重启',
         'SHELVED': '搁置',
         'SHELVED_OFFLOADED': '搁置',
+
+        'noPermissions': '无权限',
+
     },
 };
 
