@@ -1,8 +1,9 @@
 <template>
-    <v-row>
-        <v-col>
+    <alert-require-admin :context="context">
+        <template v-slot:content>
             <v-data-table density='compact' show-expand single-expand :loading="table.loading" :headers="table.headers"
-                :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected">
+                :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
+                v-model="table.selected">
 
                 <template v-slot:top>
                     <v-row>
@@ -10,8 +11,7 @@
                         <v-col cols="12" md="4" lg="3" class="my-auto text-center">
                             <v-spacer></v-spacer>
                             <v-select v-model="table.migrationType" density="compact" clearable hide-details
-                                placeholder="选择类型"
-                                :items="table.migrationTypes" @update:model-value="table.refresh()">
+                                placeholder="选择类型" :items="table.migrationTypes" @update:model-value="table.refresh()">
                                 <template v-slot:prepend>类型</template>
                             </v-select>
                         </v-col>
@@ -50,13 +50,17 @@
                     </td>
                 </template>
             </v-data-table>
-        </v-col>
-    </v-row>
+        </template>
+    </alert-require-admin>
 </template>
 
 <script setup>
 import { defineProps } from 'vue';
+import { GetLocalContext } from '@/assets/app/context';
 import { Utils } from '@/assets/app/lib.js';
+import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+
+var context = GetLocalContext()
 
 const progs = defineProps({
     table: { type: Object, required: true, },

@@ -1,15 +1,13 @@
 <template>
   <v-row>
-    <v-col cols="8" md="9" lg="4" class="pb-0">
+    <v-col cols="8" md="9" lg="3" class="pb-0">
       <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
     </v-col>
-    <v-col cols="2" md="1" lg="1" class="pb-0">
+    <v-col cols="2" md="2" lg="2" class="pb-0">
       <v-btn class="ml-1" variant="text" color="info" @click="refresh()">刷新</v-btn>
-    </v-col>
-    <v-col cols="2" md="2" lg="1" class="pb-0">
       <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
     </v-col>
-    <v-col cols="12" md="12" lg="6" class="pb-0">
+    <v-col cols="12" md="12" lg="7" class="pb-0">
       <btn-server-reset-state :servers="[server]" @update-server="updateServer" v-if="context && context.isAdmin()" />
       <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
       <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
