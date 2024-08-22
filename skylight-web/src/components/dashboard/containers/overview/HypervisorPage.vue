@@ -4,26 +4,36 @@
       <alert-require-admin :context="context">
         <template v-slot:content>
           <v-data-table density='compact' show-expand single-expand :headers="table.headers" :items="table.items"
-            :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected" :loading="table.loading">
-    
+            :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected"
+            :loading="table.loading">
+
             <template v-slot:top>
               <v-row>
                 <v-col>
-                  <v-text-field small density='compact' v-model="table.search" label="搜索" single-line
-                    hide-details></v-text-field>
+                  <v-text-field small density='compact' v-model="table.search" placeholder="输入主机名、IP地址等" hide-details>
+                    <template v-slot:prepend>搜索</template>
+                  </v-text-field>
                 </v-col>
-                <v-col class="my-auto text-right">
+                <v-col cols="2">
+                  类型
+                  <v-btn-toggle class="ml-2" density="compact" variant="outlined" color="info" @click="table.refresh()"
+                    v-model="table.hypervisorType">
+                    <v-btn value="QEMU">QEMU</v-btn>
+                    <v-btn value="ironic">Ironic</v-btn>
+                  </v-btn-toggle>
+                </v-col>
+                <v-col class="text-right">
                   <chip-link link="/dashboard/hypervisor/tenantUsage" :label="$t('tenantUsage')"></chip-link>
                   <v-btn variant="text" icon="mdi-refresh" color="info" v-on:click="table.refresh()"></v-btn>
                 </v-col>
               </v-row>
             </template>
-    
+
             <template v-slot:[`item.status`]="{ item }">
               <v-icon v-if="item.status == 'enabled'" color="success">mdi-emoticon-happy</v-icon>
               <v-icon v-else color="red">mdi-emoticon-sad</v-icon>
             </template>
-    
+
             <template v-slot:[`item.memory_mb`]="{ item }">
               <v-tooltip bottom>
                 <template v-slot:activator="{ props }">
@@ -37,7 +47,7 @@
               </v-tooltip>
             </template>
             <template v-slot:[`item.vcpus`]="{ item }">
-    
+
               <v-tooltip bottom>
                 <template v-slot:activator="{ props }">
                   <v-progress-linear v-bind="props" height="12" rounded color="info"
@@ -47,7 +57,7 @@
                 已使用: {{ item.vcpus_used }}<br>
                 总量: {{ item.vcpus }}
               </v-tooltip>
-    
+
             </template>
             <template v-slot:[`item.local_gb`]="{ item }">
               <v-tooltip bottom>
@@ -60,7 +70,7 @@
                 总量: {{ item.local_gb }}
               </v-tooltip>
             </template>
-    
+
             <template v-slot:expanded-row="{ columns, item }">
               <td :colspan="columns.length - 1">
                 <v-table density='compact'>
@@ -74,11 +84,8 @@
               </td>
             </template>
           </v-data-table>
-
         </template>
       </alert-require-admin>
-      
-      <!-- <alert-require-admin /> -->
     </v-col>
   </v-row>
 </template>

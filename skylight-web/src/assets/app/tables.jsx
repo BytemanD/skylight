@@ -117,7 +117,7 @@ class DataTable {
             this.items.splice(index, 1)
         }
     }
-    async refresh(filters = {}) {
+    async refresh(filters = {}, filterFunc=null) {
         this.loading = true;
         let result = null
         try {
@@ -132,7 +132,11 @@ class DataTable {
         } finally {
             this.loading = false;
         }
-        this.items = this.bodyKey ? result[this.bodyKey] : result;
+        let items = this.bodyKey ? result[this.bodyKey] : result;
+        if (filterFunc) {
+            items = items.filter(filterFunc)
+        }
+        this.items = items
         return result;
     }
     getSelectedItems() {
@@ -1364,6 +1368,7 @@ export class HypervisortTable extends DataTable {
         // this.tenantUsageDialog = new TenantUsageDialog();
         this.users = [];
         this.projects = [];
+        this.hypervisorType = null
     }
     async refreshStatics() {
         this.statistics = (await API.hypervisor.statistics()).hypervisor_statistics;
@@ -1373,9 +1378,10 @@ export class HypervisortTable extends DataTable {
     }
 
     async refresh() {
-        await super.refresh();
-        // await this.refreshStatics();
-        // this.getMemUsedPercent();
+        let self = this;
+        await super.refresh({}, function(item){
+            return !self.hypervisorType || item.hypervisor_type == self.hypervisorType
+        });
     }
     getMemUsedPercent() {
         console.log(this.statistics.memory_mb_used, this.statistics.memory_mb)
