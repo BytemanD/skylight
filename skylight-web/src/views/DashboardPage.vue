@@ -194,11 +194,8 @@ export default {
     },
     async confirmIsLogin() {
       try {
-        let context = GetLocalContext()
+        let context = await GetContext()
         if (!context || !context.user) {
-          context = await GetContext()
-        }
-        if (!context) {
           throw Error("get context failed")
         }
         this.context = context

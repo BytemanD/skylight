@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"skylight/internal/consts"
 	"skylight/internal/controller"
@@ -115,6 +116,9 @@ var (
 			}
 			glog.Infof(ctx, "session path: %s", gsessionPath)
 			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
+			s.SetSessionCookieMaxAge(time.Hour)
+			s.SetSessionMaxAge(time.Hour)
+			// s.GetSessionMaxAge(
 
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,
