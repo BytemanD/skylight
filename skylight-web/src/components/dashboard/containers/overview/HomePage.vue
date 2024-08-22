@@ -106,11 +106,12 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" md="8">
+    <v-col cols="12" md="7">
       <limits-card />
     </v-col>
-    <v-col cols="12" md="4">
+    <v-col cols="12" md="5">
       <user-card :user="context.user" :project="context.project" :roles="context.roles || []" />
+      <usage-card class="mt-2" />
     </v-col>
   </v-row>
 </template>
@@ -123,6 +124,7 @@ import SETTINGS from '@/assets/app/settings';
 
 import UserCard from './UserCard.vue';
 import LimitsCard from './LimitsCard.vue';
+import UsageCard from './UsageCard.vue';
 import { GetLocalContext } from '@/assets/app/context';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 

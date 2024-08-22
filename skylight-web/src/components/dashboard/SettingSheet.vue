@@ -54,7 +54,6 @@
 </template>
 
 <script>
-import API from '@/assets/app/api';
 import I18N from '@/assets/app/i18n';
 import SETTINGS from '@/assets/app/settings';
 

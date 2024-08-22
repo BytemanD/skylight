@@ -23,7 +23,6 @@
                   </v-btn-toggle>
                 </v-col>
                 <v-col class="text-right">
-                  <chip-link link="/dashboard/hypervisor/tenantUsage" :label="$t('tenantUsage')"></chip-link>
                   <v-btn variant="text" icon="mdi-refresh" color="info" v-on:click="table.refresh()"></v-btn>
                 </v-col>
               </v-row>
@@ -94,7 +93,6 @@
 import { reactive, ref } from 'vue';
 import { GetLocalContext } from '@/assets/app/context';
 import { HypervisortTable } from '@/assets/app/tables';
-import ChipLink from '@/components/plugins/ChipLink.vue';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 var context = GetLocalContext()

@@ -967,7 +967,6 @@ export class VolumeDataTable extends DataTable {
     }
     async waitVolumeDeleted(volumeId) {
         do {
-            console.log("11111111111")
             try {
                 let volume = (await API.volume.get(volumeId)).volume
                 this.updateItem(volume)
@@ -979,9 +978,7 @@ export class VolumeDataTable extends DataTable {
                     break;
                 }
             }
-            console.log("222222222222222")
             await Utils.sleep(2)
-            console.log("33333333333333")
         } while (true)
     }
 }

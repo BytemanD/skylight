@@ -120,6 +120,8 @@ const MESSAGES = {
         'SHELVED_OFFLOADED': 'SHELVED OFFLOADED',
 
         'noPermissions': 'No permissions',
+
+        'detail': 'detail'
     },
     'zh-CN': {
         language: '语言',
@@ -242,6 +244,7 @@ const MESSAGES = {
 
         'noPermissions': '无权限',
 
+        'detail': '详情',
     },
 };
 

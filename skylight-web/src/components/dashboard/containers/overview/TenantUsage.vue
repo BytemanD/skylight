@@ -50,8 +50,8 @@ export default {
     data: () => ({
         breadcrumbItems: [
             {
-                title: '资源',
-                href: '#/dashboard/hypervisor',
+                title: '首页',
+                href: '#/dashboard/home',
             },
             {
                 title: i18n.global.t("tenantUsage"),

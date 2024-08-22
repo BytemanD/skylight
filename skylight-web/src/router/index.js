@@ -36,12 +36,12 @@ const routes = [
         component: () => import('@/components/dashboard/containers/overview/HomePage.vue'),
       },
       {
-        path: 'hypervisor',
-        component: () => import('@/components/dashboard/containers/overview/HypervisorPage.vue'),
+        path: 'home/tenantUsage',
+        component: () => import('@/components/dashboard/containers/overview/TenantUsage.vue'),
       },
       {
-        path: 'hypervisor/tenantUsage',
-        component: () => import('@/components/dashboard/containers/overview/TenantUsage.vue'),
+        path: 'hypervisor',
+        component: () => import('@/components/dashboard/containers/overview/HypervisorPage.vue'),
       },
       {
         path: 'server',
