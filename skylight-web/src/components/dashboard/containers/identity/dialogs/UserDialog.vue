@@ -1,5 +1,5 @@
 <template>
-    <v-dialog scrollable v-model="display" width="900">
+    <v-dialog scrollable v-model="display" width="1000">
         <template v-slot:activator="{ props }">
             <v-btn v-bind="props" color="primary" variant="text">用户管理</v-btn>
         </template>

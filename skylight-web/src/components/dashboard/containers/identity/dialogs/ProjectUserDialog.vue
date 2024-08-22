@@ -1,21 +1,18 @@
 <template>
-    <v-dialog v-model="display" width="800" scrollable>
+    <v-dialog v-model="display" width="900" scrollable>
         <v-card>
             <v-card-title class="headline primary" primary-title>用户列表</v-card-title>
+            <v-divider></v-divider>
             <v-card-text>
-                <v-row>
-                    <v-col>
-                        <v-btn class="mr-1 mt-1" color="primary"
-                            @click="showNewUserDialog = !showNewUserDialog"><v-icon>mdi-plus</v-icon>
-                        </v-btn>
-                        <v-btn color="red" @click="dialog.deleteSelected()"
-                            :disabled="dialog.userTable.selected.length == 0">删除</v-btn>
-                    </v-col>
-                    <v-col cols="2">
-                        <v-btn fab x-small color="info"
-                            v-on:click="dialog.refresh()"><v-icon>mdi-refresh</v-icon></v-btn>
-                    </v-col>
-                </v-row>
+                <v-toolbar density="compact" class="rounded">
+                    <v-btn class="mr-1 mt-1" color="primary" icon="mdi-plus" variant="text"
+                        @click="showNewUserDialog = !showNewUserDialog"></v-btn>
+                    <delete-comfirm-dialog :disabled="dialog.userTable.selected.length == 0"
+                        title="确定删除用户?" @click:comfirm="dialog.userTable.deleteSelected()"
+                        :items="dialog.userTable.getSelectedItems()" />
+                    <v-spacer></v-spacer>
+                    <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="dialog.refresh()"></v-btn>
+                </v-toolbar>
                 <v-data-table :headers="dialog.userTable.headers" :loading="dialog.userTable.loading"
                     :items="dialog.userTable.items" :items-per-page="dialog.userTable.itemsPerPage"
                     :search="dialog.userTable.search" density='compact' show-select v-model="dialog.userTable.selected">
@@ -29,17 +26,17 @@
 <script>
 import { ProjectUserDialog } from '@/assets/app/dialogs';
 import NewUserDialogPage from './NewUserDialogPage.vue';
+import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 
 export default {
     components: {
-        NewUserDialogPage,
+        NewUserDialogPage, DeleteComfirmDialog,
     },
     props: {
         show: Boolean,
         project: Object,
     },
     data: () => ({
-        name: 'xxxx',
         display: false,
         dialog: new ProjectUserDialog(),
         showNewUserDialog: false,

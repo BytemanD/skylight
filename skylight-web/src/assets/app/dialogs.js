@@ -101,7 +101,8 @@ export class ProjectUserDialog extends Dialog {
     }
     async init(project) {
         this.project = project;
-        // this.userTable.items = [];
+        this.userTable.selected = [];
+        this.userTable.items = [];
         this.refresh();
     }
     async deleteSelected() {
@@ -2102,8 +2103,6 @@ export class TenantUsageDialog extends Dialog {
     async drawTenantUsage() {
         if (!this.authInfo) {
             this.authInfo = (await API.system.isLogin()).auth;
-            let projects = (await API.project.list({name: this.authInfo.project})).projects
-            this.project = projects[0]
         }
         let xData = this._getDateList();
 
@@ -2140,7 +2139,7 @@ export class TenantUsageDialog extends Dialog {
                 start: new Date(startDate).toISOString().slice(0, -1),
                 end: new Date(endDate).toISOString().slice(0, -1)
             }
-            let tenantUsage = (await API.usage.show(this.project.id, filters)).tenant_usage;
+            let tenantUsage = (await API.usage.show(this.authInfo.project.id, filters)).tenant_usage;
 
             let cpuNum = parseInt(tenantUsage.total_vcpus_usage || 0);
             minCPU = (minCPU == null || minCPU == 0) ? cpuNum : Math.min(minCPU, cpuNum);
