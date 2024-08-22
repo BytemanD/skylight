@@ -1,9 +1,9 @@
 <template>
   <v-row>
-    <v-col cols="8" md="9" lg="3" class="pb-0">
+    <v-col cols="8" md="8" lg="3" class="pb-0">
       <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
     </v-col>
-    <v-col cols="2" md="2" lg="2" class="pb-0">
+    <v-col cols="2" md="4" lg="2" class="pb-0">
       <v-btn class="ml-1" variant="text" color="info" @click="refresh()">刷新</v-btn>
       <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
     </v-col>
@@ -191,7 +191,6 @@
           </v-window-item>
           <v-window-item>
             <migration-table v-if="serverId" :table="migrationTable" />
-            <alert-require-admin />
           </v-window-item>
         </template>
       </tab-windows>
