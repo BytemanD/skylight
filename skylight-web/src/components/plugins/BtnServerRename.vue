@@ -6,7 +6,7 @@
         </template>
         <v-card>
             <v-card-title>重命名</v-card-title>
-            <v-card-subtitle>当前实例名: {{ server.id || server.name }}</v-card-subtitle>
+            <v-card-subtitle>当前实例名: {{ server && server.name }}</v-card-subtitle>
             <v-card-text>
                 <v-text-field density="compact" hide-details placeholder="请输入新实例名" v-model="newName">
                     <template v-slot:prepend>新实例名</template>
