@@ -14,6 +14,7 @@ func MiddlewareCORS(req *ghttp.Request) {
 }
 
 func MiddlewareLogResponse(req *ghttp.Request) {
+	glog.Infof(req.GetCtx(), "%s %s", req.Method, req.URL)
 	startTime := time.Now()
 	req.Middleware.Next()
 	spentTime := time.Since(startTime).Seconds()

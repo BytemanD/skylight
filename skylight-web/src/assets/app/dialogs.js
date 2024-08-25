@@ -2503,7 +2503,7 @@ export class NewImageDialog extends Dialog {
         this.architecture = null;
         this.protected = false;
         this.minDisk = null;
-        this.visibility = null;
+        this.visibility = 'private';
         this.kernelId = null;
         this.tags = null;
         this.osVersion = null;
@@ -2566,17 +2566,23 @@ export class NewImageDialog extends Dialog {
                 self.process = loaded * 100 / total;
             }
         )
-        this.notify = '镜像缓存成功,等待后端上传,点击右上角查看任务进度。';
+    }
+    async uploadSmall(id) {
+        let self = this;
+        const formData = new FormData();
+        formData.append('file', this.file);
+        await API.image.uploadSmall(
+            id, self.file,
+            (loaded, total) => {
+                console.log(`process: ${loaded}/${total}`)
+            }
+        )
     }
     async commit() {
-        if (!this.name) { notify.error(`请输入镜像名`); return; }
+        if (!this.name) { throw Error(`请输入镜像名`); }
         let data = { name: this.name, disk_format: this.diskFormat, container_format: this.containerFormat };
         if (this.visibility) { data.visibility = this.visibility }
-        let image = await API.image.post(data);
-        this.notify = `镜像创建成功。`;
-        if (this.file) {
-            await this.upload(image.id);
-        }
+        return await API.image.post(data);
     }
 }
 

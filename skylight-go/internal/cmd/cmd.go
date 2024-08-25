@@ -104,21 +104,20 @@ var (
 			if port != "" {
 				s.SetAddr(fmt.Sprintf(":%s", port))
 			}
+			dataPath, _ := g.Cfg().Get(ctx, "server.dataPath", "/var/lib/skylight")
+			glog.Infof(ctx, "data path: %s", dataPath.String())
+			MakesureDir(dataPath.String())
+			MakesureDir(filepath.Join(dataPath.String(), "image_cache"))
+
 			// 初始化 session 驱动
 			glog.Infof(ctx, "init session driver ...")
-			sessionPath, _ := g.Cfg().Get(ctx, "session.path", "/var/lib/skylight")
-			gsessionPath := filepath.Join(sessionPath.String(), "gsessions")
-			if !gfile.Exists(gsessionPath) {
-				glog.Infof(ctx, "create dir '%s'", gsessionPath)
-				if err := gfile.Mkdir(gsessionPath); err != nil {
-					return fmt.Errorf("create dir '%s' failed: %s", gsessionPath, err)
-				}
-			}
-			glog.Infof(ctx, "session path: %s", gsessionPath)
-			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath))
+			gsessionPath, _ := g.Cfg().Get(ctx, "session.path", "/var/lib/skylight/gsessions")
+			glog.Infof(ctx, "session path: %s", gsessionPath.String())
+			MakesureDir(gsessionPath.String())
+
+			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String()))
 			s.SetSessionCookieMaxAge(time.Hour)
 			s.SetSessionMaxAge(time.Hour)
-			// s.GetSessionMaxAge(
 
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,

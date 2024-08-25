@@ -2,6 +2,7 @@ server:
   address:     ":8000"
   openapiPath: "/api.json"
   swaggerPath: "/swagger"
+  dataPath: "/var/lib/skylight"
 
 logger:
   level : "all"
@@ -9,7 +10,7 @@ logger:
 
 session:
   type: "file"
-  path: "/var/lib/skylight"
+  path: "/var/lib/skylight/gsessions"
 
 database:
   type:  "sqlite"

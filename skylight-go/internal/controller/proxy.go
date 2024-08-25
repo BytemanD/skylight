@@ -55,6 +55,8 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 	}
 	if err != nil {
 		req.Response.WriteStatusExit(400, HttpError{Error: err.Error()})
+	} else if resp == nil {
+		req.Response.WriteStatusExit(204, "ok")
 	} else {
 		req.Response.WriteStatusExit(resp.StatusCode(), resp.Body())
 	}

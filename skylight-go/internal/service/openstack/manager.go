@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
 	"skylight/internal/model"
 	"skylight/internal/service"
 	"skylight/utility"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	"github.com/go-resty/resty/v2"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/glog"
 )
 
 type OpenstackManager struct {
@@ -156,7 +163,7 @@ func (c *OpenstackManager) doProxy(endpoint string, method string,
 	return c.doProxyWithHeaders(endpoint, method, u, q, nil, body)
 }
 func (c *OpenstackManager) doProxyWithHeaders(endpoint string, method string,
-	u string, q url.Values, headers map[string]string, body []byte) (*resty.Response, error) {
+	u string, q url.Values, headers map[string]string, body interface{}) (*resty.Response, error) {
 	token, err := c.GetToken()
 	if err != nil {
 		return nil, err
@@ -262,11 +269,83 @@ func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, 
 	}
 	return c.doProxy(c.serviceEndpoint["cinderv2"], method, url, q, body)
 }
+
+func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
+	reg := regexp.MustCompile("/images/(.*)/file")
+	matched := reg.FindStringSubmatch(proxyUrl)
+	logging.Info("matched %v", matched)
+	if len(matched) >= 2 {
+		return matched[1], nil
+	}
+	return "", fmt.Errorf("get image id failed")
+}
+
+func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*resty.Response, error) {
+	// 缓存
+	metaSize := req.Header.Get("x-image-meta-size")
+	imageSize, err := strconv.Atoi(metaSize)
+	if err != nil {
+		return nil, fmt.Errorf("image size not found in body")
+	}
+
+	imageId, err := getImageIdFromProxyUrl(proxyUrl)
+	if err != nil {
+		return nil, err
+	}
+	dataPath, _ := g.Cfg().Get(gctx.New(), "server.dataPath")
+	cacheFile := filepath.Join(dataPath.String(), "image_cache", imageId)
+	file, err := os.OpenFile(cacheFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("create cache failed: %s", err)
+	}
+	defer file.Close()
+	data := req.GetBody()
+	_, err = file.Write(data)
+	if err != nil {
+		return nil, fmt.Errorf("save data to cache failed: %s", err)
+	}
+
+	fileInfo, _ := os.Stat(cacheFile)
+	if int(fileInfo.Size()) == imageSize {
+		glog.Infof(req.GetCtx(), "image %s all cached", imageId)
+
+		go func(imageId string, imageFile string) {
+			// 上传到后端
+			imageBuff, err := NewImageBufReaderFromFile(imageFile)
+			if err != nil {
+				glog.Errorf(req.GetCtx(), "load image from file failed: %s", err)
+				return
+			}
+			glog.Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
+			_, err = c.doProxyWithHeaders(
+				c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
+				map[string]string{
+					"content-type":      req.Header.Get("content-type"),
+					"x-image-meta-size": req.Header.Get("x-image-meta-size"),
+				},
+				imageBuff,
+			)
+			if err != nil {
+				glog.Errorf(req.GetCtx(), "upload image %s failed: %s", imageId, err)
+			} else {
+				glog.Infof(req.GetCtx(), "uploaded image %s to backend", imageId)
+				if err := os.Remove(imageFile); err != nil {
+					glog.Warningf(req.GetCtx(), "remove image file %s failed: %s", imageFile, err)
+				}
+			}
+		}(imageId, cacheFile)
+	}
+	return nil, nil
+}
 func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*resty.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
 	}
 	headers := map[string]string{}
+	uploadFileReg, _ := regexp.Compile("/images/.+/file")
+	if strings.ToUpper(req.Method) == "PUT" && uploadFileReg.MatchString(proxyUrl) {
+		return c.uploadImage(proxyUrl, req)
+	}
 	if req.Header.Get("content-type") != "" {
 		headers["content-type"] = req.Header.Get("content-type")
 	}

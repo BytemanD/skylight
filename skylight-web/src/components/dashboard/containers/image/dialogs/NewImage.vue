@@ -8,18 +8,21 @@
             <v-card-text class="mt-4">
                 <v-row>
                     <v-col cols="10">
-                        <v-text-field hide-details label="*名字" placeholder="请输入镜像名" v-model="dialog.name"
+                        <v-text-field class="ml-2" hide-details placeholder="请输入镜像名" v-model="dialog.name"
                             :rules="[dialog.checkNotNull]">
+                            <template v-slot:prepend>镜像名</template>
                             <template v-slot:append>
-                                <v-btn hide-details variant="text" color="primary" @click="dialog.name = dialog.randomName()">随机名字</v-btn>
+                                <v-btn hide-details variant="text" color="primary"
+                                    @click="dialog.name = dialog.randomName()">随机名字</v-btn>
                             </template>
                         </v-text-field>
                     </v-col>
-                    <v-col cols="6">
-                        <v-file-input hide-details show-size label="镜像文件" v-model="dialog.file"
-                            v-on:change="dialog.setName()"></v-file-input>
+                    <v-col cols="10">
+                        <v-file-input hide-details show-size v-model="dialog.file" v-on:change="dialog.setName()">
+                            <template v-slot:prepend>文件</template>
+                        </v-file-input>
                     </v-col>
-                    <v-col cols="4">
+                    <v-col cols="2">
                         <v-switch hide-details class="my-auto" label="保护" v-model="dialog.protected"></v-switch>
                     </v-col>
                     <v-col cols="4">
@@ -35,22 +38,26 @@
                     <v-col cols="4">
                         <v-sheet rounded elevation="2" class="pa-3" height="100%">
                             <v-text-field label="架构" placeholder="请输入架构名称" v-model="dialog.architecture"></v-text-field>
-                            <v-text-field label="操作系统系统发行名" placeholder="请输入操纵系统发行名" v-model="dialog.osDistro"></v-text-field>
-                            <v-text-field label="操作系统版本" placeholder="请输入操纵系统版本" v-model="dialog.osVersion"></v-text-field>
+                            <v-text-field label="操作系统系统发行名" placeholder="请输入操纵系统发行名"
+                                v-model="dialog.osDistro"></v-text-field>
+                            <v-text-field label="操作系统版本" placeholder="请输入操纵系统版本"
+                                v-model="dialog.osVersion"></v-text-field>
 
                         </v-sheet>
                     </v-col>
                     <v-col cols="4">
                         <v-sheet rounded elevation="2" class="pa-3" height="100%">
-                            <v-text-field density='compact' label="最小内存" placeholder="请设置最小内存" v-model="dialog.minRam"></v-text-field>
-                            <v-text-field density='compact' label="最小磁盘" placeholder="请设置最小磁盘" v-model="dialog.minDisk"></v-text-field>
+                            <v-text-field density='compact' label="最小内存" placeholder="请设置最小内存"
+                                v-model="dialog.minRam"></v-text-field>
+                            <v-text-field density='compact' label="最小磁盘" placeholder="请设置最小磁盘"
+                                v-model="dialog.minDisk"></v-text-field>
                         </v-sheet>
                     </v-col>
                     <v-col cols="10">
-                        <v-progress-linear hide-details height="20" :value="dialog.process">
-                            <span class="white--text">速度: {{ (dialog.speed /1024 /1024).toFixed(2) }} Mb/s</span>
+                        <v-progress-linear  height="20" :model-value="dialog.process" color="info" class="text-white">
+                            <span class="white--text">速度: {{ (dialog.speed /8 / 1024 / 1024).toFixed(2) }} MB/s</span>
                         </v-progress-linear>
-                        详情: {{ dialog.message }}
+                        详情: {{ dialog.notify }}
                     </v-col>
                     <v-col cols="2">进度: {{ dialog.process.toFixed(2) }}%</v-col>
                 </v-row>
@@ -67,6 +74,7 @@
 import i18n from '@/assets/app/i18n';
 import { Utils } from '@/assets/app/lib';
 import { NewImageDialog } from '@/assets/app/dialogs';
+import notify from '@/assets/app/notify';
 
 export default {
     props: {
@@ -80,13 +88,27 @@ export default {
     }),
     methods: {
         commit: async function () {
+            var image = null
             try {
-                await this.dialog.commit()
-                // this.display = false;
-                this.$emit('completed');
-            } catch (error) {
-                console.error(error)
+                image = await this.dialog.commit()
+                this.dialog.notify = `镜像创建成功。`
+            } catch (err) {
+                notify.error(`创建失败, ${err}`)
+                return
             }
+            if (this.dialog.file && image) {
+                try {
+                    this.dialog.notify = '开始上传镜像 ...';
+                    console.log("开始上传镜像 ...")
+                    await this.dialog.upload(image.id)
+                    console.log("上传镜像完成")
+                    this.dialog.notify = '镜像缓存成功,等待后端上传,点击右上角查看任务进度。';
+                } catch (err) {
+                    this.dialog.notify = `上传失败, ${err}`;
+                    console.error("upload failed", err)
+                }
+            }
+            this.$emit('completed');
         }
     },
     created() {

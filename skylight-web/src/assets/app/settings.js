@@ -124,7 +124,7 @@ export class AppSettings {
                 volumeSizeDefault: new NumberSetting(40, { 'choises': [1, 10, 20, 30, 40, 50] }),
                 dataVolumeSizeDefault: new NumberSetting(50),
                 volumeSizeMin: new NumberSetting(40, { 'choises': [1, 10, 20, 30, 40, 50] }),
-                imageUploadBlockSize: new NumberSetting(10, { 'choises': [1, 5, 10, 20, 40, 80, 160] }),
+                imageUploadBlockSize: new NumberSetting(8, { 'choises': [1, 2, 3, 4, 5, 6, 7, 8] }),
                 bootWithVolume: new BooleanSetting(true),
                 supportResourceAction: new BooleanSetting(false),
             }

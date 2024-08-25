@@ -599,17 +599,17 @@ class Image extends Restfulclient {
     }
     async uploadSlice(id, binary, size, blockSize, uploadCallback = null) {
         // TODO: What is the right maxSize
-        let maxSize = 1024 * 1024 * parseInt(blockSize);
+        let maxSize = 1024 ** 2 * parseInt(blockSize);
         let start = 0;
         let end = 0;
+        let startTime = new Date();
         while (end < size) {
             end = Math.min(start + maxSize, size);
             console.debug(`send ${size} data [${start}, ${end}]`)
-            let startTime = new Date();
             await this.upload(id, binary.slice(start, end), size)
             let usedTime = (new Date() - startTime) / 1000;
             if (uploadCallback) {
-                uploadCallback(end, size, (end - start) /usedTime)
+                uploadCallback(end, size, end /usedTime)
             }
             start += maxSize;
         }
@@ -619,7 +619,8 @@ class Image extends Restfulclient {
         let headers = this.getHeaders();
         headers['Content-Type'] = 'application/octet-stream';
         headers['x-image-meta-size'] = size;
-        return axios({
+        console.log("xxxxxxxxxxxxxxxxxxx put start")
+        await axios({
             method: 'PUT',
             url: `${self.baseUrl}/${id}/file`,
             headers: headers,
@@ -630,6 +631,7 @@ class Image extends Restfulclient {
                 }
             },
         })
+        console.log("xxxxxxxxxxxxxxxxxxx put success")
     }
     uploadSmall(id, file, uploadCallback = null) {
         let self = this
