@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"skylight/internal/model"
 	"skylight/internal/service"
-	"skylight/utility"
+	"skylight/utility/easyhttp"
 	"strconv"
 	"strings"
 	"time"
@@ -24,10 +24,11 @@ import (
 )
 
 type OpenstackManager struct {
-	AuthUrl         string
-	Region          string
-	AuthInfo        Auth
-	session         *resty.Client
+	AuthUrl  string
+	Region   string
+	AuthInfo Auth
+
+	session2        *easyhttp.Client
 	token           string
 	tokenAlive      time.Duration
 	expiredAt       time.Time
@@ -50,52 +51,50 @@ func (c *OpenstackManager) isTokenExpired() (expired bool) {
 	return expired
 }
 
-func (c *OpenstackManager) sendToBackend(req *resty.Request) (*resty.Response, error) {
+func (c *OpenstackManager) sendToBackend2(req *easyhttp.Request) (*easyhttp.Response, error) {
 	if req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	logging.Debug("-----proxy---> %s %s ?%s Headers: %s",
-		req.Method, req.URL, req.QueryParam.Encode(), c.safeHeader(req.Header))
+		req.Method, req.URL, req.QueryValues.Encode(), c.safeHeader(req.Header))
 	resp, err := req.Send()
 	if err != nil {
 		return nil, err
 	}
 	proxyRespBody := "<Body>"
-	if resp.Header().Get("Content-Type") == "application/json" {
+	if resp.GetContentType() == easyhttp.APPLICATION_JSON {
 		if resp.IsError() {
-			if reqBody, err := utility.StructToJson(req.Body); err == nil {
-				logging.Debug("req body: %s", reqBody)
+			if reqBody, err := req.GetBytesBody(); err == nil {
+				logging.Debug("req body: %s", string(reqBody))
+				proxyRespBody = string(reqBody)
 			} else {
-				logging.Error("parse req body failed: %s", err)
+				logging.Error("get bytes body failed: %s", err)
 			}
-			proxyRespBody = string(resp.Body())
-			// err = fmt.Errorf("reqeust failed: [%d] %s", resp.StatusCode(), resp.Body())
 		}
 	}
 	logging.Debug("proxy Resp [%d] %s", resp.StatusCode(), proxyRespBody)
 	return resp, err
 }
-
 func (c *OpenstackManager) tokenIssue() error {
-	req := c.session.NewRequest()
+	req := c.session2.NewRequest()
 
-	req.SetBody(map[string]Auth{"auth": c.AuthInfo})
+	req.SetJsonBody(map[string]Auth{"auth": c.AuthInfo})
 	req.Method = resty.MethodPost
 	if reqUrl, err := url.JoinPath(c.AuthUrl, "/auth/tokens"); err != nil {
 		return err
 	} else {
 		req.URL = reqUrl
 	}
-	resp, err := c.sendToBackend(req)
+	resp, err := c.sendToBackend2(req)
 	if err != nil {
 		return err
 	}
 	if resp.IsError() {
-		return fmt.Errorf("login success: [%d] %s", resp.StatusCode(), resp.Body())
+		return fmt.Errorf("login failed: [%d] %s", resp.StatusCode(), resp.Body())
 	}
-	c.token = resp.Header().Get("X-Subject-Token")
+	c.token = resp.GetHeader("X-Subject-Token")
 	respBody := struct{ Token TokenBody }{}
-	if err := json.Unmarshal(resp.Body(), &respBody); err != nil {
+	if err := resp.UNmarshal(&respBody); err != nil {
 		return err
 	}
 	c.tokenData = respBody.Token
@@ -158,12 +157,12 @@ func (c *OpenstackManager) safeHeader(h http.Header) http.Header {
 	}
 	return headers
 }
-func (c *OpenstackManager) doProxy(endpoint string, method string,
-	u string, q url.Values, body []byte) (*resty.Response, error) {
-	return c.doProxyWithHeaders(endpoint, method, u, q, nil, body)
+func (c *OpenstackManager) doProxy2(endpoint string, method string,
+	u string, q url.Values, body []byte) (*easyhttp.Response, error) {
+	return c.doProxyWithHeaders2(endpoint, method, u, q, nil, body)
 }
-func (c *OpenstackManager) doProxyWithHeaders(endpoint string, method string,
-	u string, q url.Values, headers map[string]string, body interface{}) (*resty.Response, error) {
+func (c *OpenstackManager) doProxyWithHeaders2(endpoint string, method string,
+	u string, q url.Values, headers map[string]string, body interface{}) (*easyhttp.Response, error) {
 	token, err := c.GetToken()
 	if err != nil {
 		return nil, err
@@ -177,15 +176,35 @@ func (c *OpenstackManager) doProxyWithHeaders(endpoint string, method string,
 	if err != nil {
 		return nil, err
 	}
-	req := c.session.NewRequest().SetHeader("X-Auth-Token", token).
-		SetQueryParamsFromValues(q).
-		SetBody(body)
-	if headers != nil {
-		req = req.SetHeaders(headers)
-	}
-	req.Method, req.URL = method, reqUrl
-	return c.sendToBackend(req)
+	req := c.session2.NewRequest().SetMethod(method).SetURL(reqUrl).
+		SetHeader("X-Auth-Token", token).
+		AddQueryValuesFromValues(q).
+		SetHeaders(headers).
+		SetJsonBody(body)
+	return c.sendToBackend2(req)
 }
+func (c *OpenstackManager) doProxyWithHeaders2BodyReader(endpoint string, method string,
+	u string, q url.Values, headers map[string]string, body *ImageBufReader) (*easyhttp.Response, error) {
+	token, err := c.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	var reqUrl string
+	if u != "" && u != "/" {
+		if reqUrl, err = url.JoinPath(endpoint, u); err != nil {
+			return nil, err
+		}
+	} else {
+		reqUrl = endpoint
+	}
+	req := c.session2.NewRequest().SetMethod(method).SetURL(reqUrl).
+		SetHeader("X-Auth-Token", token).
+		AddQueryValuesFromValues(q).
+		SetHeaders(headers).
+		SetReaderBody(body)
+	return c.sendToBackend2(req)
+}
+
 func (c *OpenstackManager) SetAuthUrl(authUrl string) {
 	u, _ := url.Parse(authUrl)
 	if u.Path == "" || u.Path == "/" {
@@ -214,21 +233,21 @@ func (c *OpenstackManager) GetProject() Project {
 func (c *OpenstackManager) GetRoles() []Role {
 	return c.tokenData.Roles
 }
-func (c *OpenstackManager) ProxyIdentity(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyIdentity(method string, url string, q url.Values, body []byte) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("identity", "v3"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["identity"], method, url, q, body)
+	return c.doProxy2(c.serviceEndpoint["identity"], method, url, q, body)
 }
-func (c *OpenstackManager) ProxyNetworking(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyNetworking(method string, url string, q url.Values, body []byte) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("neutron", "v2.0"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["neutron"], method, url, q, body)
+	return c.doProxy2(c.serviceEndpoint["neutron"], method, url, q, body)
 }
 
 func (c *OpenstackManager) getMicroVersion(service string) (string, error) {
-	resp, err := c.doProxy(c.serviceEndpoint[service], resty.MethodGet, "/", nil, nil)
+	resp, err := c.doProxy2(c.serviceEndpoint[service], resty.MethodGet, "/", nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -240,7 +259,7 @@ func (c *OpenstackManager) getMicroVersion(service string) (string, error) {
 	}
 	return versionBody.Version.Version, nil
 }
-func (c *OpenstackManager) ProxyComputing(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyComputing(method string, url string, q url.Values, body []byte) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("nova", "v2.1"); err != nil {
 		return nil, err
 	}
@@ -258,16 +277,16 @@ func (c *OpenstackManager) ProxyComputing(method string, url string, q url.Value
 			"X-OpenStack-Nova-API-Version": microVersion,
 			"OpenStack-API-Version":        microVersion,
 		}
-		return c.doProxyWithHeaders(c.serviceEndpoint["nova"], method, url, q, headers, body)
+		return c.doProxyWithHeaders2(c.serviceEndpoint["nova"], method, url, q, headers, body)
 	} else {
-		return c.doProxy(c.serviceEndpoint["nova"], method, url, q, body)
+		return c.doProxy2(c.serviceEndpoint["nova"], method, url, q, body)
 	}
 }
-func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, body []byte) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, body []byte) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("cinderv2", "v2"); err != nil {
 		return nil, err
 	}
-	return c.doProxy(c.serviceEndpoint["cinderv2"], method, url, q, body)
+	return c.doProxy2(c.serviceEndpoint["cinderv2"], method, url, q, body)
 }
 
 func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
@@ -280,7 +299,7 @@ func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
 	return "", fmt.Errorf("get image id failed")
 }
 
-func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*resty.Response, error) {
+func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
 	// 缓存
 	metaSize := req.Header.Get("x-image-meta-size")
 	imageSize, err := strconv.Atoi(metaSize)
@@ -317,7 +336,7 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*re
 				return
 			}
 			glog.Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
-			_, err = c.doProxyWithHeaders(
+			_, err = c.doProxyWithHeaders2BodyReader(
 				c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
 				map[string]string{
 					"content-type":      req.Header.Get("content-type"),
@@ -337,7 +356,7 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*re
 	}
 	return nil, nil
 }
-func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*resty.Response, error) {
+func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
 	}
@@ -349,7 +368,7 @@ func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*res
 	if req.Header.Get("content-type") != "" {
 		headers["content-type"] = req.Header.Get("content-type")
 	}
-	return c.doProxyWithHeaders(
+	return c.doProxyWithHeaders2(
 		c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
 		headers, req.GetBody(),
 	)
@@ -373,11 +392,22 @@ func GetAuthInfo(project, user, password string) Auth {
 		},
 	}
 }
+func HideTokenHeader(header http.Header) http.Header {
+	safeHeader := http.Header{}
+	for h, v := range header {
+		if strings.ToLower(h) == "x-auth-token" || strings.ToLower(h) == "x-subject-token" {
+			continue
+		}
+		safeHeader[h] = v
+	}
+	return safeHeader
+}
 func NewManager(sessionId string, authUrl, project, user, password string) (*OpenstackManager, error) {
 	manager := &OpenstackManager{
-		Region:          "RegionOne",
-		AuthInfo:        GetAuthInfo(project, user, password),
-		session:         resty.New(),
+		Region:   "RegionOne",
+		AuthInfo: GetAuthInfo(project, user, password),
+		session2: easyhttp.DefaultClient().SetDefaultContentType(easyhttp.APPLICATION_JSON).
+			SetSafeHeader(HideTokenHeader),
 		tokenAlive:      time.Minute * 30,
 		serviceEndpoint: map[string]string{},
 		microVesrion:    map[string]string{},

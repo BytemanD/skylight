@@ -3,9 +3,9 @@ package controller
 import (
 	"fmt"
 	"skylight/internal/service/openstack"
+	"skylight/utility/easyhttp"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/glog"
 )
@@ -24,7 +24,7 @@ type OpenstackProxy struct {
 }
 
 func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
-	var resp *resty.Response
+	var resp *easyhttp.Response
 	var err error
 	sessionId, err := req.Session.Id()
 	if err != nil {
@@ -34,7 +34,7 @@ func (c *OpenstackProxy) doProxy(req *ghttp.Request) {
 
 	manager, err := openstack.GetManager(sessionId, req)
 	if err != nil {
-		glog.Error(req.GetCtx(), "get manager faield: %s", err)
+		glog.Errorf(req.GetCtx(), "get manager failed: %s", err)
 		req.Response.WriteStatusExit(500, NewHttpIntervalError())
 	}
 
