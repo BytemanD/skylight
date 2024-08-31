@@ -68,7 +68,5 @@ func (resp *Response) UNmarshal(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	// err = json.Unmarshal(body, v)
-	// fmt.Println("2222222222222222222222222", string(body), err)
 	return json.Unmarshal(body, v)
 }

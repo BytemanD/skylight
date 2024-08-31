@@ -5,24 +5,30 @@
         </template>
         <v-card min-height="300">
             <v-card-title class="headline primary lighten-2" primary-title>镜像上传进度</v-card-title>
+            <v-divider></v-divider>
             <v-card-text>
                 <v-list>
-                    <v-list-item v-for="item in dialog.tasks.uploading" v-bind:key="item.id">
-                        <v-list-item-title class="headline">
-                            <v-progress-linear height="10" :value="item.readed"
-                                :buffer-value="item.cached"></v-progress-linear>
+                    <v-list-item v-for="item in dialog.tasks" v-bind:key="item.id">
+                        <v-list-item-title>
+                            <v-progress-linear stream height="10" color="info" :model-value="item.uploaded"
+                                :buffer-value="item.cached" :max="item.size">
+                            </v-progress-linear>
                         </v-list-item-title>
-
                         <v-list-item-subtitle>
-                            <v-chip label class="mr-1">镜像Id: {{ item.image_id }}</v-chip>
-                            <v-chip label class="mr-1">总大小：{{ Utils.humanSize(item.size) }}</v-chip>
-                            <v-chip label class="mr-1">缓存: {{ item.cached.toFixed(2) }}%</v-chip>
-                            <v-chip label class="mr-1">上传: {{ item.readed.toFixed(2) }}%</v-chip>
+                            <v-chip label variant="outlined" color="info" class="mr-1 rounded-0">
+                                <h4>镜像: {{ item.image_id }} ({{ Utils.humanSize(item.size) }})
+                                </h4>
+                                <h4 class="ml-6">
+                                    缓存: {{ (item.cached * 100 / item.size).toFixed(2) }}%
+                                    上传: {{ (item.uploaded * 100 / item.size).toFixed(2) }}%
+                                </h4>
+                            </v-chip>
                         </v-list-item-subtitle>
-
-                        <v-btn icon="mdi-delete-circle" color="red" @click="deleteTask(item)"></v-btn>
-                        <!-- <v-list-item-avatar @click="deleteTask(item)">
-                        </v-list-item-avatar> -->
+                        <template v-slot:append>
+                            <v-btn icon="mdi-delete-circle" color="red" variant="text"
+                                @click="deleteTask(item)"></v-btn>
+                        </template>
+                        <!-- <v-list-item-avatar @click="deleteTask(item)"></v-list-item-avatar> -->
                     </v-list-item>
                 </v-list>
             </v-card-text>
@@ -37,9 +43,7 @@ import { Utils } from '@/assets/app/lib';
 import { TasksDialog } from '@/assets/app/dialogs';
 
 export default {
-    props: {
-        show: Boolean,
-    },
+    props: {},
     data: () => ({
         i18n: i18n,
         Utils: Utils,
@@ -55,15 +59,11 @@ export default {
 
     },
     watch: {
-        show(newVal) {
+        display(newVal) {
             this.display = newVal;
             if (this.display) {
                 this.dialog.init();
-            }
-        },
-        display(newVal) {
-            this.display = newVal;
-            if (!this.display) {
+            } else {
                 this.dialog.stopInterval();
             }
         }

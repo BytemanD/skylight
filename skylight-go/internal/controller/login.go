@@ -26,7 +26,7 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 	if reqBody.Auth.Cluster == "" {
 		req.Response.WriteStatusExit(400, HttpError{Error: "cluster is empty"})
 	}
-	cluster, err := service.GetClusterByName(reqBody.Auth.Cluster)
+	cluster, err := service.ClusterService.GetClusterByName(reqBody.Auth.Cluster)
 	if err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Error: err.Error()})
 	}

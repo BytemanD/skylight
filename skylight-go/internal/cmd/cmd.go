@@ -89,13 +89,8 @@ var (
 			if !g.Cfg().Available(ctx) {
 				return fmt.Errorf("config is not available")
 			}
-
 			// 初始化DB
-			glog.Infof(ctx, "init db driver ...")
-			dbDriver, _ := g.Cfg().Get(ctx, "database.type", "sqlite")
-			dbLink, _ := g.Cfg().Get(ctx, "database.link", "/var/lib/skylight/skylight.db")
-			glog.Infof(ctx, "dadtabase link: %s", dbLink.String())
-			service.DBInit(ctx, dbDriver.String(), dbLink.String())
+			service.DBInit(ctx)
 
 			if gres.Contains("resources") {
 				s.AddSearchPath("resources")
@@ -128,6 +123,8 @@ var (
 			s.BindObjectRest("/clusters", controller.ClustersController{})
 			s.BindObjectRest("/clusters/:id", controller.ClusterController{})
 			s.BindObjectRest("/login", controller.PostLoginController{})
+			s.BindObjectRest("/image_upload_tasks", controller.ImageUploadTasksController{})
+			s.BindObjectRest("/image_upload_tasks/:id", controller.ImageUploadTaskController{})
 			s.Group("", func(group *ghttp.RouterGroup) {
 				group.Middleware(controller.MiddlewareAuth)
 				group.REST("/login", controller.LoginController{})

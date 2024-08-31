@@ -5,50 +5,44 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"skylight/internal/service"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 )
 
-type ImageBufReader struct {
-	io.Reader
-	Name             string
-	TotalSize        int
-	readSize         int
-	logProgressChunk int
-	nextLogSize      int
+type ImageUploadProgress struct {
+	ImageId    string
+	Total      int
+	writedSize int
+	percent    int
 }
 
-func (buf *ImageBufReader) increment(n int) {
-	buf.readSize += n
+func (progress *ImageUploadProgress) Percent() int {
+	return progress.percent
 }
-
-func (buf *ImageBufReader) Read(p []byte) (int, error) {
-	n, err := buf.Reader.Read(p)
-	defer buf.increment(n)
-	if buf.readSize >= buf.nextLogSize {
-		logging.Debug("read %s %d %%", buf.Name, buf.readSize*100/buf.TotalSize)
-		buf.nextLogSize = min(buf.nextLogSize+buf.logProgressChunk, buf.TotalSize)
+func (progress *ImageUploadProgress) Write(p []byte) (int, error) {
+	progress.writedSize += len(p)
+	percent := progress.writedSize * 100 / progress.Total
+	if progress.percent != percent {
+		progress.percent = percent
+		err := service.ImageUploadTaskService.UpdateUploaded(progress.ImageId, progress.writedSize)
+		if err != nil {
+			logging.Error("update %s uploaded failed: %s", progress.ImageId, err)
+		}
 	}
-	return n, err
+	return len(p), nil
 }
 
-func NewImageBufReader(name string, reader io.ReadCloser, size int) *ImageBufReader {
-	return &ImageBufReader{
-		Name:             name,
-		TotalSize:        size,
-		Reader:           bufio.NewReaderSize(reader, 1024*1024*8),
-		logProgressChunk: size / 10,
-	}
-}
-
-func NewImageBufReaderFromFile(imageFile string) (*ImageBufReader, error) {
+func ImageUploadBufReader(imageFile string) (*bufio.Reader, error) {
 	fileInfo, err := os.Stat(imageFile)
 	if err != nil {
 		return nil, fmt.Errorf("get image stat failed: %s", err)
 	}
 	reader, err := os.Open(imageFile)
 	if err != nil {
-		return nil, fmt.Errorf("open image faile: %s", err)
+		return nil, err
 	}
-	return NewImageBufReader(imageFile, reader, int(fileInfo.Size())), nil
+	wc := &ImageUploadProgress{ImageId: filepath.Base(imageFile), Total: int(fileInfo.Size())}
+	return bufio.NewReader(io.TeeReader(reader, wc)), nil
 }

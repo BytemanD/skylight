@@ -36,10 +36,16 @@ func (c *Client) SetDefaultContentType(value string) *Client {
 }
 func (c *Client) Execute(req *Request) (*Response, error) {
 	rawReq := req.getRawRequest()
-	logging.Debug("easyhttp Req: %s %s\n    Headers: %s\n    Body: %v", rawReq.Method, rawReq.URL,
-		c.getSafeHeader(req.Header), req.body,
-	)
-	rawResp, err := c.httpClient.Do(req.getRawRequest())
+	if req.GetContentType() == APPLICATION_OCTET_STREAM {
+		logging.Debug("easyhttp Req: %s %s\n    Headers: %s\n    Body: <steam>", rawReq.Method, rawReq.URL,
+			c.getSafeHeader(req.Header),
+		)
+	} else {
+		logging.Debug("easyhttp Req: %s %s\n    Headers: %s\n    Body: %v", rawReq.Method, rawReq.URL,
+			c.getSafeHeader(req.Header), req.body,
+		)
+	}
+	rawResp, err := c.httpClient.Do(rawReq)
 	if err != nil {
 		return nil, err
 	}

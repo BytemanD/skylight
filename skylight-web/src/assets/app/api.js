@@ -2,7 +2,6 @@ import axios from 'axios';
 
 import notify from './notify.js';
 import { LOG, Utils, MESSAGE } from "./lib.js";
-import { RegExp } from 'core-js';
 
 async function waitDeletedByList(api, bodyKey, item){
     let items = [];
@@ -619,7 +618,6 @@ class Image extends Restfulclient {
         let headers = this.getHeaders();
         headers['Content-Type'] = 'application/octet-stream';
         headers['x-image-meta-size'] = size;
-        console.log("xxxxxxxxxxxxxxxxxxx put start")
         await axios({
             method: 'PUT',
             url: `${self.baseUrl}/${id}/file`,
@@ -631,7 +629,6 @@ class Image extends Restfulclient {
                 }
             },
         })
-        console.log("xxxxxxxxxxxxxxxxxxx put success")
     }
     uploadSmall(id, file, uploadCallback = null) {
         let self = this
@@ -841,7 +838,7 @@ class AuthInfo extends Restfulclient {
     }
 }
 class Task extends Restfulclient {
-    constructor() { super('/tasks') }
+    constructor() { super('/image_upload_tasks') }
 }
 class Actions extends Restfulclient {
     constructor() { super('/actions') }

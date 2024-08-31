@@ -1,6 +1,7 @@
 package openstack
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 )
 
@@ -184,7 +186,7 @@ func (c *OpenstackManager) doProxyWithHeaders2(endpoint string, method string,
 	return c.sendToBackend2(req)
 }
 func (c *OpenstackManager) doProxyWithHeaders2BodyReader(endpoint string, method string,
-	u string, q url.Values, headers map[string]string, body *ImageBufReader) (*easyhttp.Response, error) {
+	u string, q url.Values, headers map[string]string, body *bufio.Reader) (*easyhttp.Response, error) {
 	token, err := c.GetToken()
 	if err != nil {
 		return nil, err
@@ -292,7 +294,7 @@ func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, 
 func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
 	reg := regexp.MustCompile("/images/(.*)/file")
 	matched := reg.FindStringSubmatch(proxyUrl)
-	logging.Info("matched %v", matched)
+	logging.Debug("matched %v", matched)
 	if len(matched) >= 2 {
 		return matched[1], nil
 	}
@@ -313,9 +315,19 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 	}
 	dataPath, _ := g.Cfg().Get(gctx.New(), "server.dataPath")
 	cacheFile := filepath.Join(dataPath.String(), "image_cache", imageId)
+	if !gfile.Exists(cacheFile) {
+		projectId, err := GetSessionProjectId(req)
+		if err != nil {
+			return nil, fmt.Errorf("get session project id failed: %s", err)
+		}
+		err = service.ImageUploadTaskService.Create(projectId, imageId, imageSize)
+		if err != nil {
+			return nil, fmt.Errorf("create image upload task failed: %s", err)
+		}
+	}
 	file, err := os.OpenFile(cacheFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("create cache failed: %s", err)
+		return nil, err
 	}
 	defer file.Close()
 	data := req.GetBody()
@@ -323,14 +335,21 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 	if err != nil {
 		return nil, fmt.Errorf("save data to cache failed: %s", err)
 	}
+	err = service.ImageUploadTaskService.IncrementCached(imageId, len(data))
+	if err != nil {
+		return nil, fmt.Errorf("increment %s cached failed: %s", imageId, err)
+	}
 
-	fileInfo, _ := os.Stat(cacheFile)
-	if int(fileInfo.Size()) == imageSize {
+	task, err := service.ImageUploadTaskService.GetByImageId(imageId)
+	if err != nil {
+		return nil, fmt.Errorf("get task for %s failed: %s", imageId, err)
+	}
+	if task.Cached == imageSize {
 		glog.Infof(req.GetCtx(), "image %s all cached", imageId)
 
 		go func(imageId string, imageFile string) {
 			// 上传到后端
-			imageBuff, err := NewImageBufReaderFromFile(imageFile)
+			imageBuff, err := ImageUploadBufReader(imageFile)
 			if err != nil {
 				glog.Errorf(req.GetCtx(), "load image from file failed: %s", err)
 				return
@@ -339,7 +358,7 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 			_, err = c.doProxyWithHeaders2BodyReader(
 				c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
 				map[string]string{
-					"content-type":      req.Header.Get("content-type"),
+					"content-type":      easyhttp.APPLICATION_OCTET_STREAM,
 					"x-image-meta-size": req.Header.Get("x-image-meta-size"),
 				},
 				imageBuff,
@@ -427,6 +446,14 @@ func GetAuthFromSession(req *ghttp.Request) (*LoginInfo, error) {
 	}
 	return &loginInfo, nil
 }
+func GetSessionProjectId(req *ghttp.Request) (string, error) {
+	loginInfo, err := GetAuthFromSession(req)
+	if err != nil {
+		return "", err
+	}
+	return loginInfo.Project.Id, err
+}
+
 func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error) {
 	if client, ok := SESSION_MANAGERS[sessionId]; ok {
 		return client, nil
@@ -434,7 +461,7 @@ func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error)
 	if loginInfo, err := GetAuthFromSession(req); err != nil {
 		return nil, fmt.Errorf("get session auth info falied: %v", err)
 	} else {
-		cluster, err := service.GetClusterByName(loginInfo.Cluster)
+		cluster, err := service.ClusterService.GetClusterByName(loginInfo.Cluster)
 		if err != nil {
 			return nil, fmt.Errorf("get cluster %s failed: %s", loginInfo.Cluster, err)
 		}

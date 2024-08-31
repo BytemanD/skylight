@@ -1,4 +1,4 @@
-package model
+package do
 
 type Cluster struct {
 	Id      int    `gorm:"id,primary,autoinc" json:"id,omitempty"`

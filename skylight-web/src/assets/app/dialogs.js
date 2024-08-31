@@ -2595,7 +2595,7 @@ export class TasksDialog extends Dialog {
         this.interval = null;
     }
     async refresh() {
-        this.tasks = (await API.task.list()).tasks;
+        this.tasks = (await API.task.list()).image_upload_tasks;
     }
     async delete(task_id) {
         try {
@@ -2606,8 +2606,8 @@ export class TasksDialog extends Dialog {
         }
     }
     async init() {
-        let self = this;
         await this.refresh();
+        let self = this;
         if (!this.interval) {
             this.interval = setInterval(() => {
                 self.refresh()

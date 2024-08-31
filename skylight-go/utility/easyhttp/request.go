@@ -12,7 +12,7 @@ import (
 const (
 	CONTENT_TYPE             = "Content-Type"
 	APPLICATION_JSON         = "application/json"
-	APPLICATION_OCTET_STREAM = "'application/octet-stream'"
+	APPLICATION_OCTET_STREAM = "application/octet-stream"
 )
 
 type Request struct {
@@ -58,6 +58,10 @@ func (r *Request) SetContentType(value string) *Request {
 	r.SetHeader(CONTENT_TYPE, value)
 	return r
 }
+func (r *Request) GetContentType() string {
+	return r.Header.Get(CONTENT_TYPE)
+}
+
 func (r *Request) SetQueryValues(key, value string) *Request {
 	r.QueryValues.Set(key, value)
 	return r

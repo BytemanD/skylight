@@ -1503,6 +1503,7 @@ export class ImageDataTable extends DataTable {
         this.extendItems = [
             { title: 'id', key: 'id' },
             { title: 'checksum', key: 'checksum' },
+            { title: 'progress_info', key: 'progress_info' },
             { title: 'protected', key: 'protected' },
             { title: 'os_version', key: 'os_version' },
             { title: 'direct_url', key: 'direct_url' },
@@ -1539,6 +1540,20 @@ export class ImageDataTable extends DataTable {
             return `${(image.size / this.KB).toFixed(2)} KB`;
         } else {
             return `${image.size} B`
+        }
+    }
+    async waitImageUploaed(imageId){
+        while (true) {
+            let image = (await this.api.show(imageId))
+            this.updateItem(image)
+            console.log(image.status)
+            if (image.status == 'error'){
+                break
+            }
+            if (image.status != "saving" && image.progress_info == 1) {
+                break
+            }
+            await Utils.sleep(5)
         }
     }
 }

@@ -38,7 +38,8 @@
           <v-row>
             <v-col cols="4">
               <v-toolbar density="compact" class="rounded">
-                <NewImageVue :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
+                <NewImageVue :images="table.selected" @created="table.refresh()"
+                  @uploaded="(id) => { table.waitImageUploaed(id) }" />
                 <v-spacer></v-spacer>
                 <ImageDeleteSmartDialog :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
               </v-toolbar>
@@ -70,12 +71,12 @@
         </template>
 
         <template v-slot:[`item.os_distro`]="{ item }">
-          <v-icon v-if="item.os_distro=='windows'" color="info">mdi-microsoft-windows</v-icon>
-          <v-icon v-else-if="item.os_distro=='ubuntu'" color="orange">mdi-ubuntu</v-icon>
-          <v-icon v-else-if="item.os_distro=='centos'" color="blue">mdi-centos</v-icon>
-          <v-icon v-else-if="item.os_distro=='ArchLinux'">mdi-arch</v-icon>
-          <v-icon v-else-if="item.os_distro=='redhat'" color="red">mdi-redhat</v-icon>
-          <v-icon v-else-if="item.os_distro=='linux'" color="orange">mdi-linux</v-icon>
+          <v-icon v-if="item.os_distro == 'windows'" color="info">mdi-microsoft-windows</v-icon>
+          <v-icon v-else-if="item.os_distro == 'ubuntu'" color="orange">mdi-ubuntu</v-icon>
+          <v-icon v-else-if="item.os_distro == 'centos'" color="blue">mdi-centos</v-icon>
+          <v-icon v-else-if="item.os_distro == 'ArchLinux'">mdi-arch</v-icon>
+          <v-icon v-else-if="item.os_distro == 'redhat'" color="red">mdi-redhat</v-icon>
+          <v-icon v-else-if="item.os_distro == 'linux'" color="orange">mdi-linux</v-icon>
           <span v-else>{{ item.os_distro }}</span>
         </template>
 

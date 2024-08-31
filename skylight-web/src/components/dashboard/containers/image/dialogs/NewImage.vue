@@ -54,7 +54,7 @@
                         </v-sheet>
                     </v-col>
                     <v-col cols="10">
-                        <v-progress-linear  height="20" :model-value="dialog.process" color="info" class="text-white">
+                        <v-progress-linear rounded height="20" :model-value="dialog.process" color="info">
                             <span class="white--text">速度: {{ (dialog.speed /8 / 1024 / 1024).toFixed(2) }} MB/s</span>
                         </v-progress-linear>
                         详情: {{ dialog.notify }}
@@ -92,6 +92,7 @@ export default {
             try {
                 image = await this.dialog.commit()
                 this.dialog.notify = `镜像创建成功。`
+                this.$emit('created');
             } catch (err) {
                 notify.error(`创建失败, ${err}`)
                 return
@@ -103,12 +104,11 @@ export default {
                     await this.dialog.upload(image.id)
                     console.log("上传镜像完成")
                     this.dialog.notify = '镜像缓存成功,等待后端上传,点击右上角查看任务进度。';
+                    this.$emit('uploaded', image.id);
                 } catch (err) {
                     this.dialog.notify = `上传失败, ${err}`;
-                    console.error("upload failed", err)
                 }
             }
-            this.$emit('completed');
         }
     },
     created() {
