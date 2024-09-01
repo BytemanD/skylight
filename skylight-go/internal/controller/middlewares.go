@@ -1,6 +1,11 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+	"regexp"
+	"skylight/internal/service/openstack"
+	"strings"
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -41,6 +46,34 @@ func MiddlewareAuth(req *ghttp.Request) {
 	if user, err := req.Session.Get("loginInfo", nil); err != nil || user.IsNil() {
 		glog.Errorf(req.GetCtx(), "invalid request: auth info not found in session")
 		req.Response.WriteStatusExit(403, HttpError{Error: "no login"})
+	}
+	req.Middleware.Next()
+}
+
+func MiddlewareGlanceImageUploadCache(req *ghttp.Request) {
+	uploadFileReg, _ := regexp.Compile("/images/.+/file")
+	proxyUrl := strings.TrimPrefix(req.URL.Path, "/image")
+	if req.Method == http.MethodPut && uploadFileReg.MatchString(proxyUrl) {
+		openstackService, err := openstack.GetManager(req.GetSessionId(), req)
+		if err != nil {
+			glog.Errorf(req.GetCtx(), "get openstack manager failed: %s", err)
+			req.Response.WriteStatusExit(400, HttpError{Error: "get openstack manager failed"})
+		}
+		task, err := openstackService.SaveImageCache(proxyUrl, req)
+		if err != nil {
+			glog.Errorf(req.GetCtx(), "save image cache failed: %s", err)
+			req.Response.WriteStatusExit(400, HttpError{Error: "save image cache failed"})
+		}
+		if err != nil {
+			req.Response.WriteStatusExit(400, HttpError{
+				Error: fmt.Sprintf("get task for %s failed: %s", task.ImageId, err),
+			})
+		}
+		if task.Cached < task.Size {
+			req.Response.WriteStatusExit(204)
+		} else {
+			glog.Infof(req.GetCtx(), "image %s all cached", task.ImageId)
+		}
 	}
 	req.Middleware.Next()
 }

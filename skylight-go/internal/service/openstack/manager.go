@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"skylight/internal/model"
+	"skylight/internal/model/entity"
 	"skylight/internal/service"
 	"skylight/utility/easyhttp"
 	"strconv"
@@ -302,13 +303,46 @@ func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
 }
 
 func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
-	// 缓存
+	imageId, err := getImageIdFromProxyUrl(proxyUrl)
+	if err != nil {
+		return nil, err
+	}
+	dataPath, _ := g.Cfg().Get(gctx.New(), "server.dataPath")
+	cacheFile := filepath.Join(dataPath.String(), "image_cache", imageId)
+
+	// 上传到后端
+	go func(imageId string, imageFile string) {
+		imageBuff, err := ImageUploadBufReader(imageFile)
+		if err != nil {
+			glog.Errorf(req.GetCtx(), "load image from file failed: %s", err)
+			return
+		}
+		glog.Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
+		_, err = c.doProxyWithHeaders2BodyReader(
+			c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
+			map[string]string{
+				"content-type":      easyhttp.APPLICATION_OCTET_STREAM,
+				"x-image-meta-size": req.Header.Get("x-image-meta-size"),
+			},
+			imageBuff,
+		)
+		if err != nil {
+			glog.Errorf(req.GetCtx(), "upload image %s failed: %s", imageId, err)
+		} else {
+			glog.Infof(req.GetCtx(), "uploaded image %s to backend", imageId)
+			if err := os.Remove(imageFile); err != nil {
+				glog.Warningf(req.GetCtx(), "remove image file %s failed: %s", imageFile, err)
+			}
+		}
+	}(imageId, cacheFile)
+	return nil, nil
+}
+func (c *OpenstackManager) SaveImageCache(proxyUrl string, req *ghttp.Request) (*entity.ImageUploadTask, error) {
 	metaSize := req.Header.Get("x-image-meta-size")
 	imageSize, err := strconv.Atoi(metaSize)
 	if err != nil {
 		return nil, fmt.Errorf("image size not found in body")
 	}
-
 	imageId, err := getImageIdFromProxyUrl(proxyUrl)
 	if err != nil {
 		return nil, err
@@ -339,41 +373,11 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 	if err != nil {
 		return nil, fmt.Errorf("increment %s cached failed: %s", imageId, err)
 	}
-
 	task, err := service.ImageUploadTaskService.GetByImageId(imageId)
 	if err != nil {
 		return nil, fmt.Errorf("get task for %s failed: %s", imageId, err)
 	}
-	if task.Cached == imageSize {
-		glog.Infof(req.GetCtx(), "image %s all cached", imageId)
-
-		go func(imageId string, imageFile string) {
-			// 上传到后端
-			imageBuff, err := ImageUploadBufReader(imageFile)
-			if err != nil {
-				glog.Errorf(req.GetCtx(), "load image from file failed: %s", err)
-				return
-			}
-			glog.Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
-			_, err = c.doProxyWithHeaders2BodyReader(
-				c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
-				map[string]string{
-					"content-type":      easyhttp.APPLICATION_OCTET_STREAM,
-					"x-image-meta-size": req.Header.Get("x-image-meta-size"),
-				},
-				imageBuff,
-			)
-			if err != nil {
-				glog.Errorf(req.GetCtx(), "upload image %s failed: %s", imageId, err)
-			} else {
-				glog.Infof(req.GetCtx(), "uploaded image %s to backend", imageId)
-				if err := os.Remove(imageFile); err != nil {
-					glog.Warningf(req.GetCtx(), "remove image file %s failed: %s", imageFile, err)
-				}
-			}
-		}(imageId, cacheFile)
-	}
-	return nil, nil
+	return task, err
 }
 func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {

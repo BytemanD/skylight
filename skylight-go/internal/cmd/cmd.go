@@ -129,6 +129,9 @@ var (
 				group.Middleware(controller.MiddlewareAuth)
 				group.REST("/login", controller.LoginController{})
 				for _, prefix := range PROXY_PREFIXY {
+					if prefix == "/image" {
+						group.Middleware(controller.MiddlewareGlanceImageUploadCache)
+					}
 					group.REST(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
 				}
 			})
