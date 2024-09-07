@@ -2,14 +2,16 @@
     <v-row>
         <v-col>
             <v-data-table-server show-expand single-expand show-select density='compact' :loading="table.loading"
-                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-                v-model="table.selected" :items-length="totlaVolumes.length" @update:options="pageRefresh">
+                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
+                :search="table.search" v-model="table.selected" :items-length="totlaVolumes.length"
+                @update:options="pageRefresh">
                 <template v-slot:top>
                     <v-row>
                         <v-col cols="12" md="6" sm="12">
                             <v-toolbar density="compact" class="rounded ma-0 pa-0">
-                                <new-volume-dialog @create="(item) => {table.createItem(item)}"  />
-                                <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume"></VolumeExtendVue>
+                                <new-volume-dialog @create="(item) => { table.createItem(item) }" />
+                                <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
+                                </VolumeExtendVue>
                                 <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />
                                 <v-spacer></v-spacer>
                                 <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除卷?"
@@ -49,17 +51,16 @@
                     </span>
                 </template>
                 <template v-slot:[`item.image_name`]="{ item }">
-                    <v-chip size="small" variant="text" v-if="item.volume_image_metadata">
-                        {{ item.volume_image_metadata.image_name }}</v-chip>
+                    {{ item.volume_image_metadata && item.volume_image_metadata.image_name }}
                 </template>
                 <template v-slot:[`item.actions`]="{ item }">
                     <v-menu offset-y>
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" color="purple" v-bind="props"
-                                icon="mdi-dots-vertical"></v-btn>
+                            <v-btn variant="text" color="purple" v-bind="props" icon="mdi-dots-vertical"></v-btn>
                         </template>
                         <v-list density='compact'>
-                            <v-list-item @click="openResourceActionsDialog(item)" :disabled="!supportResourceAction">
+                            <v-list-item @click="openResourceActionsDialog(item)" :disabled="!iSupportResourceAction">
+
                                 <v-list-item-title>操作记录</v-list-item-title>
                             </v-list-item>
                         </v-list>
@@ -91,7 +92,7 @@
 
 <script>
 import API from '@/assets/app/api';
-import { VolumeDataTable, VolumeTaskWaiter } from '@/assets/app/tables.jsx';
+import { VolumeDataTable } from '@/assets/app/tables.jsx';
 import { Utils } from '@/assets/app/lib.js';
 import SETTINGS from '@/assets/app/settings';
 
@@ -100,7 +101,7 @@ import NewVolumeDialog from './dialogs/NewVolume.vue';
 import VolumeStatusResetDialog from './dialogs/VolumeStatusResetDialog.vue';
 import VolumeExtendVue from './dialogs/VolumeExtend.vue';
 import ResourceActionsDialog from './dialogs/ResourceActionsDialog.vue';
-import notify from '@/assets/app/notify';
+
 
 export default {
     components: {
@@ -114,7 +115,7 @@ export default {
         openVolumeExtendDialog: false,
         showResourceActionsDialog: false,
         selectedVolume: {},
-        supportResourceAction: SETTINGS.openstack.getItem('supportResourceAction').value,
+        iSupportResourceAction: null,
         table: new VolumeDataTable(),
         totlaVolumes: [],
     }),
@@ -129,11 +130,23 @@ export default {
             // }
             // this.refreshTotlaServers()
         },
-        refreshTotalVolumes: function () {
-            let self = this;
-            API.volume.list().then((data) => {
-                self.totlaVolumes = data.volumes
-            })
+        refreshTotalVolumes: async function () {
+            let data = (await API.volume.list()).volumes
+            this.totlaVolumes = data;
+
+            // .then((data) => {
+            //     self.totlaVolumes = data.volumes
+            // })
+            if (this.iSupportResourceAction == null && this.totlaVolumes.length > 0) {
+                let volume = this.totlaVolumes[0]
+                try {
+                    API.volume.actionList(volume.id)
+                    this.iSupportResourceAction = true;
+                } catch {
+                    this.iSupportResourceAction = false;
+                }
+                console.log(this.iSupportResourceAction)
+            }
         },
         pageRefresh: function ({ page, itemsPerPage, sortBy }) {
             let filter = {}
@@ -159,7 +172,7 @@ export default {
             this.selectedVolume = item;
             this.showResourceActionsDialog = !this.showResourceActionsDialog;
         },
-        updateVolume: async function(item) {
+        updateVolume: async function (item) {
             this.table.updateItem(item)
         },
     },
@@ -168,4 +181,3 @@ export default {
     }
 };
 </script>
-    

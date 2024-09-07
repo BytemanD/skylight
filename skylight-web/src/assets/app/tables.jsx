@@ -117,7 +117,7 @@ class DataTable {
             this.items.splice(index, 1)
         }
     }
-    async refresh(filters = {}, filterFunc=null) {
+    async refresh(filters = {}, filterFunc = null) {
         this.loading = true;
         let result = null
         try {
@@ -908,12 +908,12 @@ export class UsageTable extends DataTable {
 export class VolumeDataTable extends DataTable {
     constructor() {
         super([
-            { title: 'ID', key: 'id' },
-            { title: '名字', key: 'name' },
-            { title: '状态', key: 'status' },
-            { title: '大小', key: 'size' },
+            { title: 'ID', key: 'id', minWidth: 300 },
+            { title: '名字', key: 'name', },
+            { title: '状态', key: 'status', minWidth: 100 },
+            { title: '大小', key: 'size', minWidth: 90 },
             { title: '卷类型', key: 'volume_type' },
-            { title: '镜像名', key: 'image_name' },
+            { title: '镜像名', key: 'image_name', maxWidth: 300 },
             { title: '操作', key: 'actions' },
         ], API.volume, 'volumes', '卷');
         this.extendItems = [
@@ -1376,7 +1376,7 @@ export class HypervisortTable extends DataTable {
 
     async refresh() {
         let self = this;
-        await super.refresh({}, function(item){
+        await super.refresh({}, function (item) {
             return !self.hypervisorType || item.hypervisor_type == self.hypervisorType
         });
     }
@@ -1542,12 +1542,12 @@ export class ImageDataTable extends DataTable {
             return `${image.size} B`
         }
     }
-    async waitImageUploaed(imageId){
+    async waitImageUploaed(imageId) {
         while (true) {
             let image = (await this.api.show(imageId))
             this.updateItem(image)
             console.log(image.status)
-            if (image.status == 'error'){
+            if (image.status == 'error') {
                 break
             }
             if (image.status != "saving" && image.progress_info == 1) {
@@ -1747,7 +1747,7 @@ export class ServerTaskWaiter {
     }
     async waitShelved() {
         let action = 'shelve'
-        await this.waitServerStatus(['SHELVED', 'SHELVED_OFFLOAD',  'ERROR'])
+        await this.waitServerStatus(['SHELVED', 'SHELVED_OFFLOAD', 'ERROR'])
         if (this.server.status.toUpperCase() == 'ERROR') {
             Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
         } else {
