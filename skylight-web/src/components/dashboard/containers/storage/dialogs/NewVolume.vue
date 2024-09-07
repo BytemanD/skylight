@@ -17,7 +17,7 @@
           </v-col>
           <v-col cols="6">
             <v-select outlined clearable label="卷类型" v-model="volume.type" hide-details :items="volumeTypes"
-              item-value="id" :item-props="Utils.itemProps"></v-select>
+            item-value="id" :item-props="Utils.itemProps"></v-select>
           </v-col>
           <v-col cols="4">
             <v-text-field outlined label="大小(GB)" placeholder="请输入卷大小" hide-details type="number"
@@ -31,6 +31,7 @@
             <v-select outlined hide-details v-model="volume.image" clearable label="镜像" :items="images" item-value="id"
               :item-props="Utils.itemProps">
             </v-select>
+            <v-switch v-model="volume.multiattach" color="info" hide-details label="共享盘"></v-switch>
           </v-col>
           <v-col cols="6">
             <v-select outlined hide-details v-model="volume.snapshot" clearable label="快照" :items="snapshots"
@@ -68,6 +69,7 @@ var volume = ref({
   image: null,
   type: null,
   snapshot: null,
+  multiattach: false,
 })
 var nums = 1;
 var snapshots = []
@@ -105,6 +107,7 @@ async function commit() {
     if (volume.value.image) { data.imageRef = volume.value.image; }
     if (volume.value.snapshot) { data.snapshot_id = volume.value.snapshot; }
     if (volume.value.type) { data.volume_type = volume.value.type; }
+    if (volume.value.multiattach) { data.multiattach = volume.value.multiattach; }
     let body = await API.volume.create(data)
     notify.info(`卷 ${volume.value.name} 创建中`);
     emits('create', body.volume);
