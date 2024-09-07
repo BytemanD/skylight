@@ -742,6 +742,10 @@ class Volume extends OpenstackProxyAPI {
         return await this.doAction(id, {'os-extend': {new_size: newSize}})
     }
 }
+class VolumeLimits extends Restfulclient {
+    constructor() { super('/volume/limits') }
+}
+
 class VolumePool extends OpenstackProxyAPI {
     constructor() { super('/volume/scheduler-stats/get_pools') }
     async detail(){
@@ -902,6 +906,7 @@ export class SkylightAPI {
         this.backup = new Backup();
         this.volumeService = new VolumeService();
         this.volumePool = new VolumePool()
+        this.volumeLimits = new VolumeLimits()
 
         this.cluster = new Cluster();
         this.login = new AuthInfo();

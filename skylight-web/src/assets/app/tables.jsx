@@ -5,6 +5,7 @@ import API from './api.js'
 // import I18N from './i18n.js';
 import { LOG, ServerTasks, Utils } from './lib.js'
 import Notify from '@/assets/app/notify'
+import { GetContext, GetLocalContext } from './context.js';
 // const {appContitle: {config: globalProperties}} = getCurrentInstance()
 
 // const vue = globalProperties;
@@ -1645,38 +1646,53 @@ export class Overview {
 export class LimitsCard {
     constructor() {
         this.loading = false
-        this.computeLimits = {}
-        this.vcore = {}
-        this.ram = {}
-        this.instance = {}
-        this.serverGroup = {}
-
-        this.resources = ['instance', 'vcore', 'ram', 'serverGroup']
-    }
-    percent(resource) {
-        if (!this[resource].max || this[resource].max <= 0) {
-            return 0
+        this.computeLimits = {
+            instance: {},
+            vcore: {},
+            ram: {},
+            serverGroup: {},
+            // keyPair: {},
         }
-        return this[resource].used * 100 / this[resource].max;
-
+        this.volumeLimits = {
+            volume: {},
+            backup: {},
+            snapshot: {},
+        }
     }
     async refreshComputeLimits() {
-        this.computeLimits = (await API.computeLimits.list()).limits
-        this.vcore.used = this.computeLimits.absolute.totalCoresUsed
-        this.vcore.max = this.computeLimits.absolute.maxTotalCores
-
-        this.ram.used = this.computeLimits.absolute.totalRAMUsed
-        this.ram.max = this.computeLimits.absolute.maxTotalRAMSize
-
-        this.instance.used = this.computeLimits.absolute.totalInstancesUsed
-        this.instance.max = this.computeLimits.absolute.maxTotalInstances
-
-        this.serverGroup.used = this.computeLimits.absolute.totalServerGroupsUsed
-        this.serverGroup.max = this.computeLimits.absolute.maxServerGroups
+        return (await API.computeLimits.list()).limits.absolute
     }
-
+    async refreshVolumeLimits() {
+        return (await API.volumeLimits.list()).limits.absolute
+    }
     async refresh() {
-        this.refreshComputeLimits()
+        let computeLimits = await this.refreshComputeLimits()
+        this.computeLimits.vcore.used = computeLimits.totalCoresUsed
+        this.computeLimits.vcore.max = computeLimits.maxTotalCores
+
+        this.computeLimits.ram.used = computeLimits.totalRAMUsed
+        this.computeLimits.ram.max = computeLimits.maxTotalRAMSize
+
+        this.computeLimits.instance.used = computeLimits.totalInstancesUsed
+        this.computeLimits.instance.max = computeLimits.maxTotalInstances
+
+        this.computeLimits.serverGroup.used = computeLimits.totalServerGroupsUsed
+        this.computeLimits.serverGroup.max = computeLimits.maxServerGroups
+
+        // this.resources.keyPair.max = this.computeLimits.absolute.maxTotalKeypairs
+        // let context = GetLocalContext()
+        // if (context.user) {
+        //     let keypairs =(await API.keypair.list({user_id: context.user.id})).keypairs
+        //     this.resources.keyPair.used = (keypairs.length)
+        // }
+        let volumelimits = await this.refreshVolumeLimits()
+        this.volumeLimits.volume.max = volumelimits.maxTotalVolumes
+        this.volumeLimits.volume.used = volumelimits.totalVolumesUsed
+        this.volumeLimits.backup.max = volumelimits.maxTotalBackups
+        this.volumeLimits.backup.used = volumelimits.totalBackupsUsed
+        this.volumeLimits.snapshot.max = volumelimits.maxTotalSnapshots
+        this.volumeLimits.snapshot.used = volumelimits.totalSnapshotsUsed
+
     }
 }
 export class ServerTaskWaiter {

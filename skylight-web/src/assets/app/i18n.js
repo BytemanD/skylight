@@ -121,7 +121,8 @@ const MESSAGES = {
 
         'noPermissions': 'No permissions',
 
-        'detail': 'detail'
+        'detail': 'detail',
+        'keyPair': 'keyPair',
     },
     'zh-CN': {
         language: '语言',
@@ -245,6 +246,11 @@ const MESSAGES = {
         'noPermissions': '无权限',
 
         'detail': '详情',
+        'keyPair': '密钥',
+
+        'volume': '卷',
+        'backup': '备份',
+        'snapshot': '快照',
     },
 };
 

@@ -8,38 +8,40 @@
             <template v-slot:content>
               <v-row>
                 <v-col class="text-center">
-                  <h1 class="ma-8">{{ table.projects.length }}</h1>
-                  <v-chip variant="text" prepend-icon="mdi-dots-grid">
+                  <h2 class="ma-8">{{ table.projects.length }}</h2>
+                  <v-chip variant="text" density="compact" color="info" prepend-icon="mdi-dots-grid"
+                    @click="$router.push('/dashboard/project')">
                     <h4>项目</h4>
                   </v-chip>
                 </v-col>
                 <v-col class="text-center">
-                  <h1 class="ma-8">{{ table.users.length }}</h1>
-                  <v-chip variant="text" prepend-icon="mdi-account-outline">
+                  <h2 class="ma-8">{{ table.users.length }}</h2>
+                  <v-chip variant="text" density="compact" prepend-icon="mdi-account-outline">
                     <h4>用户</h4>
                   </v-chip>
                 </v-col>
                 <v-col class="text-center">
-                  <h1 class="ma-8">{{ table.statistics.running_vms || 0 }}</h1>
-                  <v-chip variant="text" prepend-icon="mdi-laptop" @click="$router.push('/dashboard/server')">
+                  <h2 class="ma-8">{{ table.statistics.running_vms || 0 }}</h2>
+                  <v-chip variant="text" density="compact" color="info" prepend-icon="mdi-laptop"
+                    @click="$router.push('/dashboard/server')">
                     <h4>实例</h4>
                   </v-chip>
                 </v-col>
                 <v-col class="text-center">
-                  <h1 class="ma-8">{{ table.statistics.current_workload || 0 }}</h1>
-                  <v-chip variant="text" prepend-icon="mdi-lightning-bolt-outline">
+                  <h2 class="ma-8">{{ table.statistics.current_workload || 0 }}</h2>
+                  <v-chip variant="text" density="compact" prepend-icon="mdi-lightning-bolt-outline">
                     <h4>负载</h4>
-                    <br>
                   </v-chip>
                 </v-col>
                 <v-col class="text-center">
-                  <h1 class="ma-8">
+                  <h2 class="ma-8">
                     <span
                       :class="table.percentAvaliableHypervisor() >= resourceWarningPercent.value ? '' : 'text-red-lighten-2'">
                       {{ table.statistics.count || 0 }}/{{ table.hypervisors.length }}
                     </span>
-                  </h1>
-                  <v-chip variant="text" prepend-icon="mdi-blur" @click="$router.push('/dashboard/hypervisor')">
+                  </h2>
+                  <v-chip variant="text" density="compact" color="info" prepend-icon="mdi-blur"
+                    @click="$router.push('/dashboard/hypervisor')">
                     <h4>节点</h4>
                   </v-chip>
                 </v-col>
