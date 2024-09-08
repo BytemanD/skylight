@@ -123,6 +123,9 @@ const MESSAGES = {
 
         'detail': 'detail',
         'keyPair': 'keyPair',
+        id: 'id',
+        serverName: 'server name',
+        flavor: '规格',
     },
     'zh-CN': {
         language: '语言',
@@ -251,6 +254,9 @@ const MESSAGES = {
         'volume': '卷',
         'backup': '备份',
         'snapshot': '快照',
+        id: 'ID',
+        serverName: '实例名',
+        flavor: '规格',
     },
 };
 

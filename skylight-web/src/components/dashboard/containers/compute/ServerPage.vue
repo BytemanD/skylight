@@ -7,7 +7,7 @@
 
         <template v-slot:top>
           <v-row>
-            <v-col cols="12" md="6" sm="12">
+            <v-col cols="12" md="5" sm="12">
               <v-toolbar density="compact" class="rounded">
                 <v-btn icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
                 <v-spacer></v-spacer>
@@ -31,9 +31,15 @@
                   @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
               </v-toolbar>
             </v-col>
-            <v-col cols="12" md="3" sm="6">
-              <v-text-field density='compact' hide-details single-line v-model="table.filterName" label="搜索实例名"
-                @keyup.enter.native="refreshTable()"></v-text-field>
+            <v-col cols="12" md="4" sm="6">
+              <v-text-field density="compact" hide-details single-line v-model="table.filterValue"
+                @keyup.enter.native="refreshTable()">
+                <template v-slot:prepend>
+                  <v-select clearable density="compact" :items="table.filters" hide-details class="ma-0 pa-0" placeholder="筛选"
+                    :min-width="130" v-model="table.filterKey">
+                  </v-select>
+                </template>
+              </v-text-field>
             </v-col>
             <v-col cols="2" md="1" sm="2">
               <v-checkbox hide-details v-model="listAll" color="info" class="my-auto" label="所有"

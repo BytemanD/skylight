@@ -1,13 +1,13 @@
 <template>
   <v-row>
-    <v-col cols="8" md="8" lg="3" class="pb-0">
+    <v-col cols="8" md="8" lg="4" class="pb-0">
       <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
     </v-col>
     <v-col cols="2" md="4" lg="2" class="pb-0">
       <v-btn class="ml-1" variant="text" color="info" @click="refresh()">刷新</v-btn>
       <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
     </v-col>
-    <v-col cols="12" md="12" lg="7" class="pb-0">
+    <v-col cols="12" md="12" lg="6" class="pb-0">
       <btn-server-reset-state :servers="[server]" @update-server="updateServer" v-if="context && context.isAdmin()" />
       <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
       <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
@@ -140,14 +140,14 @@
                         <td>磁盘大小</td>
                         <td>{{ server.flavor && server.flavor.diskx || 0 }} GB</td>
                       </tr>
-                      <!-- <tr v-if="server.flavor">
+                      <tr v-if="server.flavor">
                         <td>属性</td>
                         <td>
                           <v-chip label density="compact" class="mr-1 mt-1"
                             v-for="(value, key) in server.flavor.extra_specs" v-bind:key="key">
                             {{ key }}={{ value }}</v-chip>
                         </td>
-                      </tr> -->
+                      </tr>
                     </table>
                   </v-card-text>
                 </v-card>

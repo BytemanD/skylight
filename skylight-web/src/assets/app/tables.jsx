@@ -26,6 +26,9 @@ class DataTable {
         this.loading = false;
         this.columns = this.headers.map((header) => { return header.key });
         this.creatingStatusList = ['creating', 'building']
+        this.filters = []
+        this.filterKey = null
+        this.filterValue = null
     }
     async openNewItemDialog() {
         if (this.newItemDialog) {
@@ -500,25 +503,34 @@ export class ServerDataTable extends DataTable {
             { title: '实例名', key: 'OS-EXT-SRV-ATTR:instance_name' },
             { title: '创建时间', key: 'created' },
             { title: '更新时间', key: 'updated' },
-            { title: '规格', key: 'flavor' },
+            // { title: '规格', key: 'flavor' },
             { title: '租户ID', key: 'tenant_id' },
             { title: '用户ID', key: 'iduser_id' },
             { title: 'diskConfig', key: 'OS-DCF:diskConfig' },
             { title: '错误信息', key: 'fault' },
+            { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
         ];
+        this.filters = [
+            {title: i18n.global.t("ID"), value: "id"},
+            {title: i18n.global.t("name"), value: "name"},
+            {title: i18n.global.t("hostName"), value: "host"},
+            {title: i18n.global.t("flavor"), value: "flavor"},
+        ]
         this.imageMap = {};
         this.rootBdmMap = {};
         this.errorNotify = {};
         this.deleted = false;
         this.imageName = {};
-        this.filterName = ""
     }
     refresh(filters = {}) {
         // search only for server.name
         filters.deleted = this.deleted
-        if (this.filterName != "") {
-            filters.name = this.filterName;
+        if (this.filterKey && this.filterValue) {
+            filters[this.filterKey] = this.filterValue
         }
+        // if (this.filterName != "") {
+        //     filters.name = this.filterName;
+        // }
         super.refresh(filters);
     }
     openResetStateDialog() {

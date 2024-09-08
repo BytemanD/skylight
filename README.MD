@@ -11,21 +11,13 @@ Openstack Dashboard with Vuetify
 
 + go >= 1.21.5
 + nodjs >= 22.5
++ vuetify >= 2.17
++ vue3
 
-## 2 运行（开发者模式）
-
-1. 启动后端服务
+## 2.以容器方式启动
 
 ```bash
-cd skylight-go
-go run main.go  -d
-```
-
-2. 启动前端服务
-```bash
-cd skylight-web
-npm install
-npm run dev
+docker run -v registry.aliyun.com/fjboy-c/skylight
 ```
 
 ## 3 构建并推送镜像
@@ -34,18 +26,35 @@ npm run dev
 sh release/build.sh
 ```
 
-## 单独构建前端和后端项目
+## 5 开发者
 
-构建后端项目
+1. 启动后端服务
+   
+   ```
+   cd skylight-go
+   go run main.go
+   ```
+
+2. 启动前端服务
+   
+   ```bash
+   cd skylight-web
+   npm install
+   npm run dev
+   ```
+
+3. 构建前端和后端项目
+
 ```bash
+# 构建后端项目
 cd skylight-go
 go build
-```
 
-构建前端项目
-```bash
+cd ../
+# 构建前端项目
 npm run install
 npm run build
+
 ```
 
 *更多用法参考帮助信息。*
