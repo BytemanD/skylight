@@ -15,12 +15,12 @@ type ImageUploadTasksController struct{}
 
 func (c *ImageUploadTasksController) Get(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
-	projectId, err := openstack.GetSessionProjectId(req)
+	loginInfo, err := service.OSService.GetLogInfo(req)
 	if err != nil {
 		req.Response.WriteStatusExit(400, HttpError{Error: err.Error()})
 		return
 	}
-	tasks, err := service.ImageUploadTaskService.GetByProjectId(projectId)
+	tasks, err := openstack.ImageUploadTaskService.GetByProjectId(loginInfo.Project.Id)
 	if err != nil {
 		req.Response.WriteStatusExit(400, HttpError{Error: err.Error()})
 		return
@@ -44,7 +44,7 @@ func (c *ImageUploadTaskController) Delete(req *ghttp.Request) {
 	if err != nil {
 		req.Response.WriteStatusExit(400, HttpError{Message: "invalid cluster id"})
 	}
-	if service.ImageUploadTaskService.Delete(id) != nil {
+	if openstack.ImageUploadTaskService.Delete(id) != nil {
 		glog.Errorf(req.GetCtx(), "delete image upload task failed: %s", err)
 		req.Response.WriteStatusExit(403, HttpError{Error: "delete image upload task failed"})
 	}

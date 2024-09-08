@@ -10,10 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"skylight/internal/model"
-	"skylight/internal/model/entity"
-	"skylight/internal/service"
 	"skylight/utility/easyhttp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +19,6 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 )
 
@@ -215,14 +211,7 @@ func (c *OpenstackManager) SetAuthUrl(authUrl string) {
 	}
 	c.AuthUrl = authUrl
 }
-func (c *OpenstackManager) SetRegion(req *ghttp.Request, region string) error {
-	if loginInfo, err := GetAuthFromSession(req); err != nil {
-		return fmt.Errorf("get session auth info falied: %v", err)
-	} else {
-		loginInfo.Region = region
-		req.Session.Set("loginInfo", loginInfo)
-	}
-
+func (c *OpenstackManager) SetRegion(region string) error {
 	c.Region = region
 	c.clearEndpoints()
 	return nil
@@ -292,7 +281,7 @@ func (c *OpenstackManager) ProxyVolume(method string, url string, q url.Values, 
 	return c.doProxy2(c.serviceEndpoint["cinderv2"], method, url, q, body)
 }
 
-func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
+func GetImageIdFromProxyUrl(proxyUrl string) (string, error) {
 	reg := regexp.MustCompile("/images/(.*)/file")
 	matched := reg.FindStringSubmatch(proxyUrl)
 	logging.Debug("matched %v", matched)
@@ -303,7 +292,7 @@ func getImageIdFromProxyUrl(proxyUrl string) (string, error) {
 }
 
 func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
-	imageId, err := getImageIdFromProxyUrl(proxyUrl)
+	imageId, err := GetImageIdFromProxyUrl(proxyUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -337,48 +326,7 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 	}(imageId, cacheFile)
 	return nil, nil
 }
-func (c *OpenstackManager) SaveImageCache(proxyUrl string, req *ghttp.Request) (*entity.ImageUploadTask, error) {
-	metaSize := req.Header.Get("x-image-meta-size")
-	imageSize, err := strconv.Atoi(metaSize)
-	if err != nil {
-		return nil, fmt.Errorf("image size not found in body")
-	}
-	imageId, err := getImageIdFromProxyUrl(proxyUrl)
-	if err != nil {
-		return nil, err
-	}
-	dataPath, _ := g.Cfg().Get(gctx.New(), "server.dataPath")
-	cacheFile := filepath.Join(dataPath.String(), "image_cache", imageId)
-	if !gfile.Exists(cacheFile) {
-		projectId, err := GetSessionProjectId(req)
-		if err != nil {
-			return nil, fmt.Errorf("get session project id failed: %s", err)
-		}
-		err = service.ImageUploadTaskService.Create(projectId, imageId, imageSize)
-		if err != nil {
-			return nil, fmt.Errorf("create image upload task failed: %s", err)
-		}
-	}
-	file, err := os.OpenFile(cacheFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	data := req.GetBody()
-	_, err = file.Write(data)
-	if err != nil {
-		return nil, fmt.Errorf("save data to cache failed: %s", err)
-	}
-	err = service.ImageUploadTaskService.IncrementCached(imageId, len(data))
-	if err != nil {
-		return nil, fmt.Errorf("increment %s cached failed: %s", imageId, err)
-	}
-	task, err := service.ImageUploadTaskService.GetByImageId(imageId)
-	if err != nil {
-		return nil, fmt.Errorf("get task for %s failed: %s", imageId, err)
-	}
-	return task, err
-}
+
 func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*easyhttp.Response, error) {
 	if err := c.makeSureEndpoint("glance", "v2"); err != nil {
 		return nil, err
@@ -396,8 +344,6 @@ func (c *OpenstackManager) ProxyImage(proxyUrl string, req *ghttp.Request) (*eas
 		headers, req.GetBody(),
 	)
 }
-
-var SESSION_MANAGERS map[string]*OpenstackManager
 
 func GetAuthInfo(project, user, password string) Auth {
 	return Auth{
@@ -439,43 +385,5 @@ func NewManager(sessionId string, authUrl, project, user, password string) (*Ope
 	if err := manager.tokenIssue(); err != nil {
 		return nil, err
 	}
-	SESSION_MANAGERS[sessionId] = manager
-	return SESSION_MANAGERS[sessionId], nil
-}
-func GetAuthFromSession(req *ghttp.Request) (*LoginInfo, error) {
-	sessionLoginInfo, _ := req.Session.Get("loginInfo", nil)
-	loginInfo := LoginInfo{}
-	if err := sessionLoginInfo.Struct(&loginInfo); err != nil {
-		return nil, fmt.Errorf("get login info failed: %s", err)
-	}
-	return &loginInfo, nil
-}
-func GetSessionProjectId(req *ghttp.Request) (string, error) {
-	loginInfo, err := GetAuthFromSession(req)
-	if err != nil {
-		return "", err
-	}
-	return loginInfo.Project.Id, err
-}
-
-func GetManager(sessionId string, req *ghttp.Request) (*OpenstackManager, error) {
-	if client, ok := SESSION_MANAGERS[sessionId]; ok {
-		return client, nil
-	}
-	if loginInfo, err := GetAuthFromSession(req); err != nil {
-		return nil, fmt.Errorf("get session auth info falied: %v", err)
-	} else {
-		cluster, err := service.ClusterService.GetClusterByName(loginInfo.Cluster)
-		if err != nil {
-			return nil, fmt.Errorf("get cluster %s failed: %s", loginInfo.Cluster, err)
-		}
-		return NewManager(
-			sessionId, cluster.AuthUrl,
-			loginInfo.Project.Name, loginInfo.User.Name,
-			loginInfo.Password)
-	}
-}
-
-func init() {
-	SESSION_MANAGERS = map[string]*OpenstackManager{}
+	return manager, nil
 }

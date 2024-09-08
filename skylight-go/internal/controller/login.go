@@ -43,6 +43,7 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 			Password: reqBody.Auth.Password,
 		}
 		req.Session.Set("loginInfo", loginInfo)
+		service.AuditService.Login(req)
 	}
 
 	glog.Infof(req.GetCtx(), "login success")
@@ -74,21 +75,17 @@ func (c *LoginController) Put(req *ghttp.Request) {
 	if reqBody.Auth.Region == "" {
 		req.Response.WriteStatusExit(400, HttpError{Error: "region is empty"})
 	}
-	sessionId, err := req.Session.Id()
+	err := service.OSService.SetRegion(req, reqBody.Auth.Region)
 	if err != nil {
-		req.Response.WriteStatusExit(500, HttpError{Error: err.Error()})
-	}
-	manager, err := openstack.GetManager(sessionId, req)
-	if err != nil {
-		req.Response.WriteStatusExit(500, HttpError{Error: "get manager failed", Message: err.Error()})
+		req.Response.WriteStatusExit(500, HttpError{Error: "set region failed", Message: err.Error()})
 		return
 	}
-	manager.SetRegion(req, reqBody.Auth.Region)
 
 	req.Response.WriteStatusExit(200, HttpError{Message: "update success"})
 }
 func (c *LoginController) Delete(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
+	service.AuditService.Logout(req)
 	if err := req.Session.RemoveAll(); err != nil {
 		req.Response.WriteStatusExit(400, HttpError{Error: "logout failed"})
 	}

@@ -89,6 +89,7 @@ func DBInit(ctx context.Context) error {
 	orms := []interface{}{
 		&do.Cluster{},
 		&do.ImageUploadTask{},
+		&do.Audit{},
 	}
 	if err := db.AutoMigrate(orms...); err != nil {
 		return err

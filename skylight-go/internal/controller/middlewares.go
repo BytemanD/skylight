@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"skylight/internal/service/openstack"
+	"skylight/internal/service"
 	"strings"
 	"time"
 
@@ -54,12 +54,7 @@ func MiddlewareGlanceImageUploadCache(req *ghttp.Request) {
 	uploadFileReg, _ := regexp.Compile("/images/.+/file")
 	proxyUrl := strings.TrimPrefix(req.URL.Path, "/image")
 	if req.Method == http.MethodPut && uploadFileReg.MatchString(proxyUrl) {
-		openstackService, err := openstack.GetManager(req.GetSessionId(), req)
-		if err != nil {
-			glog.Errorf(req.GetCtx(), "get openstack manager failed: %s", err)
-			req.Response.WriteStatusExit(400, HttpError{Error: "get openstack manager failed"})
-		}
-		task, err := openstackService.SaveImageCache(proxyUrl, req)
+		task, err := service.OSService.SaveImageCache(proxyUrl, req)
 		if err != nil {
 			glog.Errorf(req.GetCtx(), "save image cache failed: %s", err)
 			req.Response.WriteStatusExit(400, HttpError{Error: "save image cache failed"})

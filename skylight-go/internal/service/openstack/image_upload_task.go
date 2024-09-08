@@ -1,4 +1,4 @@
-package service
+package openstack
 
 import (
 	"skylight/internal/model/entity"
