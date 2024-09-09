@@ -1,67 +1,69 @@
 <template>
   <v-row>
+    <v-col lg=4 md="8" sm="12">
+      <v-text-field variant="solo" center-affix hide-details single-line v-model="table.filterValue"
+        placeholder="请输入..." class="ma-0 pa-0" @keyup.enter.native="refreshTable()">
+        <template v-slot:prepend>
+          <v-select clearable variant="solo" :items="table.filters" hide-details class="ma-0 pa-0" placeholder="筛选"
+            :min-width="130" v-model="table.filterKey">
+          </v-select>
+        </template>
+      </v-text-field>
+    </v-col>
+    <v-col lg=2 md="4" sm="12">
+      <v-card>
+        <v-card-actions class="py-0">
+          <v-checkbox hide-details v-model="listAll" color="info" class="my-2" density="compact" label="全部"
+            v-on:update:model-value="pageRefresh(1)" v-if="context && context.isAdmin()">
+          </v-checkbox>
+          <!-- <v-btn-toggle density="compact" variant="outlined">
+            <v-btn color="info">全部</v-btn>
+          </v-btn-toggle> -->
+          <v-spacer></v-spacer>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ props }">
+              <v-btn icon variant="text" density="compact" v-on:click="table.deleted = !table.deleted; pageRefresh(1)"
+                v-bind="props">
+                <v-icon v-if="table.deleted" color="red">mdi-delete</v-icon>
+                <v-icon v-else color="info">mdi-delete-off</v-icon>
+              </v-btn>
+            </template>
+            显示未删除/已删除
+          </v-tooltip>
+          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="pageRefresh(1)" />
+          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
+        </v-card-actions>
+      </v-card>
+    </v-col>
+    <v-col lg=6 md="12" sm="12">
+      <v-card>
+        <v-card-actions class="mt-1">
+          <v-btn variant="text" density="compact" icon="mdi-plus" color="primary"
+            @click="() => { newServer() }"></v-btn>
+          <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
+            {{ $t('start') }}</v-btn>
+          <v-btn variant="text" color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
+            class="pa-0">
+            {{ $t('stop') }}
+          </v-btn>
+          <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
+          <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
+            v-if="context && context.isAdmin()" />
+          <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
+            v-if="context && context.isAdmin()" />
+          <btn-server-reset-state :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
+            v-if="context && context.isAdmin()" />
+          <delete-comfirm-dialog density="compact" :disabled="table.selected.length == 0" title="确定删除实例?"
+            @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+
     <v-col cols='12'>
       <v-data-table-server density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
         v-model="table.selected" :items-length="totalServers.length" @update:options="pageRefresh" hover>
-
-        <template v-slot:top>
-          <v-row>
-            <v-col cols="12" md="5" sm="12">
-              <v-toolbar density="compact" class="rounded">
-                <v-btn icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
-                <v-spacer></v-spacer>
-                <v-btn color="success" @click="table.startSelected()" :disabled="table.selected.length == 0"
-                  class="pa-0">
-                  {{ $t('start') }}</v-btn>
-                <v-btn color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
-                  class="pa-0">
-                  {{ $t('stop') }}
-                </v-btn>
-                <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
-                <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
-                  v-if="context && context.isAdmin()" />
-                <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
-                  v-if="context && context.isAdmin()" />
-                <btn-server-reset-state :servers="table.selected"
-                  @updateServer="(server) => { table.updateItem(server) }" v-if="context && context.isAdmin()" />
-
-                <v-spacer></v-spacer>
-                <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
-                  @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
-              </v-toolbar>
-            </v-col>
-            <v-col cols="12" md="4" sm="6">
-              <v-text-field density="compact" hide-details single-line v-model="table.filterValue"
-                @keyup.enter.native="refreshTable()">
-                <template v-slot:prepend>
-                  <v-select clearable density="compact" :items="table.filters" hide-details class="ma-0 pa-0" placeholder="筛选"
-                    :min-width="130" v-model="table.filterKey">
-                  </v-select>
-                </template>
-              </v-text-field>
-            </v-col>
-            <v-col cols="2" md="1" sm="2">
-              <v-checkbox hide-details v-model="listAll" color="info" class="my-auto" label="所有"
-                v-on:update:model-value="pageRefresh(1)" v-if="context && context.isAdmin()">
-              </v-checkbox>
-            </v-col>
-            <v-col cols="12" md="2" sm="4">
-              <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="pageRefresh(1)" />
-              <v-tooltip bottom>
-                <template v-slot:activator="{ props }">
-                  <v-btn icon variant="text" v-on:click="table.deleted = !table.deleted; pageRefresh(1)" v-bind="props">
-                    <v-icon v-if="table.deleted" color="red">mdi-delete</v-icon>
-                    <v-icon v-else color="info">mdi-delete-off</v-icon>
-                  </v-btn>
-                </template>
-                显示未删除/已删除
-              </v-tooltip>
-              <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
-            </v-col>
-          </v-row>
-        </template>
-
         <template v-slot:[`item.name`]="{ item }">
           <!-- 状态 -->
           <chip-link v-if="item.status" hide-link-icon color="default" density="compact"

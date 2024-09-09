@@ -162,7 +162,11 @@ class System extends Restfulclient {
         await this.put('login', {auth: {region: region}})
     }
 }
-
+class Audit extends Restfulclient {
+    constructor() {
+        super('/audits');
+    }
+}
 class OpenstackProxyAPI extends Restfulclient {
     constructor(baseUrl) {
         super(baseUrl);
@@ -865,6 +869,7 @@ class ComputeLimits extends Restfulclient {
 export class SkylightAPI {
     constructor() {
         this.system = new System();
+        this.audit = new Audit();
         // keystone
         this.idengity = new Identity()
         this.service = new Service();

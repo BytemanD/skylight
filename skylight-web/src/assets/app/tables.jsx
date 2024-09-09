@@ -1817,7 +1817,14 @@ export class ServerTaskWaiter {
         }
     }
 }
-
+export class AuditDataTable extends DataTable {
+    constructor() {
+        super([
+            { title: '时间', key: 'created_at', maxWidth: 40 },
+            { title: '操作', key: 'action' },
+        ], API.audit, 'audits', '审计记录');
+    }
+}
 export class VolumeTaskWaiter {
     constructor(volume, onUpdatedVolume = null) {
         this.volume = volume

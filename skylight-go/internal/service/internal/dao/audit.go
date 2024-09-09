@@ -12,7 +12,7 @@ func queryAudit() *gdb.Model {
 }
 func GetAudits() ([]do.Audit, error) {
 	items := []do.Audit{}
-	err := queryAudit().Scan(&items)
+	err := queryAudit().Order("created_at desc").Scan(&items)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +20,7 @@ func GetAudits() ([]do.Audit, error) {
 }
 func GetAuditsByProjectId(projectId string) ([]do.Audit, error) {
 	items := do.Audits{}
-	err := queryAudit().Where("project_id = ?", projectId).Scan(&items)
+	err := queryAudit().Where("project_id = ?", projectId).Order("created_at desc").Scan(&items)
 	if err != nil {
 		return nil, err
 	}

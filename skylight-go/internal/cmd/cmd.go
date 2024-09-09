@@ -119,14 +119,17 @@ var (
 				ghttp.MiddlewareHandlerResponse, controller.MiddlewareLogResponse,
 			)
 			// 注册路由
+			s.BindObjectRest("/login", controller.PostLoginController{})
 			s.BindObjectRest("/version", controller.Version{})
 			s.BindObjectRest("/clusters", controller.ClustersController{})
 			s.BindObjectRest("/clusters/:id", controller.ClusterController{})
-			s.BindObjectRest("/login", controller.PostLoginController{})
 			s.BindObjectRest("/image_upload_tasks", controller.ImageUploadTasksController{})
 			s.BindObjectRest("/image_upload_tasks/:id", controller.ImageUploadTaskController{})
 			s.Group("", func(group *ghttp.RouterGroup) {
 				group.Middleware(controller.MiddlewareAuth)
+
+				s.BindObjectRest("/audits", controller.AuditsController{})
+
 				group.REST("/login", controller.LoginController{})
 				for _, prefix := range PROXY_PREFIXY {
 					if prefix == "/image" {

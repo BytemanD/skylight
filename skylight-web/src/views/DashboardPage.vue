@@ -1,12 +1,11 @@
 <template>
-  <v-app style="font-size: small;">
+  <v-app style="font-size: small;" :class="this.$vuetify.theme.global.current.dark ? '' : 'bg-grey-lighten-3'">
     <v-navigation-drawer :rail="navigation.mini" :width="ui.navigationWidth.value" :expand-on-hover="navigation.mini">
       <v-list-item title="Skylight">
         <template v-slot:prepend>
           <v-avatar image="@/assets/favicon.svg" rounded="0"></v-avatar>
         </template>
       </v-list-item>
-
       <v-list rounded="xl" density='compact' class="pt-4" open-strategy="single">
         <div v-for="group in navigation.group" v-bind:key="group.name">
           <v-list-subheader class="text-primary">{{ group.name }}</v-list-subheader>
@@ -18,12 +17,6 @@
               <template v-slot:prepend><v-icon :icon="item.icon"></v-icon></template>
             </v-list-item>
           </template>
-          <!-- <v-list-item v-for="(item, i) in group.items" v-bind:key="i" :title="item.title" :value="item" color="primary"
-            @click="selectItem(item)" :disabled="$route.path.startsWith('/dashboard' + item.router)"
-            :active="$route.path.startsWith('/dashboard' + item.router)">
-            {{ item }}
-            <template v-slot:prepend><v-icon :icon="item.icon"></v-icon></template>
-          </v-list-item> -->
         </div>
       </v-list>
     </v-navigation-drawer>
@@ -47,6 +40,7 @@
         </template>
         {{ context && context.user && context.user.name }}
       </v-chip>
+      <btn-audit />
       <btn-home />
       <btn-about />
       <btn-theme />
@@ -72,6 +66,7 @@ import BtnTheme from '../components/plugins/BtnTheme.vue';
 import BtnHome from '../components/plugins/BtnHome.vue';
 import BtnAbout from '../components/plugins/BtnAbout.vue';
 import BtnLogout from '../components/plugins/BtnLogout.vue';
+import BtnAudit from '../components/plugins/BtnAudit.vue';
 import i18n from '@/assets/app/i18n';
 import SettingSheet from '@/components/dashboard/SettingSheet.vue';
 import { Utils } from '@/assets/app/lib';
@@ -115,7 +110,7 @@ export default {
   components: {
     BtnTheme, BtnHome, BtnAbout,
     SettingSheet,
-    BtnLogout,
+    BtnLogout, BtnAudit,
   },
 
   data: () => ({

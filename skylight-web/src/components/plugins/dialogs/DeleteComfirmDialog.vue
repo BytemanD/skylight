@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="display" width="600" scrollable persistent>
     <template v-slot:activator="{ props }">
-      <v-btn v-bind="props" :variant="variant" icon="mdi-trash-can" color="red" :disabled="disabled"></v-btn>
+      <v-btn v-bind="props" :variant="variant" :density="density" icon="mdi-trash-can" color="red" :disabled="disabled"></v-btn>
     </template>
     <v-card color="blue-grey-darken-2">
       <v-card-title class="text-red" icon="mdi-alert">{{ title }}</v-card-title>
@@ -32,6 +32,7 @@ const progs = defineProps({
   disabled: { type: Boolean, default: false },
   itemValueFunc: { type: Function, },
   variant: { type: String, default: "text" },
+  density: { type: String, default: "default" },
   items: { type: Array, default: [] },
 })
 
