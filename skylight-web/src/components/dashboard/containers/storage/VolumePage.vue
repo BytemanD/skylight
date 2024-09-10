@@ -1,32 +1,35 @@
 <template>
     <v-row>
+        <v-col sm="12" lg="6">
+            <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+                v-model="table.search">
+            </v-text-field>
+        </v-col>
+        <v-col cols="1">
+            <v-card>
+                <v-card-actions class="py-1">
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-col>
+        <v-col cols="3" v-if="!simple">
+            <v-card>
+                <v-card-actions class="py-1">
+                    <new-volume-dialog @create="(item) => { table.createItem(item) }" />
+                    <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
+                    </VolumeExtendVue>
+                    <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />
+                    <v-spacer></v-spacer>
+                    <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除卷?"
+                        @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
+                </v-card-actions>
+            </v-card>
+        </v-col>
         <v-col>
             <v-data-table-server show-expand single-expand show-select density='compact' :loading="table.loading"
                 :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
                 :search="table.search" v-model="table.selected" :items-length="totlaVolumes.length"
                 @update:options="pageRefresh">
-                <template v-slot:top>
-                    <v-row>
-                        <v-col cols="12" md="6" sm="12">
-                            <v-toolbar density="compact" class="rounded ma-0 pa-0">
-                                <new-volume-dialog @create="(item) => { table.createItem(item) }" />
-                                <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
-                                </VolumeExtendVue>
-                                <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />
-                                <v-spacer></v-spacer>
-                                <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除卷?"
-                                    @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
-                            </v-toolbar>
-                        </v-col>
-                        <v-col>
-                            <v-text-field density='compact' v-model="table.search" label="搜索卷ID或名字" single-line
-                                hide-details></v-text-field>
-                        </v-col>
-                        <v-col cols="1" class="text-center">
-                            <v-btn color="info" variant="text" icon="mdi-refresh" v-on:click="table.refresh()"></v-btn>
-                        </v-col>
-                    </v-row>
-                </template>
 
                 <template v-slot:[`item.status`]="{ item }">
                     <span>

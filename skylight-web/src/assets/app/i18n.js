@@ -21,7 +21,7 @@ const MESSAGES = {
         navigatorWidth: 'navigator width',
         refresh: 'refresh',
         cluster: 'cluster',
-
+        
         status: 'status',
         hostName: 'hostname',
         usedAndTotalMemory: 'used/total Memory(MB)',
@@ -30,7 +30,7 @@ const MESSAGES = {
         ipAddress: 'IP address',
         hypervisorVersion: 'hypervisor version',
         hypervisorType: 'hypervisor type',
-
+        
         cpu: 'CPU',
         memory: 'memory',
         localDisk: 'local disk',
@@ -39,7 +39,7 @@ const MESSAGES = {
         instance: 'instance',
         instanceNum: 'instance num',
         node: 'node',
-
+        
         tenantUsage: 'tenant usage',
         last1Day: 'last 1 day',
         last7Days: 'last 7 days',
@@ -83,7 +83,7 @@ const MESSAGES = {
         'migrating': 'migrating',
         'shelving': 'shelving',
         'unshelving': 'unshelving',
-
+        
         'networking': 'networking',
         // server actions
         migrate: 'migrate',
@@ -94,15 +94,15 @@ const MESSAGES = {
         start: 'start',
         shelve: 'shelve',
         unshelve: 'unshelve',
-
+        
         about: 'about',
         version: 'version',
         copy: 'copy',
-
+        
         vcore: 'Vcore',
         ram: 'Ram',
         serverGroup: 'Server Group',
-
+        
         public: 'public',
         shared: 'shared',
         private: 'private',
@@ -118,14 +118,15 @@ const MESSAGES = {
         'HARD_REBOOT': 'HARD REBOOT',
         'SHELVED': 'SHELVED',
         'SHELVED_OFFLOADED': 'SHELVED OFFLOADED',
-
+        
         'noPermissions': 'No permissions',
-
+        
         'detail': 'detail',
         'keyPair': 'keyPair',
         id: 'id',
         serverName: 'server name',
         flavor: '规格',
+        ID: "ID",
     },
     'zh-CN': {
         language: '语言',
@@ -257,6 +258,7 @@ const MESSAGES = {
         id: 'ID',
         serverName: '实例名',
         flavor: '规格',
+        ID: "ID",
     },
 };
 

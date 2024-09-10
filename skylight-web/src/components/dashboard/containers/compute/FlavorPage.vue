@@ -1,5 +1,5 @@
 <template>
-    <flavor-table editable />
+    <flavor-table />
 </template>
 
 <script>
@@ -9,8 +9,5 @@ export default {
     components: {
         FlavorTable
     },
-
-
 };
 </script>
-    

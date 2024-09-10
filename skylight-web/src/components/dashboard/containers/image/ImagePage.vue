@@ -1,25 +1,9 @@
 <template>
-  <image-table editable />
+  <image-table />
 </template>
 
-<script>
-import { ImageDataTable } from '@/assets/app/tables';
+<script setup>
 
 import ImageTable from '@/components/plugins/tables/ImageTable.vue';
 
-export default {
-  components: {
-    ImageTable,
-  },
-
-  data: () => ({
-    table: new ImageDataTable(),
-  }),
-  methods: {
-
-  },
-  created() {
-
-  }
-};
 </script>

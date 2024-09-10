@@ -2,25 +2,35 @@
   <v-row>
     <v-col lg=4 md="8" sm="12">
       <v-text-field variant="solo" center-affix hide-details single-line v-model="table.filterValue"
-        placeholder="请输入..." class="ma-0 pa-0" @keyup.enter.native="refreshTable()">
+        placeholder="搜索..." class="ma-0 pa-0" @keyup.enter.native="refreshTable()">
         <template v-slot:prepend>
-          <v-select clearable variant="solo" :items="table.filters" hide-details class="ma-0 pa-0" placeholder="筛选"
-            :min-width="130" v-model="table.filterKey">
-          </v-select>
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn color="info" variant="text" v-bind="props" icon="mdi-filter-menu"></v-btn>
+            </template>
+            <v-list v-mode="table.filterKey">
+              <v-list-item v-for="(item, index) in table.filters" :key="index" :value="index"
+               :class="table.filterKey == item.value ? 'bg-info': ''" density="compact">
+                <v-list-item-title @click="table.filterKey = item.value" >
+                  {{ item.title }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
         </template>
       </v-text-field>
     </v-col>
+
+
     <v-col lg=2 md="4" sm="12">
       <v-card>
         <v-card-actions class="py-0">
           <v-checkbox hide-details v-model="listAll" color="info" class="my-2" density="compact" label="全部"
             v-on:update:model-value="pageRefresh(1)" v-if="context && context.isAdmin()">
           </v-checkbox>
-          <!-- <v-btn-toggle density="compact" variant="outlined">
-            <v-btn color="info">全部</v-btn>
-          </v-btn-toggle> -->
           <v-spacer></v-spacer>
-          <v-tooltip bottom>
+          <v-tooltip location="top">
             <template v-slot:activator="{ props }">
               <v-btn icon variant="text" density="compact" v-on:click="table.deleted = !table.deleted; pageRefresh(1)"
                 v-bind="props">
@@ -37,8 +47,8 @@
     </v-col>
     <v-col lg=6 md="12" sm="12">
       <v-card>
-        <v-card-actions class="mt-1">
-          <v-btn variant="text" density="compact" icon="mdi-plus" color="primary"
+        <v-card-actions class="py-1">
+          <v-btn variant="text" icon="mdi-plus" color="primary"
             @click="() => { newServer() }"></v-btn>
           <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
             {{ $t('start') }}</v-btn>
@@ -53,13 +63,13 @@
             v-if="context && context.isAdmin()" />
           <btn-server-reset-state :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
             v-if="context && context.isAdmin()" />
-          <delete-comfirm-dialog density="compact" :disabled="table.selected.length == 0" title="确定删除实例?"
+          <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
             @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
     </v-col>
-
+    <v-divider></v-divider>
     <v-col cols='12'>
       <v-data-table-server density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"

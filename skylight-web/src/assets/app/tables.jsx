@@ -415,17 +415,17 @@ export class FlavorDataTable extends DataTable {
     constructor() {
         super([{ title: 'ID', key: 'id' },
         { title: '名字', key: 'name' },
-        { title: 'vcpu', key: 'vcpus' },
-        { title: '内存', key: 'ram' },
-        { title: '磁盘', key: 'disk' },
-        { title: 'swap', key: 'swap' },
+        { title: 'vcpu', key: 'vcpus', align: 'end' },
+        { title: '内存', key: 'ram', align: 'end' },
+        { title: '磁盘', key: 'disk', align: 'end' },
+        { title: 'swap', key: 'swap', align: 'end' },
         { title: 'ephemeral', key: 'OS-FLV-EXT-DATA:ephemeral' },
         { title: '操作', key: 'action' },
         ], API.flavor, 'flavors', '规格');
         this.MiniHeaders = [
-            { title: '名字', key: 'name' },
-            { title: 'vcpu', key: 'vcpus' },
-            { title: '内存', key: 'ram' },
+            { title: '名字', key: 'name', minWidth: 300, },
+            { title: 'vcpu', key: 'vcpus', align: 'end' },
+            { title: '内存', key: 'ram', align: 'end' },
         ]
         this.extraSpecsMap = {};
         this.isPublic = true;
@@ -511,10 +511,10 @@ export class ServerDataTable extends DataTable {
             { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
         ];
         this.filters = [
-            {title: i18n.global.t("ID"), value: "id"},
-            {title: i18n.global.t("name"), value: "name"},
-            {title: i18n.global.t("hostName"), value: "host"},
-            {title: i18n.global.t("flavor"), value: "flavor"},
+            { title: i18n.global.t("ID"), value: "id" },
+            { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("hostName"), value: "host" },
+            { title: i18n.global.t("flavor"), value: "flavor" },
         ]
         this.imageMap = {};
         this.rootBdmMap = {};
@@ -1505,7 +1505,8 @@ export class AggDataTable extends DataTable {
 export class ImageDataTable extends DataTable {
     constructor() {
         super([
-            { title: '名字', key: 'name', maxWidth: 500 },
+            { title: 'ID', key: 'id' , minWidth: 300},
+            { title: '名字', key: 'name', maxWidth: 320 },
             { title: '发行版', key: 'os_distro' },
             { title: '架构', key: 'architecture' },
             { title: '状态', key: 'status' },
@@ -1514,7 +1515,6 @@ export class ImageDataTable extends DataTable {
             { title: '操作', key: 'actions', align: 'center' },
         ], API.image, 'images')
         this.extendItems = [
-            { title: 'id', key: 'id' },
             { title: 'checksum', key: 'checksum' },
             { title: 'progress_info', key: 'progress_info' },
             { title: 'protected', key: 'protected' },
@@ -1529,7 +1529,7 @@ export class ImageDataTable extends DataTable {
         this.GB = this.MB * 1024;
         this.visibility = 'public';
         this.MiniHeaders = [
-            { title: 'ID', key: 'id' },
+            { title: 'ID', key: 'id',maxWidth: 300},
             { title: '名字', key: 'name' },
             { title: '大小', key: 'size', align: 'end' },
         ]

@@ -1,32 +1,34 @@
 <template>
     <v-row>
+        <v-col sm="12" lg="6">
+            <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+                v-model="table.search">
+            </v-text-field>
+        </v-col>
+        <v-col cols="1">
+            <v-card>
+                <v-card-actions class="py-1">
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-col>
+        <v-col cols="3" v-if="!simple">
+            <v-card>
+                <v-card-actions class="py-1">
+                    <NewPortDialog @completed="table.refresh()" />
+                    <v-spacer></v-spacer>
+                    <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除端口?"
+                        @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
+                </v-card-actions>
+            </v-card>
+        </v-col>
         <v-col cols="12">
             <v-data-table show-select show-expand single-expand density='compact' :loading="table.loading"
-                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-                v-model="table.selected">
+                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
+                :search="table.search" v-model="table.selected">
 
-                <template v-slot:top>
-                    <v-row>
-                        <v-col cols="12" md="7" sm="12">
-                            <v-toolbar density="compact" class="rounded">
-                                <NewPortDialog @completed="table.refresh()" />
-                                <v-spacer></v-spacer>
-                                <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除端口?"
-                                    @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
-                            </v-toolbar>
-                        </v-col>
-                        <v-col>
-                            <v-text-field small density='compact' v-model="table.search" label="搜索" single-line
-                                hide-details></v-text-field>
-                        </v-col>
-                        <v-col cols="1" class="text-center">
-                            <v-btn variant="text" icon="mdi-refresh" color="info"
-                                @click="table.refresh()"><v-icon>mdi-refresh</v-icon></v-btn>
-                        </v-col>
-                    </v-row>
-                </template>
                 <template v-slot:[`item.id`]="{ item }">
-                    {{ item.id  }}
+                    {{ item.id }}
                     <v-btn size="x-small" variant="text" icon="mdi-pencil" @click="openUpdatePortDialog(item)"></v-btn>
                 </template>
                 <template v-slot:[`item.status`]="{ item }">
@@ -39,8 +41,8 @@
                     </v-chip>
                 </template>
                 <template v-slot:[`item.admin_state_up`]="{ item }">
-                    <v-switch class="my-auto" color="success" v-model="item.admin_state_up" hide-details density='compact'
-                        @click="table.adminStateDown(item)"></v-switch>
+                    <v-switch class="my-auto" color="success" v-model="item.admin_state_up" hide-details
+                        density='compact' @click="table.adminStateDown(item)"></v-switch>
                 </template>
                 <template v-slot:expanded-row="{ columns, item }">
                     <td></td>
@@ -55,7 +57,8 @@
                 </template>
             </v-data-table>
         </v-col>
-        <UpdatePortDialog :show="showUpdatePortDialog" @update:show="(e)=>showUpdatePortDialog=e" :port="selectedPort" @completed="table.refresh()" />
+        <UpdatePortDialog :show="showUpdatePortDialog" @update:show="(e) => showUpdatePortDialog = e"
+            :port="selectedPort" @completed="table.refresh()" />
     </v-row>
 </template>
 

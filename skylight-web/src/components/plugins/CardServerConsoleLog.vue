@@ -8,8 +8,8 @@
             <v-btn size="small" class='mr-1' color="info" variant="outlined" @click="all()" :disabled="refreshing">全部
             </v-btn>
         </v-col>
-        <v-col cols="6" md="4" lg="4">
-            <v-text-field density='compact' hide-details v-model="consoleLines">
+        <v-col cols="6" md="4" lg="2">
+            <v-text-field density='compact' hide-details v-model="consoleLines" type="number">
                 <template v-slot:prepend>行数</template>
             </v-text-field>
         </v-col>
@@ -46,8 +46,9 @@ async function refreshConsoleLog(length) {
         content.value = (await API.server.getConsoleLog(progs.serverId, length));
     } catch (e) {
         console.error(e)
+    } finally {
+        refreshing.value = false;
     }
-    refreshing.value = false;
 }
 async function refresh() {
     if (!consoleLines.value) {

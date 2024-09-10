@@ -1,14 +1,13 @@
 <template>
     <v-col>
-        <v-data-table :headers="headers" :items="actions" density="compact">
+        <v-data-table :headers="headers" hover :items="actions" density="compact"
+            @click:row="openServerActionEventsDialog">
             <template v-slot:[`item.request_id`]="{ item }">
-                <v-chip density="compact" class="ml-4" @click="openServerActionEventsDialog(item.request_id)">
-                    {{ item.request_id }}
-                </v-chip>
+                {{ item.request_id }}
             </template>
             <template v-slot:[`item.message`]="{ item }">
-                <span class="text-red" v-if="isActionError(item)">{{item.message}}</span>
-                <span  v-else>{{item.message}}</span>
+                <span class="text-red" v-if="isActionError(item)">{{ item.message }}</span>
+                <span v-else>{{ item.message }}</span>
             </template>
         </v-data-table>
         <ServerActionEventsDialog :show="showServerActionEventsDialog"
@@ -45,8 +44,8 @@ function isActionError(action) {
         return false;
     }
 }
-async function openServerActionEventsDialog(requestId) {
-    actionRequestId.value = requestId;
+async function openServerActionEventsDialog(event, data) {
+    actionRequestId.value = data.item.request_id;
     server.value = await API.server.show(progs.serverId)
     showServerActionEventsDialog.value = !showServerActionEventsDialog.value;
 }

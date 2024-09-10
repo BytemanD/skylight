@@ -1,7 +1,7 @@
 <template>
     <v-dialog v-model="display" width="900" scrollable>
         <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" color="primary" variant="text" icon="mdi-progress-upload"></v-btn>
+            <v-btn v-bind="props" class="mx-auto" color="primary" variant="text" icon="mdi-progress-upload"></v-btn>
         </template>
         <v-card min-height="300">
             <v-card-title class="headline primary lighten-2" primary-title>镜像上传进度</v-card-title>

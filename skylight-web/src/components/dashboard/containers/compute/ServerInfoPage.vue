@@ -1,31 +1,46 @@
 <template>
   <v-row>
-    <v-col cols="8" md="8" lg="4" class="pb-0">
-      <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
+    <v-col lg=5 md="8" sm="12">
+      <v-card>
+        <v-card-actions>
+          <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" color="info" @click="refresh()">刷新</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-col>
-    <v-col cols="2" md="4" lg="2" class="pb-0">
-      <v-btn class="ml-1" variant="text" color="info" @click="refresh()">刷新</v-btn>
-      <v-btn variant="tonal" color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
+    <v-col lg="1" md="4">
+      <v-card>
+        <v-card-actions>
+          <v-btn color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-col>
     <v-col cols="12" md="12" lg="6" class="pb-0">
-      <btn-server-reset-state :servers="[server]" @update-server="updateServer" v-if="context && context.isAdmin()" />
-      <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
-      <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
-      <v-btn variant="text" color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
-        {{ $t('stop') }}</v-btn>
-      <v-btn variant="text" color="success" v-if="server.status == 'SHUTOFF'" @click="start()">
-        {{ $t('start') }}</v-btn>
-      <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
-        {{ $t('pause') }}</v-btn>
-      <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
-        {{ $t('unpause') }}</v-btn>
-      <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="shelve()">
-        {{ $t('shelve') }}</v-btn>
-      <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
-        @click="unshelve()">{{ $t('unshelve') }}</v-btn>
-      <btn-server-migrate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()"/>
-      <btn-server-evacuate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()"/>
+      <v-card>
+        <v-card-actions>
+          <btn-server-reset-state :servers="[server]" @update-server="updateServer"
+            v-if="context && context.isAdmin()" />
+          <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
+          <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
+          <v-btn variant="text" color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
+            {{ $t('stop') }}</v-btn>
+          <v-btn variant="text" color="success" v-if="server.status == 'SHUTOFF'" @click="start()">
+            {{ $t('start') }}</v-btn>
+          <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
+            {{ $t('pause') }}</v-btn>
+          <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
+            {{ $t('unpause') }}</v-btn>
+          <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="shelve()">
+            {{ $t('shelve') }}</v-btn>
+          <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
+            @click="unshelve()">{{ $t('unshelve') }}</v-btn>
+          <btn-server-migrate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
+          <btn-server-evacuate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
+        </v-card-actions>
+      </v-card>
     </v-col>
+    <v-divider></v-divider>
     <v-col cols="12">
       <server-base-info-card :server="server"></server-base-info-card>
     </v-col>
@@ -34,35 +49,35 @@
         <template v-slot:window-items>
           <v-window-item>
             <v-row>
-              <v-col cols="12" md="12" lg="6">
+              <v-col cols="6">
                 <v-card density="compact">
                   <v-card-text>
                     <table density="compact" class="text-left">
                       <tr>
-                        <td style="min-width: 100px">实例名</td>
+                        <th style="min-width: 100px">实例名</th>
                         <td>{{ server['OS-EXT-SRV-ATTR:instance_name'] }}</td>
                       </tr>
                       <tr>
-                        <td>描述</td>
-                        <td>{{ server.description }}</td>
+                        <th>创建时间</th>
+                        <td>{{ Utils.parseUTCToLocal(server.created) }}</td>
                       </tr>
                       <tr>
-                        <td>系统盘类型</td>
+                        <th>系统盘类型</th>
                         <td><span class="text-info">{{ server.root_bdm_type }}</span></td>
                       </tr>
                       <tr>
-                        <td>节点</td>
-                        <td>{{ server['OS-EXT-SRV-ATTR:host'] }}</td>
+                        <th>AZ</th>
+                        <td>{{ server['OS-EXT-AZ:availability_zone'] }}</td>
                       </tr>
                       <tr>
-                        <td>更新时间</td>
+                        <th>更新时间</th>
                         <td>{{ server.updated }}</td>
                       </tr>
                       <tr>
-                        <td>安全组</td>
+                        <th>安全组</th>
                         <td>
-                          <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">{{ sg.name
-                            }}</v-chip>
+                          <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">
+                            {{ sg.name }}</v-chip>
                         </td>
                       </tr>
                     </table>
@@ -72,10 +87,9 @@
                       <template v-slot:default="{ value }">{{ value }}%</template>
                     </v-progress-linear>
                   </v-card-text>
-                  <!-- v-if="server.status == 'MIGRATING'" -->
                 </v-card>
               </v-col>
-              <v-col cols="12" md="12" lg="6">
+              <v-col cols="6">
                 <v-card density="compact" title="镜像">
                   <template v-slot:append>
                     <btn-server-rebuild :servers="[server]" @update-server="updateServer" />
@@ -114,6 +128,8 @@
                     </table>
                   </v-card-text>
                 </v-card>
+              </v-col>
+              <v-col cols=12>
                 <v-card density="compact" class="mt-1" title="规格">
                   <template v-slot:append>
                     <btn-server-resize :server="server" @update-server="updateServer" />
@@ -143,7 +159,7 @@
                       <tr v-if="server.flavor">
                         <td>属性</td>
                         <td>
-                          <v-chip label density="compact" class="mr-1 mt-1"
+                          <v-chip label density="compact" class="mr-1 mt-1" size="small"
                             v-for="(value, key) in server.flavor.extra_specs" v-bind:key="key">
                             {{ key }}={{ value }}</v-chip>
                         </td>
@@ -214,7 +230,6 @@ import BtnServerResetState from '@/components/plugins/button/BtnServerResetState
 import BtnServerRebuild from '@/components/plugins/button/BtnServerRebuild.vue';
 
 import ChangeServerNameDialog from './dialogs/ChangeServerNameDialog.vue';
-import ServerActionDialog from './dialogs/ServerActionDialog.vue';
 import ServerResetStateDialog from './dialogs/ServerResetStateDialog.vue';
 import ServerVolumes from './dialogs/ServerVolumes.vue';
 import BtnAttachInterfaces from '@/components/plugins/button/BtnAttachInterfaces.vue';
@@ -244,7 +259,7 @@ export default {
     BtnIcon, ServerInterfaceCard, ServerVolumeCard,
     BtnServerReboot, BtnServerMigrate, BtnServerResetState, BtnServerRebuild,
     ServerResetStateDialog,
-    ChangeServerNameDialog, ServerActionDialog,
+    ChangeServerNameDialog,
 
     ServerVolumes, BtnAttachInterfaces, BtnAttachVolumes,
     CardServerConsoleLog, CardServerConsole, CardServerActions, TabWindows, ServerUpdateSG,
@@ -319,7 +334,7 @@ export default {
       this.serverActions = (await API.server.actionList(this.serverId)).reverse();
     },
     refreshMigrations: async function () {
-      if (! this.context.isAdmin()) {
+      if (!this.context.isAdmin()) {
         return
       }
       this.migrationTable.refresh();

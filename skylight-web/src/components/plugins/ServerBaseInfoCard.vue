@@ -5,33 +5,56 @@
                 <v-col cols="10" md="6" lg="5">
                     <table density="compact" class="text-left">
                         <tr>
-                            <td style="min-width: 80px">名称</td>
-                            <th>
+                            <th style="min-width: 80px">名称</th>
+                            <td>
                                 {{ server.name }}
                                 <btn-server-rename variant="tonal" v-if="server.name" :server="server"
                                     @update-server="updateServer" />
-                            </th>
+                            </td>
                         </tr>
                         <tr>
-                            <td>创建时间</td>
-                            <th>{{ Utils.parseUTCToLocal(server.created) }}</th>
+                            <th>描述</th>
+                            <td>{{ server.description }}</td>
                         </tr>
                     </table>
                 </v-col>
                 <v-col cols="6" md="2" lg="4">
                     <table density="compact" class="text-left">
                         <tr>
-                            <td style="min-width: 50px">状态</td>
+                            <th style="min-width: 50px">状态</th>
                             <td>
                                 <v-chip density="compact" v-if="server.status == 'ACTIVE'" color="success">
                                     {{ server.status }}</v-chip>
                                 <v-chip density="compact" v-else-if="server.status == 'ERROR'" color="red">
                                     {{ $t(server.status) }}</v-chip>
-                                <v-chip density="compact" color="warning" v-else>{{ server.status && $t(server.status) }}</v-chip>
+                                <v-chip density="compact" color="warning" v-else>{{ server.status && $t(server.status)
+                                    }}</v-chip>
                             </td>
                         </tr>
                         <tr>
-                            <td style="min-width: 50px">电源</td>
+                            <th style="min-width: 50px">任务</th>
+                            <td>
+                                <v-alert type="warning" variant="text" density="compact"
+                                    v-if="server['OS-EXT-STS:task_state']">
+                                    {{ $t(server['OS-EXT-STS:task_state']) }}
+                                    <template v-slot:prepend>
+                                        <v-icon class="mdi-spin" size="small">mdi-loading</v-icon>
+                                    </template>
+                                </v-alert>
+                            </td>
+                        </tr>
+                    </table>
+                </v-col>
+                <v-col cols="6" md="2" lg="3">
+                    <table density="compact" class="text-left">
+                        <tr>
+                            <th style="min-width: 50px">节点</th>
+                            <td>
+                                {{ server['OS-EXT-SRV-ATTR:host'] }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="min-width: 50px">电源</th>
                             <td>
                                 <v-icon v-if="server['OS-EXT-STS:power_state'] == 1" color="success">mdi-power</v-icon>
                                 <v-icon v-else-if="server['OS-EXT-STS:power_state'] == 3"
@@ -41,15 +64,8 @@
                             </td>
                         </tr>
                     </table>
-                </v-col>
-                <v-col cols="6" md="2" lg="3">
                     <template v-if="server['OS-EXT-STS:task_state']">
-                        <v-alert type="warning" variant="text" density="compact">
-                            {{ $t(server['OS-EXT-STS:task_state']) }}
-                            <template v-slot:prepend>
-                                <v-icon class="mdi-spin" size="small">mdi-loading</v-icon>
-                            </template>
-                        </v-alert>
+
                     </template>
                 </v-col>
             </v-row>

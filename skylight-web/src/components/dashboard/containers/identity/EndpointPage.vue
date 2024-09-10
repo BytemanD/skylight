@@ -1,37 +1,43 @@
 <template>
-  <v-row>
-    <alert-require-admin :context="context">
-      <template v-slot:content>
+
+  <alert-require-admin :context="context">
+    <template v-slot:content>
+      <v-row>
+        <v-col sm="12" lg="5">
+          <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+            v-model="table.search">
+          </v-text-field>
+        </v-col>
+        <v-col lg="2" md="3">
+          <v-card>
+            <v-card-actions class="py-2">
+              <ServiceDialogVue :show.sync="showServiceDialog" />
+              <RegionDialogVue :show.sync="showRegionDialog" />
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="1">
+          <v-card>
+            <v-card-actions class="py-1">
+              <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="3">
+          <v-card>
+            <v-card-actions class="py-1">
+              <NewEndpointDialog @completed="table.refresh()" />
+              <v-spacer></v-spacer>
+              <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除Endpoint?"
+                @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()"
+                :item-value-func="getItemValue" />
+            </v-card-actions>
+          </v-card>
+        </v-col>
         <v-col cols="12">
           <v-data-table density='compact' show-select :headers="table.headers" :items="table.items"
             :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected"
             :loading="table.loading">
-
-            <template v-slot:top>
-              <v-row>
-                <v-col cols="12" md="5" sm="12">
-                  <v-toolbar density="compact" class="rounded">
-                    <NewEndpointDialog @completed="table.refresh()" />
-                    <v-spacer></v-spacer>
-                    <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除Endpoint?"
-                      @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()"
-                      :item-value-func="getItemValue" />
-                  </v-toolbar>
-                </v-col>
-                <v-col cols="12" md="2" sm="12">
-                  <ServiceDialogVue :show.sync="showServiceDialog" />
-                  <RegionDialogVue :show.sync="showRegionDialog" />
-                </v-col>
-                <v-col cols="12" md="4" sm="12">
-                  <v-text-field small density='compact' single-line hide-details v-model="table.search"
-                    label="搜索"></v-text-field>
-
-                </v-col>
-                <v-col cols="12" md="1" sm="12">
-                  <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="table.refresh()"></v-btn>
-                </v-col>
-              </v-row>
-            </template>
 
             <template v-slot:[`item.service_name`]="{ item }">{{ serviceMap[item.service_id] &&
               serviceMap[item.service_id].name }}</template>
@@ -39,9 +45,10 @@
               serviceMap[item.service_id].type }}</template>
           </v-data-table>
         </v-col>
-      </template>
-    </alert-require-admin>
-  </v-row>
+      </v-row>
+    </template>
+  </alert-require-admin>
+
 </template>
 
 <script>

@@ -37,7 +37,7 @@
                                     :messages="dialog.validFlavor()">
                                     <template v-slot:prepend>规格</template>
                                 </v-text-field>
-                                <flavor-table class="ml-10" @select-flavor="(flavor) => { selectFlavor(flavor) }" />
+                                <flavor-table simple class="ml-10" @select-flavor="(flavor) => { selectFlavor(flavor) }" />
                             </v-card-text>
                         </v-card>
                         <v-card class="mt-1" elevation="2">
@@ -47,7 +47,7 @@
                                     :error="!dialog.image.id" :messages="dialog.validImage()">
                                     <template v-slot:prepend>镜像</template>
                                 </v-text-field>
-                                <image-table class="ml-10" @select-image="(image) => { selectImage(image) }" />
+                                <image-table simple class="ml-10" @select-image="(image) => { selectImage(image) }" />
                             </v-card-text>
                         </v-card>
                         <v-card elevation="2" class="mt-1">

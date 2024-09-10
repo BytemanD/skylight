@@ -1,36 +1,41 @@
 <template>
-  <v-row>
-    <alert-require-admin :context="context">
-      <template v-slot:content>
+  <alert-require-admin :context="context">
+    <template v-slot:content>
+      <v-row>
+        <v-col sm="12" lg="5">
+          <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+            v-model="table.search">
+          </v-text-field>
+        </v-col>
+        <v-col lg="2" md="3">
+          <v-card>
+            <v-card-actions class="py-2 pt-3">
+              <UserDialog :show.sync="showUserDialog" />
+              <RoleDialog :show.sync="showRoleDialog" />
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="1">
+          <v-card>
+            <v-card-actions class="py-1">
+              <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="3">
+          <v-card>
+            <v-card-actions class="py-1">
+              <NewProjectDialog @completed="table.refresh()" />
+              <v-spacer></v-spacer>
+              <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除项目?"
+                @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
+            </v-card-actions>
+          </v-card>
+        </v-col>
         <v-col cols="12">
           <v-data-table show-expand single-expand density='compact' show-select :loading="table.loading"
             :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
             v-model="table.selected">
-
-            <template v-slot:top>
-              <v-row>
-                <v-col cols="12" md="4" sm="12">
-                  <v-toolbar density="compact" class="rounded">
-                    <NewProjectDialog @completed="table.refresh()" />
-                    <v-spacer></v-spacer>
-                    <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除项目?"
-                      @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
-                  </v-toolbar>
-                </v-col>
-                <v-col cols="12" md="3" sm="4">
-                  <UserDialog :show.sync="showUserDialog" />
-                  <RoleDialog :show.sync="showRoleDialog" />
-                </v-col>
-                <v-col cols="12" md="4" sm="6">
-                  <v-text-field small density='compact' v-model="table.search" label="搜索" single-line
-                    hide-details></v-text-field>
-                </v-col>
-                <v-col cols="12" md="1" sm="2">
-                  <v-btn icon="mdi-refresh" variant="text" color="info"
-                    v-on:click="table.refresh()"><v-icon></v-icon></v-btn>
-                </v-col>
-              </v-row>
-            </template>
 
             <template v-slot:[`item.name`]="{ item }">{{ item.name || item.id }}</template>
             <template v-slot:[`item.enabled`]="{ item }">
@@ -56,9 +61,9 @@
           <ProjectUserDialog :show="showProjectUserDialog" :project="selectProject"
             @update:show="(e) => showProjectUserDialog = e" />
         </v-col>
-      </template>
-    </alert-require-admin>
-  </v-row>
+      </v-row>
+    </template>
+  </alert-require-admin>
 </template>
 
 <script>
