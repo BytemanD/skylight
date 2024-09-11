@@ -44,10 +44,17 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 		}
 		req.Session.Set("loginInfo", loginInfo)
 		service.AuditService.Login(req)
+		regions, err := manager.GetRegionFromCatalog()
+		if err != nil {
+			req.Response.WriteStatusExit(400, HttpError{Message: "get regions failed"})
+		} else {
+			glog.Infof(req.GetCtx(), "login success")
+			req.Response.WriteStatusExit(
+				200, map[string]interface{}{"regions": regions},
+			)
+		}
 	}
 
-	glog.Infof(req.GetCtx(), "login success")
-	req.Response.WriteStatusExit(200, HttpError{Message: "login success"})
 }
 func (c *LoginController) Get(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")

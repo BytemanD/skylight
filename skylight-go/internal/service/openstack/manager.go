@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
+	"github.com/BytemanD/easygo/pkg/stringutils"
 	"github.com/go-resty/resty/v2"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -106,6 +107,21 @@ func (c *OpenstackManager) GetToken() (string, error) {
 		return c.token, nil
 	}
 	return c.token, c.tokenIssue()
+}
+func (c *OpenstackManager) GetRegionFromCatalog() ([]string, error) {
+	if _, err := c.GetToken(); err != nil {
+		return []string{}, err
+	}
+	regions := []string{}
+	for _, catalog := range c.tokenData.Catalogs {
+		for _, endpoint := range catalog.Endpoints {
+			if stringutils.ContainsString(regions, endpoint.RegionId) {
+				continue
+			}
+			regions = append(regions, endpoint.RegionId)
+		}
+	}
+	return regions, nil
 }
 
 func (c *OpenstackManager) GetEndpoint(service string) (string, error) {

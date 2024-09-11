@@ -24,9 +24,7 @@
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword">
         </v-text-field>
-
       </v-card-text>
-
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -97,17 +95,19 @@ async function login() {
   if (!auth.value.project) { notify.error('请输入租户名'); return }
   if (!auth.value.username) { notify.error('请输入用户'); return }
   if (!auth.value.password) { notify.error('请输入密码'); return }
+  // let regions = []
   try {
-    await API.system.login(
+    let resp = await API.system.login(
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
-    notify.success('登录成功')
+      notify.success('登录成功')
+      regions.value = resp.regions
   } catch (e) {
     notify.error('登录失败')
     return
   }
   localStorage.removeItem('context')
-  regions.value = (await API.region.list()).regions
+  // regions.value = (await API.region.list()).regions
 
   if (regions.value.length == 1) {
     await API.system.changeRegion(regions.value[0].id)
@@ -116,6 +116,8 @@ async function login() {
     proxy.$router.push('/dashboard')
   } else if (regions.value.length > 1) {
     showRegions.value = true;
+  } else {
+    notify.error('无地区')
   }
 }
 async function selectedRegion(region) {

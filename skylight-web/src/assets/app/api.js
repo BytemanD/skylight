@@ -149,7 +149,7 @@ class System extends Restfulclient {
             user: username,
             password: password
         }
-        return await this.doPost({auth: auth}, '/login')
+        return await this.post({auth: auth}, '/login')
     }
     async isLogin(){
         return await this.get('/login')
