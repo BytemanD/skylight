@@ -24,7 +24,7 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col>
+        <v-col cols="12">
           <v-data-table density='compact' show-select :loading="table.loading" :headers="table.headers"
             :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected">
 

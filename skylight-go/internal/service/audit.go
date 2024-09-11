@@ -2,11 +2,14 @@ package service
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"skylight/internal/model/entity"
 	"skylight/internal/service/internal/dao"
 	"skylight/internal/service/internal/do"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/glog"
 )
@@ -71,11 +74,21 @@ func (s auditService) Login(req *ghttp.Request) {
 		logging.Error("create audit failed: %s", err)
 	}
 }
-func (s auditService) Logout(req *ghttp.Request) {
+func (s auditService) Logout(req *ghttp.Request) error {
 	loginInfo, err := OSService.GetLogInfo(req)
 	if err != nil {
-		glog.Infof(req.GetCtx(), "get login info failed: %s", err)
-		return
+		glog.Errorf(req.GetCtx(), "get login info failed: %s", err)
+		return err
+	}
+	OSService.RemoveManager(req.GetSessionId())
+	if err := req.Session.RemoveAll(); err != nil {
+		return err
+	}
+	gsessionPath, _ := g.Cfg().Get(req.GetCtx(), "session.path", "/var/lib/skylight/gsessions")
+	gsessionFile := filepath.Join(gsessionPath.String(), req.GetSessionId())
+
+	if err = os.Remove(gsessionFile); err != nil {
+		return err
 	}
 	_, err = dao.CreateAudit(
 		loginInfo.Project.Id, loginInfo.Project.Name,
@@ -85,6 +98,7 @@ func (s auditService) Logout(req *ghttp.Request) {
 	if err != nil {
 		logging.Error("create audit failed: %s", err)
 	}
+	return nil
 }
 
 var AuditService *auditService

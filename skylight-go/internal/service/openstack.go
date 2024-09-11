@@ -48,10 +48,15 @@ func (s openstackService) GetManager(sessionId string, req *ghttp.Request) (*ope
 		if err != nil {
 			return nil, err
 		}
+		manager.SetRegion(loginInfo.Region)
 		s.managers[sessionId] = manager
 		return manager, nil
 	}
 }
+func (s *openstackService) RemoveManager(sessionId string) {
+	delete(s.managers, sessionId)
+}
+
 func (s *openstackService) SetRegion(req *ghttp.Request, region string) error {
 	if loginInfo, err := s.GetLogInfo(req); err != nil {
 		return fmt.Errorf("get session auth info falied: %v", err)

@@ -11,7 +11,7 @@
                 <tr>
                     <td>角色</td>
                     <td>
-                        <span v-for="role in roles" :key="role" class="mr-1">{{ role }}</span>
+                        <v-chip v-for="role in roles" :key="role" class="mr-1" size="small">{{ role }}</v-chip>
                     </td>
                 </tr>
                 <tr>

@@ -92,9 +92,9 @@ func (c *LoginController) Put(req *ghttp.Request) {
 }
 func (c *LoginController) Delete(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
-	service.AuditService.Logout(req)
-	if err := req.Session.RemoveAll(); err != nil {
-		req.Response.WriteStatusExit(400, HttpError{Error: "logout failed"})
+	if err := service.AuditService.Logout(req); err != nil {
+		req.Response.WriteStatusExit(400, HttpError{Message: "logout failed"})
+	} else {
+		req.Response.WriteStatusExit(200, HttpError{Message: "logout success"})
 	}
-	req.Response.WriteStatusExit(200, HttpError{Message: "logout success"})
 }
