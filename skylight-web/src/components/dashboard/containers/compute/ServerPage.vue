@@ -1,20 +1,21 @@
 <template>
   <v-row>
     <v-col lg=4 md="8" sm="12">
-      <v-text-field variant="solo" center-affix hide-details single-line v-model="table.customQueryValue"
-        placeholder="搜索..." class="ma-0 pa-0" @keyup.enter.native="regreshByCustom()">
+      <v-text-field clearable variant="solo" hide-details v-model="table.customQueryValue" placeholder="搜索..." class="ma-0 pa-0"
+        @keyup.enter.native="refresh()">
+        <template v-slot:prepend-inner>
+          <v-chip size="small">{{ table.selectedCustomQuery.title }}</v-chip>
+        </template>
         <template v-slot:prepend>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn :color="table.customQueryKey ? 'info' : 'grey'" variant="text" v-bind="props"
-                icon="mdi-filter-menu"></v-btn>
+              <v-btn variant="text" v-bind="props" color="grey" icon="mdi-filter-menu"></v-btn>
             </template>
-            <v-list v-model="table.customQueryKey">
+            <v-list density="compact">
               <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
-                :class="table.customQueryKey == item.value ? 'bg-info' : ''" density="compact">
-                <v-list-item-title @click="table.customQueryValue = item.value">
-                  {{ item.title }}
-                </v-list-item-title>
+                :class="table.selectedCustomQuery.value == item.value ? 'bg-info' : ''"
+                @click="table.selectedCustomQuery = item">
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -23,7 +24,7 @@
     </v-col>
     <v-col lg=2 md="4" sm="12">
       <v-card>
-        <v-card-actions class="py-0">
+        <v-card-actions class="py-1">
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
               <v-btn icon variant="text" v-bind="props" v-on:click="changeListAll">
@@ -32,7 +33,6 @@
             </template>
             查询全部租户
           </v-tooltip>
-          <v-spacer></v-spacer>
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
               <v-btn icon variant="text" v-on:click="changeDeleted" v-bind="props">
@@ -41,6 +41,8 @@
             </template>
             查询未删除/已删除
           </v-tooltip>
+          <v-spacer></v-spacer>
+          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="refresh" />
         </v-card-actions>
       </v-card>
     </v-col>
@@ -64,7 +66,6 @@
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
             @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
           <v-spacer></v-spacer>
-          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="refresh" />
           <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
         </v-card-actions>
       </v-card>
@@ -218,13 +219,6 @@ export default {
     options: {}
   }),
   methods: {
-    regreshByCustom: function () {
-      if (!this.table.customQueryKey) {
-        notify.error("请选择搜索条件")
-        return;
-      }
-      this.table.pageUpdate(this.table.page, this.table.itemsPerPage, this.sortBy);
-    },
     changeDeleted: function () {
       this.table.page = 1;
       this.table.defautlQuaryParams.deleted = !this.table.defautlQuaryParams.deleted;

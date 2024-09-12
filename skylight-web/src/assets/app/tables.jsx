@@ -534,12 +534,12 @@ export class ServerDataTable extends DataTable {
             deleted: false,
         }
         this.customQueryParams = [
-            { title: i18n.global.t("ID"), value: "id" },
             { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("ID"), value: "id" },
             { title: i18n.global.t("hostName"), value: "host" },
             { title: i18n.global.t("flavor"), value: "flavor" },
         ]
-        this.customQueryKey = null
+        this.selectedCustomQuery = this.customQueryParams[0];
         this.customQueryValue = null
         this.imageName = {};
         this.imageMap = {};
@@ -554,8 +554,8 @@ export class ServerDataTable extends DataTable {
         for (let key in this.defautlQuaryParams) {
             queryParams[key] = this.defautlQuaryParams[key]
         }
-        if (this.customQueryKey && this.customQueryValue) {
-            queryParams[this.customQueryKey] = this.customQueryValue
+        if (this.customQueryValue) {
+            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
         }
         return queryParams
     }
