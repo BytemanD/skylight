@@ -1,55 +1,53 @@
 <template>
   <v-row>
     <v-col lg=4 md="8" sm="12">
-      <v-text-field variant="solo" center-affix hide-details single-line v-model="table.filterValue"
-        placeholder="搜索..." class="ma-0 pa-0" @keyup.enter.native="refreshTable()">
+      <v-text-field variant="solo" center-affix hide-details single-line v-model="table.customQueryValue"
+        placeholder="搜索..." class="ma-0 pa-0" @keyup.enter.native="regreshByCustom()">
         <template v-slot:prepend>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="info" variant="text" v-bind="props" icon="mdi-filter-menu"></v-btn>
+              <v-btn :color="table.customQueryKey ? 'info' : 'grey'" variant="text" v-bind="props"
+                icon="mdi-filter-menu"></v-btn>
             </template>
-            <v-list v-mode="table.filterKey">
-              <v-list-item v-for="(item, index) in table.filters" :key="index" :value="index"
-               :class="table.filterKey == item.value ? 'bg-info': ''" density="compact">
-                <v-list-item-title @click="table.filterKey = item.value" >
+            <v-list v-model="table.customQueryKey">
+              <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
+                :class="table.customQueryKey == item.value ? 'bg-info' : ''" density="compact">
+                <v-list-item-title @click="table.customQueryValue = item.value">
                   {{ item.title }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
-
         </template>
       </v-text-field>
     </v-col>
-
-
     <v-col lg=2 md="4" sm="12">
       <v-card>
         <v-card-actions class="py-0">
-          <v-checkbox hide-details v-model="listAll" color="info" class="my-2" density="compact" label="全部"
-            v-on:update:model-value="pageRefresh(1)" v-if="context && context.isAdmin()">
-          </v-checkbox>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-btn icon variant="text" v-bind="props" v-on:click="changeListAll">
+                <v-icon :color="table.defautlQuaryParams.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
+              </v-btn>
+            </template>
+            查询全部租户
+          </v-tooltip>
           <v-spacer></v-spacer>
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn icon variant="text" density="compact" v-on:click="table.deleted = !table.deleted; pageRefresh(1)"
-                v-bind="props">
-                <v-icon v-if="table.deleted" color="red">mdi-delete</v-icon>
-                <v-icon v-else color="info">mdi-delete-off</v-icon>
+              <v-btn icon variant="text" v-on:click="changeDeleted" v-bind="props">
+                <v-icon :color="table.defautlQuaryParams.deleted ? 'red' : 'grey'">mdi-delete-off</v-icon>
               </v-btn>
             </template>
-            显示未删除/已删除
+            查询未删除/已删除
           </v-tooltip>
-          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="pageRefresh(1)" />
-          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
         </v-card-actions>
       </v-card>
     </v-col>
     <v-col lg=6 md="12" sm="12">
       <v-card>
         <v-card-actions class="py-1">
-          <v-btn variant="text" icon="mdi-plus" color="primary"
-            @click="() => { newServer() }"></v-btn>
+          <v-btn variant="text" icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
           <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
             {{ $t('start') }}</v-btn>
           <v-btn variant="text" color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
@@ -66,14 +64,17 @@
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
             @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
           <v-spacer></v-spacer>
+          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="refresh" />
+          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
         </v-card-actions>
       </v-card>
     </v-col>
     <v-divider></v-divider>
     <v-col cols='12'>
-      <v-data-table-server density='compact' show-select show-expand single-expand :loading="table.loading"
-        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-        v-model="table.selected" :items-length="totalServers.length" @update:options="pageRefresh" hover>
+      <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
+        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" earch="table.search"
+        v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page
+        v-bind:page="table.page">
         <template v-slot:[`item.name`]="{ item }">
           <!-- 状态 -->
           <chip-link v-if="item.status" hide-link-icon color="default" density="compact"
@@ -189,6 +190,7 @@ import BtnServerMigrate from '@/components/plugins/BtnServerMigrate.vue';
 import BtnServerReboot from '@/components/plugins/BtnServerReboot.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
 import { Context, GetLocalContext } from '@/assets/app/context';
+import notify from '@/assets/app/notify';
 
 
 export default {
@@ -206,20 +208,38 @@ export default {
   data: () => ({
     Utils: Utils,
     i18n: i18n,
-    deleted: false,
     table: new ServerDataTable(),
     selectedServer: {},
     openServerTopology: false,
     showChangeNameDialog: false,
     showServerUpdateSGDialog: false,
     showServerGroupDialog: false,
-    listAll: false,
-    totalServers: [],
     context: new Context(),
+    options: {}
   }),
   methods: {
-    refreshTable: function () {
-      this.table.refresh();
+    regreshByCustom: function () {
+      if (!this.table.customQueryKey) {
+        notify.error("请选择搜索条件")
+        return;
+      }
+      this.table.pageUpdate(this.table.page, this.table.itemsPerPage, this.sortBy);
+    },
+    changeDeleted: function () {
+      this.table.page = 1;
+      this.table.defautlQuaryParams.deleted = !this.table.defautlQuaryParams.deleted;
+      this.refresh()
+    },
+    changeListAll: function () {
+      this.table.page = 1;
+      this.table.defautlQuaryParams.all_tenants = !this.table.defautlQuaryParams.all_tenants;
+      this.refresh()
+    },
+    refresh: function () {
+      this.table.pageUpdate(this.table.page, this.table.itemsPerPage, this.sortBy);
+    },
+    pageUpdate: function ({ page, itemsPerPage, sortBy }) {
+      this.table.pageUpdate(page, itemsPerPage, sortBy)
     },
     deleteSelected: async function () {
       let selected = this.table.selected;
@@ -227,51 +247,11 @@ export default {
       for (let i in selected) {
         let serverId = selected[i];
         await this.table.waitServerDeleted(serverId)
+        this.table.removeItem(selected[i])
       }
-      this.refreshTotlaServers()
-    },
-    refreshTotlaServers: function () {
-      let self = this;
-      let filter = { 'deleted': this.table.deleted }
-      if (this.listAll) {
-        filter.all_tenants = 1
-      }
-      API.server.list(filter).then((servers) => {
-        self.totalServers = servers
-      })
-    },
-    pageRefresh: function ({ page, itemsPerPage, sortBy }) {
-      let filter = {}
-      if (this.listAll) {
-        filter.all_tenants = 1
-      }
-      if (itemsPerPage) {
-        if (itemsPerPage >= 0) {
-          filter.limit = itemsPerPage
-        }
-      } else {
-        filter.limit = this.table.itemsPerPage
-      }
-      if (page > 1 && this.totalServers.length > 1) {
-        let index = filter.limit * (page - 1) - 1
-        filter.marker = this.totalServers[index].id
-      }
-      this.table.refresh(filter)
-      this.refreshTotlaServers()
     },
     updateServer: async function (server) {
-      if (!server.id) {
-        console.warn('server id is null');
-        return;
-      }
-      for (let i in this.table.items) {
-        if (this.table.items[i].id == server.id) {
-          for (let key in server) {
-            this.table.items[i][key] = server[key];
-          }
-          break;
-        }
-      }
+      this.table.updateItem(server)
     },
     loginVnc: async function (server) {
       let body = await API.server.getVncConsole(server.id);
@@ -292,6 +272,9 @@ export default {
     openServerGroupDialog: function (server) {
       this.selectedServer = server;
       this.showServerGroupDialog = !this.showServerGroupDialog;
+    },
+    xx: function (data = {}) {
+      console.info('xxxxxxxxxxx', data)
     }
   },
   created() {

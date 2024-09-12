@@ -16,9 +16,14 @@ class DataTable {
         this.api = api;
         this.bodyKey = bodyKey;
         this.name = name;
-        this.itemsPerPage = 20;
+        // page options
+        this.page = 1
+        this.itemsPerPage = 20
+        this.sortBy
+
         this.search = '';
         this.items = [];
+        this.totalItems = [];
         this.statistics = {};
         this.selected = []
         this.extendItems = []
@@ -79,6 +84,10 @@ class DataTable {
         this.selected = [];
     }
     updateItem(newItem) {
+        if (!newItem.id) {
+            console.warn('newItem id is null');
+            return;
+          }
         for (var i = 0; i < this.items.length; i++) {
             if (this.items[i].id != newItem.id) {
                 continue;
@@ -113,6 +122,16 @@ class DataTable {
         let index = -1;
         for (let i in this.items) {
             if (this.items[i].id == id) {
+                index = i
+                break;
+            }
+        }
+        if (index >= 0) {
+            this.items.splice(index, 1)
+        }
+        index = -1;
+        for (let i in this.totalItems) {
+            if (this.totalItems[i].id == id) {
                 index = i
                 break;
             }
@@ -490,7 +509,7 @@ export class KeypairDataTable extends DataTable {
 
 export class ServerDataTable extends DataTable {
     constructor() {
-        super([{ title: '实例名字', key: 'name', maxWidth: 500 },
+        super([{ title: '实例名字', key: 'name', maxWidth: 500, },
         { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
         { title: '规格', key: 'flavor', maxWidth: 250 },
         { title: '镜像', key: 'image', maxWidth: 250 },
@@ -510,28 +529,54 @@ export class ServerDataTable extends DataTable {
             { title: '错误信息', key: 'fault' },
             { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
         ];
-        this.filters = [
+        this.defautlQuaryParams = {
+            all_tenants: false,
+            deleted: false,
+        }
+        this.customQueryParams = [
             { title: i18n.global.t("ID"), value: "id" },
             { title: i18n.global.t("name"), value: "name" },
             { title: i18n.global.t("hostName"), value: "host" },
             { title: i18n.global.t("flavor"), value: "flavor" },
         ]
+        this.customQueryKey = null
+        this.customQueryValue = null
+        this.imageName = {};
         this.imageMap = {};
         this.rootBdmMap = {};
         this.errorNotify = {};
-        this.deleted = false;
-        this.imageName = {};
     }
-    refresh(filters = {}) {
-        // search only for server.name
-        filters.deleted = this.deleted
-        if (this.filterKey && this.filterValue) {
-            filters[this.filterKey] = this.filterValue
+    getDefautlQuaryParams() {
+        return this.defautlQuaryParams
+    }
+    getQueryParams() {
+        let queryParams = {}
+        for (let key in this.defautlQuaryParams) {
+            queryParams[key] = this.defautlQuaryParams[key]
         }
-        // if (this.filterName != "") {
-        //     filters.name = this.filterName;
-        // }
-        super.refresh(filters);
+        if (this.customQueryKey && this.customQueryValue) {
+            queryParams[this.customQueryKey] = this.customQueryValue
+        }
+        return queryParams
+    }
+    async refreshTotalServers() {
+        this.totalItems = this.totalItems
+        this.totalItems = await this.api.list(this.getQueryParams())
+    }
+    async pageUpdate(page, itemsPerPage, sortBy) {
+        this.page = page
+        this.itemsPerPage = itemsPerPage
+        this.sortBy = sortBy
+
+        let queryParams = this.getQueryParams()
+        // 添加分页查询参数
+        queryParams.limit = this.itemsPerPage
+        if (page > 1 && this.totalItems.length > 1) {
+            let index = queryParams.limit * (page - 1) - 1
+            queryParams.marker = this.totalItems[index].id
+        }
+        await this.refresh(queryParams)
+        this.refreshTotalServers()
     }
     openResetStateDialog() {
         this.resetStateDialog.open(this);
@@ -1505,7 +1550,7 @@ export class AggDataTable extends DataTable {
 export class ImageDataTable extends DataTable {
     constructor() {
         super([
-            { title: 'ID', key: 'id' , minWidth: 300},
+            { title: 'ID', key: 'id', minWidth: 300 },
             { title: '名字', key: 'name', maxWidth: 320 },
             { title: '发行版', key: 'os_distro' },
             { title: '架构', key: 'architecture' },
@@ -1529,7 +1574,7 @@ export class ImageDataTable extends DataTable {
         this.GB = this.MB * 1024;
         this.visibility = 'public';
         this.MiniHeaders = [
-            { title: 'ID', key: 'id',maxWidth: 300},
+            { title: 'ID', key: 'id', maxWidth: 300 },
             { title: '名字', key: 'name' },
             { title: '大小', key: 'size', align: 'end' },
         ]

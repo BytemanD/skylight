@@ -110,7 +110,7 @@ async function login() {
   // regions.value = (await API.region.list()).regions
 
   if (regions.value.length == 1) {
-    await API.system.changeRegion(regions.value[0].id)
+    await API.system.changeRegion(regions.value[0])
     let auth = (await API.system.isLogin()).auth
     saveContext(auth)
     proxy.$router.push('/dashboard')

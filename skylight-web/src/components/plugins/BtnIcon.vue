@@ -1,7 +1,7 @@
 <template>
     <v-tooltip location="top">
         <template v-slot:activator="{ props }">
-            <v-btn :size="size" :color="color" :icon="icon" :variant="variant" density="compact" v-on:click="onClick()"
+            <v-btn :size="size" :color="color" :icon="icon" :variant="variant" v-on:click="onClick()"
                 v-bind="props"></v-btn>
         </template>
         {{ toolTip }}
