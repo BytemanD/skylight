@@ -30,7 +30,7 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 	if err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Error: err.Error()})
 	}
-	if manager, err := openstack.NewManager(sessionId, cluster.AuthUrl,
+	if manager, err := openstack.NewManager(cluster.AuthUrl,
 		reqBody.Auth.Project, reqBody.Auth.User, reqBody.Auth.Password); err != nil {
 		req.Response.WriteStatusExit(403, HttpError{Error: err.Error()})
 	} else {

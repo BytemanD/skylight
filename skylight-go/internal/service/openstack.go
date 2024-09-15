@@ -30,7 +30,8 @@ func (s openstackService) GetLogInfo(req *ghttp.Request) (*openstack.LoginInfo, 
 	return &loginInfo, nil
 }
 
-func (s openstackService) GetManager(sessionId string, req *ghttp.Request) (*openstack.OpenstackManager, error) {
+func (s openstackService) GetManager(req *ghttp.Request) (*openstack.OpenstackManager, error) {
+	sessionId := req.GetSessionId()
 	if client, ok := s.managers[sessionId]; ok {
 		return client, nil
 	}
@@ -42,9 +43,7 @@ func (s openstackService) GetManager(sessionId string, req *ghttp.Request) (*ope
 			return nil, fmt.Errorf("get cluster %s failed: %s", loginInfo.Cluster, err)
 		}
 		manager, err := openstack.NewManager(
-			sessionId, cluster.AuthUrl,
-			loginInfo.Project.Name, loginInfo.User.Name,
-			loginInfo.Password)
+			cluster.AuthUrl, loginInfo.Project.Name, loginInfo.User.Name, loginInfo.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -53,6 +52,7 @@ func (s openstackService) GetManager(sessionId string, req *ghttp.Request) (*ope
 		return manager, nil
 	}
 }
+
 func (s *openstackService) RemoveManager(sessionId string) {
 	delete(s.managers, sessionId)
 }
@@ -64,7 +64,7 @@ func (s *openstackService) SetRegion(req *ghttp.Request, region string) error {
 		loginInfo.Region = region
 		req.Session.Set("loginInfo", loginInfo)
 	}
-	manager, err := s.GetManager(req.GetSessionId(), req)
+	manager, err := s.GetManager(req)
 	if err != nil {
 		return err
 	}
@@ -74,11 +74,10 @@ func (s *openstackService) SetRegion(req *ghttp.Request, region string) error {
 func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp.Response, error) {
 	var resp *easyhttp.Response
 	var err error
-	sessionId, err := req.Session.Id()
 	if err != nil {
 		return nil, fmt.Errorf("get session failed: %s", err)
 	}
-	manager, err := s.GetManager(sessionId, req)
+	manager, err := s.GetManager(req)
 	if err != nil {
 		return nil, fmt.Errorf("get manager failed: %s", err)
 	}

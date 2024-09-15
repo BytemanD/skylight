@@ -387,7 +387,7 @@ func HideTokenHeader(header http.Header) http.Header {
 	}
 	return safeHeader
 }
-func NewManager(sessionId string, authUrl, project, user, password string) (*OpenstackManager, error) {
+func NewManager(authUrl, project, user, password string) (*OpenstackManager, error) {
 	manager := &OpenstackManager{
 		Region:   "RegionOne",
 		AuthInfo: GetAuthInfo(project, user, password),

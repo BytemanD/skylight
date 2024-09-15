@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -138,6 +140,21 @@ var (
 					group.REST(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
 				}
 			})
+			// TODO: 周期任务
+			filepath.Walk(filepath.Join(gsessionPath.String()),
+				func(path string, info fs.FileInfo, err error) error {
+					if info.IsDir() {
+						return nil
+					}
+					if !info.ModTime().Before(time.Now().AddDate(0, 0, -1)) {
+						return nil
+					}
+					glog.Infof(ctx, "session %s is expired, cleanup", info.Name())
+					os.Remove(filepath.Join(gsessionPath.String(), info.Name()))
+					return nil
+				},
+			)
+
 			glog.Info(ctx, "starting server")
 			s.Run()
 			return nil
