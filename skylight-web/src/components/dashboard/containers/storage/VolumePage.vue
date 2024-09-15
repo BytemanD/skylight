@@ -152,6 +152,10 @@ export default {
             }
         },
         pageRefresh: function ({ page, itemsPerPage, sortBy }) {
+            this.table.page = page
+            this.table.itemsPerPage = itemsPerPage
+            this.table.sortBy = sortBy
+
             let filter = {}
             if (itemsPerPage) {
                 if (itemsPerPage >= 0) {

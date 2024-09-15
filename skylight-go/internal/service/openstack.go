@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"skylight/internal/model/entity"
 	"skylight/internal/service/openstack"
 	"skylight/utility/easyhttp"
@@ -14,12 +15,43 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/glog"
 )
 
 type openstackService struct {
 	managers map[string]*openstack.OpenstackManager
 }
 
+var RESOURCE_MAP = map[string]string{
+	"projects": "项目",
+	"users":    "用户",
+	"roles":    "角色",
+
+	"servers":     "实例",
+	"os-keypairs": "密钥",
+	"flavors":     "规格",
+	"os-services": "服务", "services": "服务",
+
+	"images": "镜像",
+
+	"volumes":      "卷",
+	"volume-types": "卷类型", "volume_types": "卷类型",
+	"backups":   "备份",
+	"snpashots": "快照",
+
+	"routers":  "路由",
+	"networks": "网络",
+	"subnets":  "子网",
+	"ports":    "端口",
+}
+
+func getResourceName(resource string) string {
+	if name, ok := RESOURCE_MAP[resource]; ok {
+		return name
+	} else {
+		return resource
+	}
+}
 func (s openstackService) GetLogInfo(req *ghttp.Request) (*openstack.LoginInfo, error) {
 	sessionLoginInfo, _ := req.Session.Get("loginInfo", nil)
 	loginInfo := openstack.LoginInfo{}
@@ -71,6 +103,19 @@ func (s *openstackService) SetRegion(req *ghttp.Request, region string) error {
 	manager.SetRegion(region)
 	return nil
 }
+func (s *openstackService) addAudit(req *ghttp.Request, proxyUrl string) {
+	if strings.ToUpper(req.Method) == "DELETE" {
+		reg, _ := regexp.Compile("/(.+)/(.+)")
+		found := reg.FindStringSubmatch(proxyUrl)
+		if len(found) < 3 {
+			return
+		}
+		if err := AuditService.DeleteResoure(req, getResourceName(found[1]), found[2]); err != nil {
+			glog.Infof(req.GetCtx(), "add audit failed: %s", err)
+		}
+		return
+	}
+}
 func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp.Response, error) {
 	var resp *easyhttp.Response
 	var err error
@@ -81,7 +126,6 @@ func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp
 	if err != nil {
 		return nil, fmt.Errorf("get manager failed: %s", err)
 	}
-
 	proxyUrl := strings.TrimPrefix(req.URL.Path, prefix)
 	switch prefix {
 	case "/computing":
@@ -96,6 +140,9 @@ func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp
 		resp, err = manager.ProxyIdentity(req.Method, proxyUrl, req.URL.Query(), req.GetBody())
 	default:
 		err = fmt.Errorf("invalid prefix %s", prefix)
+	}
+	if err == nil {
+		s.addAudit(req, proxyUrl)
 	}
 	return resp, err
 }

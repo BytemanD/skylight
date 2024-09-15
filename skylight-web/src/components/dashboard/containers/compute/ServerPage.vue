@@ -72,10 +72,11 @@
     </v-col>
     <v-divider></v-divider>
     <v-col cols='12'>
+      <!-- {{ this.table.items[0].name }} -->
       <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" earch="table.search"
         v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page
-        v-bind:page="table.page">
+        v-bind:page="table.page" >
         <template v-slot:[`item.name`]="{ item }">
           <!-- 状态 -->
           <chip-link v-if="item.status" hide-link-icon color="default" density="compact"

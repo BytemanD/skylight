@@ -19,10 +19,11 @@ class DataTable {
         // page options
         this.page = 1
         this.itemsPerPage = 20
-        this.sortBy
+        this.sortBy = []
 
         this.search = '';
         this.items = [];
+        this.lastItem = null
         this.totalItems = [];
         this.statistics = {};
         this.selected = []
@@ -140,6 +141,21 @@ class DataTable {
             this.items.splice(index, 1)
         }
     }
+    sortItems(){
+        if (!this.sortBy || this.sortBy.length == 0) {
+            return
+        }
+        let sortKey = this.sortBy[0].key, sortOrder = this.sortBy[0].order
+        this.items.sort(
+            (item1, item2) => {
+                if (sortOrder == 'asc') {
+                    return item1[sortKey] < item2[sortKey] ? -1 : 1
+                } else {
+                    return item1[sortKey] > item2[sortKey] ? -1 : 1
+                }
+            }
+        )
+    }
     async refresh(filters = {}, filterFunc = null) {
         this.loading = true;
         let result = null
@@ -159,7 +175,11 @@ class DataTable {
         if (filterFunc) {
             items = items.filter(filterFunc)
         }
+        if (items.length > 0) {
+            this.lastItem = items[0]
+        }
         this.items = items
+        this.sortItems()
         return result;
     }
     getSelectedItems() {
@@ -564,6 +584,12 @@ export class ServerDataTable extends DataTable {
         this.totalItems = await this.api.list(this.getQueryParams())
     }
     async pageUpdate(page, itemsPerPage, sortBy) {
+        console.log(page, itemsPerPage, sortBy)
+        if (this.page == page && this.itemsPerPage == itemsPerPage && this.items.length > 0 && sortBy) {
+            this.sortBy = sortBy
+            this.sortItems()
+            return
+        }
         this.page = page
         this.itemsPerPage = itemsPerPage
         this.sortBy = sortBy
@@ -571,9 +597,9 @@ export class ServerDataTable extends DataTable {
         let queryParams = this.getQueryParams()
         // 添加分页查询参数
         queryParams.limit = this.itemsPerPage
-        if (page > 1 && this.totalItems.length > 1) {
-            let index = queryParams.limit * (page - 1) - 1
-            queryParams.marker = this.totalItems[index].id
+        if (page > 1 && this.lastItem) {
+            // let index = queryParams.limit * (page - 1) - 1
+            queryParams.marker = this.lastItem.id
         }
         await this.refresh(queryParams)
         this.refreshTotalServers()
@@ -1865,7 +1891,7 @@ export class ServerTaskWaiter {
 export class AuditDataTable extends DataTable {
     constructor() {
         super([
-            { title: '时间', key: 'created_at', maxWidth: 40 },
+            { title: '时间', key: 'created_at', minWidth: 100, },
             { title: '操作', key: 'action' },
         ], API.audit, 'audits', '审计记录');
     }

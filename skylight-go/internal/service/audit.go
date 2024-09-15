@@ -100,6 +100,22 @@ func (s auditService) Logout(req *ghttp.Request) error {
 	}
 	return nil
 }
+func (s auditService) DeleteResoure(req *ghttp.Request, name string, resource string) error {
+	loginInfo, err := OSService.GetLogInfo(req)
+	if err != nil {
+		glog.Errorf(req.GetCtx(), "get login info failed: %s", err)
+		return err
+	}
+	_, err = dao.CreateAudit(
+		loginInfo.Project.Id, loginInfo.Project.Name,
+		loginInfo.User.Id, loginInfo.User.Name,
+		fmt.Sprintf("删除 %s %s", name, resource),
+	)
+	if err != nil {
+		logging.Error("create audit failed: %s", err)
+	}
+	return nil
+}
 
 var AuditService *auditService
 
