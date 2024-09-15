@@ -37,7 +37,8 @@
                                     :messages="dialog.validFlavor()">
                                     <template v-slot:prepend>规格</template>
                                 </v-text-field>
-                                <flavor-table simple class="ml-10" @select-flavor="(flavor) => { selectFlavor(flavor) }" />
+                                <flavor-table simple class="ml-10"
+                                    @select-flavor="(flavor) => { selectFlavor(flavor) }" />
                             </v-card-text>
                         </v-card>
                         <v-card class="mt-1" elevation="2">
@@ -119,7 +120,7 @@
                 </v-window-item>
                 <v-window-item value="custome">
                     <v-col>
-                        <v-card elevation="2" >
+                        <v-card elevation="2">
                             <v-card-text>
                                 <v-text-field hide-details density='compact' placeholder="请输入描述信息"
                                     v-model="dialog.description">
@@ -128,9 +129,9 @@
                             </v-card-text>
                         </v-card>
                     </v-col>
-                    <v-col class="pt-0" v-if="context.isAdmin()">
+                    <v-col class="pt-0">
                         <v-card elevation="2">
-                            <v-card-text>
+                            <v-card-text v-if="context.isAdmin()">
                                 <v-row>
                                     <v-col lg="6" md="6" sm="12">
                                         <v-select hide-details density='compact' :items="dialog.azList" clearable
@@ -147,7 +148,22 @@
                                         </v-select>
                                     </v-col>
                                 </v-row>
-
+                            </v-card-text>
+                            <v-card-text v-else>
+                                <v-row>
+                                    <v-col lg="6" md="6" sm="12">
+                                        <v-text-field hide-details density='compact' clearable placeholder="请输入AZ"
+                                            v-model="dialog.params.az">
+                                            <template v-slot:prepend>AZ</template>
+                                        </v-text-field>
+                                    </v-col>
+                                    <v-col lg="6" md="6" sm="12">
+                                        <v-text-field hide-details density='compact' :disabled="!dialog.params.az" clearable
+                                            placeholder="请输入节点" v-model="dialog.params.host">
+                                            <template v-slot:prepend>节点</template>
+                                        </v-text-field>
+                                    </v-col>
+                                </v-row>
                             </v-card-text>
                         </v-card>
                     </v-col>
