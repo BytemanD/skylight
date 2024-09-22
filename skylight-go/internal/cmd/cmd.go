@@ -140,6 +140,11 @@ var (
 					group.REST(prefix+"/*", controller.OpenstackProxy{Prefix: prefix})
 				}
 			})
+
+			s.BindHandler("/ws", func(req *ghttp.Request) {
+				service.PublishService.RegisterPublisher(req)
+			})
+
 			// TODO: 周期任务
 			filepath.Walk(filepath.Join(gsessionPath.String()),
 				func(path string, info fs.FileInfo, err error) error {

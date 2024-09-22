@@ -16,6 +16,7 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
+import API from './assets/app/api';
 
 const CONFIG = '/config.json'
 
@@ -30,8 +31,8 @@ axios.get(CONFIG).then((resp) => {
     registerPlugins(app)
     app.config.globalProperties.$cookies = VueCookies
     app.config.globalProperties.$router = Router
-
     app.mount('#app')
+    sessionStorage.setItem("backend_ws_url", resp.data.backend_ws_url)
 
 }).catch((error) => {
     console.error(error)

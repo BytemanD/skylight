@@ -113,6 +113,7 @@ const MESSAGES = {
         'live-migration': 'live-migration',
 
         'ACTIVE': 'ACTIVE',
+        'BUILD': 'BUILD',
         'ERROR': 'ERROR',
         'REBOOT': 'REBOOT',
         'HARD_REBOOT': 'HARD REBOOT',
@@ -241,6 +242,7 @@ const MESSAGES = {
         'live-migration': '热迁移',
 
         'ACTIVE': '运行中',
+        'BUILD': '创建',
         'ERROR': '错误',
         'REBOOT': '软重启',
         'HARD_REBOOT': '硬重启',

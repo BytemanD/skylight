@@ -72,6 +72,8 @@ import SettingSheet from '@/components/dashboard/SettingSheet.vue';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
 import { GetContext, GetLocalContext } from '@/assets/app/context';
+// import API from '@/assets/app/api';
+import WS from '@/assets/app/websocket';
 
 const navigationGroup = [
   {
@@ -206,6 +208,9 @@ export default {
   created() {
     this.confirmIsLogin()
     Init()
+    let backendWsUrl = sessionStorage.getItem('backend_ws_url')
+    console.log("backend_ws_url is ", backendWsUrl)
+    WS.connect(backendWsUrl)
   },
 }
 </script>

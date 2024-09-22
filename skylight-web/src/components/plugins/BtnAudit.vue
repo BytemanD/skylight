@@ -23,7 +23,6 @@ async function refresh() {
 }
 
 watch(() => display.value, (newValue, oldValue) => {
-    console.log(newValue, oldValue)
     if (newValue) {
         refresh()
     }

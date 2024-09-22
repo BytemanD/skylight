@@ -126,3 +126,12 @@ func ImageUploadBufReader(imageFile string) (*bufio.Reader, error) {
 	wc := &ImageUploadProgress{ImageId: filepath.Base(imageFile), Total: int(fileInfo.Size())}
 	return bufio.NewReader(io.TeeReader(reader, wc)), nil
 }
+
+type Resource struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+type Server struct {
+	Server Resource `json:"server"`
+}

@@ -35,6 +35,7 @@ class DataTable {
         this.filters = []
         this.filterKey = null
         this.filterValue = null
+        this.subscribe = false
     }
     async openNewItemDialog() {
         if (this.newItemDialog) {
@@ -52,15 +53,15 @@ class DataTable {
             return;
         }
         Notify.info(`开始删除`);
-        let deleting = [];
         for (let i in this.selected) {
             let item = this.selected[i];
             try {
                 await this.api.delete(item);
-                deleting.push(item);
-                this.watchDeleting(item)
-            } catch {
+            } catch (e) {
                 Notify.error(`删除 ${item} 失败`)
+            }
+            if (!this.subscribe) {
+                await this.watchDeleting(item)
             }
         }
         this.resetSelected()
@@ -88,7 +89,7 @@ class DataTable {
         if (!newItem.id) {
             console.warn('newItem id is null');
             return;
-          }
+        }
         for (var i = 0; i < this.items.length; i++) {
             if (this.items[i].id != newItem.id) {
                 continue;
@@ -99,8 +100,9 @@ class DataTable {
                 }
                 this.items[i][key] = newItem[key];
             }
-            break
+            return
         }
+        this.items.push(newItem)
     }
     async createItem(item) {
         this.items.unshift(item)
@@ -117,6 +119,13 @@ class DataTable {
                 Notify.success(`卷 ${newItem.name || newItem.id} 创建成功`)
             }
             break
+        }
+    }
+    getItemById(id) {
+        for (let i in this.items) {
+            if (this.items[i].id == id) {
+                return this.items[i]
+            }
         }
     }
     removeItem(id) {
@@ -138,10 +147,10 @@ class DataTable {
             }
         }
         if (index >= 0) {
-            this.items.splice(index, 1)
+            this.totalItems.splice(index, 1)
         }
     }
-    sortItems(){
+    sortItems() {
         if (!this.sortBy || this.sortBy.length == 0) {
             return
         }
@@ -549,6 +558,7 @@ export class ServerDataTable extends DataTable {
             { title: '错误信息', key: 'fault' },
             { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
         ];
+        this.subscribe = true;
         this.defautlQuaryParams = {
             all_tenants: false,
             deleted: false,
@@ -584,7 +594,6 @@ export class ServerDataTable extends DataTable {
         this.totalItems = await this.api.list(this.getQueryParams())
     }
     async pageUpdate(page, itemsPerPage, sortBy) {
-        console.log(page, itemsPerPage, sortBy)
         if (this.page == page && this.itemsPerPage == itemsPerPage && this.items.length > 0 && sortBy) {
             this.sortBy = sortBy
             this.sortItems()

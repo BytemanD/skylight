@@ -39,6 +39,7 @@ function buildBackend() {
     rm -rf internal/packed/config.go
     gf pack manifest internal/packed/config.go --prefix manifest || exit 1
     sed -i 's|http://localhost:8081||g' ../skylight-web/dist/config.json
+    sed -i 's|ws://localhost:8081||g' ../skylight-web/dist/config.json
     gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources || exit 1
 
     # wget -q https://dl.google.com/go/go1.21.4.linux-amd64.tar.gz

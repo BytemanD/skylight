@@ -10,6 +10,7 @@ import (
 	"skylight/utility/easyhttp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -116,6 +117,7 @@ func (s *openstackService) addAudit(req *ghttp.Request, proxyUrl string) {
 		return
 	}
 }
+
 func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp.Response, error) {
 	var resp *easyhttp.Response
 	var err error
@@ -143,10 +145,67 @@ func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp
 	}
 	if err == nil {
 		s.addAudit(req, proxyUrl)
+		if prefix == "/computing" && strings.ToUpper(req.Method) == "DELETE" {
+			s.watchComputeDeleted(manager, req, proxyUrl)
+		}
+		if prefix == "/computing" && strings.ToUpper(req.Method) == "POST" {
+			body := openstack.Server{}
+			if err := resp.UNmarshal(&body); err == nil && body.Server.Id != "" {
+				s.watchComputeCreated(req, manager, fmt.Sprintf("/servers/%s", body.Server.Id))
+			}
+		}
 	}
 	return resp, err
 }
-
+func (s *openstackService) watchComputeDeleted(manager *openstack.OpenstackManager, req *ghttp.Request, proxyUrl string) {
+	go func() {
+		for {
+			resp, _ := manager.ProxyComputing("GET", proxyUrl, nil, nil)
+			if resp != nil {
+				if !resp.IsError() {
+					PublishService.Publish(req, entity.NewInfoMessage("delete server", "update "+proxyUrl, string(resp.Body())))
+				} else if resp.StatusCode() == 404 {
+					values := strings.Split(proxyUrl, "/")
+					if len(values) < 3 {
+						break
+					}
+					PublishService.Publish(req, entity.NewSuccessMessage("delete server", "deleted "+values[2], values[2]))
+					break
+				}
+			}
+			time.Sleep(time.Second * 2)
+		}
+	}()
+}
+func (s *openstackService) watchComputeCreated(req *ghttp.Request, manager *openstack.OpenstackManager, proxyUrl string) {
+	if !strings.HasPrefix(proxyUrl, "/servers") {
+		return
+	}
+	go func() {
+		for {
+			resp, err := manager.ProxyComputing("GET", proxyUrl, nil, nil)
+			if err != nil {
+				break
+			}
+			body := openstack.Server{}
+			if err := resp.UNmarshal(&body); err != nil {
+				break
+			}
+			data := string(resp.Body())
+			switch body.Server.Status {
+			case "ACTIVE":
+				PublishService.Publish(req, entity.NewSuccessMessage("create server", "created "+proxyUrl, data))
+				return
+			case "ERROR":
+				PublishService.Publish(req, entity.NewErrorMessage("create server", "update "+proxyUrl, data))
+				return
+			default:
+				PublishService.Publish(req, entity.NewInfoMessage("create server", "update "+proxyUrl, data))
+			}
+			time.Sleep(time.Second * 2)
+		}
+	}()
+}
 func (s *openstackService) SaveImageCache(proxyUrl string, req *ghttp.Request) (*entity.ImageUploadTask, error) {
 	metaSize := req.Header.Get("x-image-meta-size")
 	imageSize, err := strconv.Atoi(metaSize)

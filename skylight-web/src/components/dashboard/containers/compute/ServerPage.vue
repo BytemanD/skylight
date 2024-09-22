@@ -1,8 +1,8 @@
 <template>
   <v-row>
     <v-col lg=4 md="8" sm="12">
-      <v-text-field clearable variant="solo" hide-details v-model="table.customQueryValue" placeholder="搜索..." class="ma-0 pa-0"
-        @keyup.enter.native="refresh()">
+      <v-text-field clearable variant="solo" hide-details v-model="table.customQueryValue" placeholder="搜索..."
+        class="ma-0 pa-0" @keyup.enter.native="refresh()">
         <template v-slot:prepend-inner>
           <v-chip size="small">{{ table.selectedCustomQuery.title }}</v-chip>
         </template>
@@ -76,7 +76,7 @@
       <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" earch="table.search"
         v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page
-        v-bind:page="table.page" >
+        v-bind:page="table.page">
         <template v-slot:[`item.name`]="{ item }">
           <!-- 状态 -->
           <chip-link v-if="item.status" hide-link-icon color="default" density="compact"
@@ -193,6 +193,7 @@ import BtnServerReboot from '@/components/plugins/BtnServerReboot.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
 import { Context, GetLocalContext } from '@/assets/app/context';
 import notify from '@/assets/app/notify';
+import WS from '@/assets/app/websocket';
 
 
 export default {
@@ -237,13 +238,7 @@ export default {
       this.table.pageUpdate(page, itemsPerPage, sortBy)
     },
     deleteSelected: async function () {
-      let selected = this.table.selected;
       await this.table.deleteSelected()
-      for (let i in selected) {
-        let serverId = selected[i];
-        await this.table.waitServerDeleted(serverId)
-        this.table.removeItem(selected[i])
-      }
     },
     updateServer: async function (server) {
       this.table.updateItem(server)
@@ -268,12 +263,42 @@ export default {
       this.selectedServer = server;
       this.showServerGroupDialog = !this.showServerGroupDialog;
     },
-    xx: function (data = {}) {
-      console.info('xxxxxxxxxxx', data)
+    subscribeCreateServer: function () {
+      let self = this
+      WS.subscribe('create server', function (msg) {
+        let data = JSON.parse(msg.data)
+        self.table.updateItem(data.server)
+        switch (data.server.status) {
+          case "ACTIVE":
+            notify.success(`实例 ${data.server.name} 创建成功`)
+            break
+          case "ERROR":
+            notify.error(`实例 ${data.server.name} 创建失败`)
+            break
+        }
+      })
+    },
+    subscribeDeleteServer: function () {
+      let self = this
+      WS.subscribe('delete server', function (msg) {
+        switch (msg.level) {
+          case "success":
+            notify.success(`实例 ${msg.data} 已删除`)
+            self.table.removeItem(msg.data)
+            break
+          case "info":
+            let data = JSON.parse(msg.data)
+            console.log("update", data)
+            self.table.updateItem(data.server)
+            break
+        }
+      })
     }
   },
   created() {
     this.context = GetLocalContext()
+    this.subscribeCreateServer()
+    this.subscribeDeleteServer()
   }
 };
 </script>
