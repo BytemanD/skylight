@@ -836,7 +836,7 @@ export class NewServerDialog extends Dialog {
             data.securityGroup = [{ name: this.securityGroup }];
         }
         let body = await API.server.boot(this.name, this.flavor.id, this.image.id, data)
-        notify.info(`实例 ${this.params.name} 创建中...`);
+        notify.info(`实例 ${this.name} 创建中`);
         // let serverTasks = new ServerTasks();
         // serverTasks.add(body.server.id, 'building')
         // await this.serverTable.refresh();
@@ -1238,7 +1238,7 @@ export class RebuildDialog extends Dialog {
             data.adminPass = this.password
         }
         await API.server.rebuild(this.server.id, data);
-        notify.info(`虚拟机${this.server.name}重建中`)
+        notify.info(`实例 ${this.server.name} 重建中`)
         let watcher = new ExpectServerRebuild(this.server, this.serverTable);
         watcher.watch();
     }

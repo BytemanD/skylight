@@ -15,7 +15,7 @@
     </v-col>
 </template>
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 import API from '@/assets/app/api';
 
 import ServerActionEventsDialog from '@/components/dashboard/containers/compute/dialogs/ServerActionEventsDialog.vue';

@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref } from 'vue';
 import API from '@/assets/app/api';
 import { Utils } from '@/assets/app/lib.js';
 

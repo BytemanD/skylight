@@ -25,7 +25,7 @@
 
 <script setup>
 
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
 

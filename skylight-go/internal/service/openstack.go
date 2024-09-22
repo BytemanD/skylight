@@ -119,11 +119,10 @@ func (s *openstackService) addAudit(req *ghttp.Request, proxyUrl string) {
 }
 
 func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp.Response, error) {
-	var resp *easyhttp.Response
-	var err error
-	if err != nil {
-		return nil, fmt.Errorf("get session failed: %s", err)
-	}
+	var (
+		resp *easyhttp.Response
+		err  error
+	)
 	manager, err := s.GetManager(req)
 	if err != nil {
 		return nil, fmt.Errorf("get manager failed: %s", err)

@@ -22,7 +22,7 @@
 
 <script setup>
 
-import { reactive, defineProps, defineEmits } from 'vue';
+import { reactive } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify.js';
 

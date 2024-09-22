@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineProps, defineEmits, watch } from 'vue';
+import { ref, reactive } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify.js';
 

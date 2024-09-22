@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
     color: { type: String, default: 'blue-grey-lighten-1' },

@@ -62,7 +62,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import { GetLocalContext } from '@/assets/app/context';
 import { Utils } from '@/assets/app/lib.js';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';

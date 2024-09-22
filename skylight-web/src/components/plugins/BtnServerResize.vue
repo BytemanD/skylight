@@ -25,15 +25,11 @@
 
 <script setup>
 
-import { reactive, defineProps, defineEmits, watch, ref } from 'vue';
+import { watch, ref } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify.js';
 
-import { ResizeDialog } from '@/assets/app/dialogs';
 import { ServerTaskWaiter } from '@/assets/app/tables';
-import { toDisplayString } from 'vue';
-import { Logger } from '@/assets/app/lib';
-import { toValue } from 'vue';
 import FlavorTable from '@/components/plugins/tables/FlavorTable.vue';
 
 const progs = defineProps({

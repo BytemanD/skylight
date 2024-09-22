@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 import API from '@/assets/app/api';
 
 var vol = ref({}), detaching = ref(false);

@@ -20,8 +20,6 @@
 </template>
 
 <script setup>
-
-import { defineProps, defineEmits } from 'vue';
 import API from '@/assets/app/api';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 
