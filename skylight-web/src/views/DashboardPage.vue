@@ -53,7 +53,6 @@
         <router-view></router-view>
       </v-container>
     </v-main>
-    <v-notifications :location="ui.notificationPosition.value" :timeout="3000" />
   </v-app>
 </template>
 
@@ -61,7 +60,6 @@
 import Init from '@/assets/app/init';
 import { ClusterTable, RegionTable } from '@/assets/app/tables';
 import SETTINGS from '@/assets/app/settings';
-
 import BtnTheme from '../components/plugins/BtnTheme.vue';
 import BtnHome from '../components/plugins/BtnHome.vue';
 import BtnAbout from '../components/plugins/BtnAbout.vue';

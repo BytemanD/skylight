@@ -211,7 +211,6 @@
         </template>
       </tab-windows>
     </v-col>
-    <v-notifications location="bottom right" :timeout="3000" />
   </v-row>
 </template>
 

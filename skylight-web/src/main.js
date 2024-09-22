@@ -10,6 +10,8 @@ import VueCookies from 'vue-cookies'
 import Router from '@/router'
 
 import App from './App.vue'
+import Toast from "vue-toastification";
+import 'vue-toastification/dist/index.css'
 
 // Composables
 import { createApp } from 'vue'
@@ -30,6 +32,7 @@ axios.get(CONFIG).then((resp) => {
     registerPlugins(app)
     app.config.globalProperties.$cookies = VueCookies
     app.config.globalProperties.$router = Router
+    app.config.globalProperties.$toast = Toast
     app.mount('#app')
     sessionStorage.setItem("backend_ws_url", resp.data.backend_ws_url)
 

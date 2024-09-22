@@ -1,25 +1,25 @@
-import { useNotification } from '@websitevirtuoso/vue3-v-snackbars'
-
-const notification = useNotification({})
+import { useToast } from 'vue-toastification'
+import SETTINGS from './settings';
 
  class Notify {
     constructor(){
-        this.notification = useNotification({})
+        this.driver = useToast({});
+        this.position = SETTINGS.ui.getItem('messagePosition').getValue()
     }
     success(msg){
-        notification.success(msg, {timeout: 2 * 1000})
+        this.driver.success(msg, {position: this.position})
     }
     info(msg){
-        notification.info(msg)
+        this.driver.info(msg, {position: this.position})
     }
     error(msg){
-        notification.error(msg, {timeout: 5 * 1000})
-    }
-    warn(msg){
-        notification.error(msg, {timeout: 5 * 1000})
+        this.driver.error(msg, {position: this.position})
     }
     warning(msg){
-        this.warn(msg)
+        this.driver.warning(msg, {position: this.position})
+    }
+    warn(msg){
+        this.warning(msg)
     }
 }
 

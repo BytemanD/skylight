@@ -33,7 +33,6 @@
       </v-card-actions>
     </v-card>
     <select-region-dialog :regions="regions" :display="showRegions" @selected="selectedRegion" @cancle="cancleRegion" />
-    <v-notifications location="bottom right" :timeout="3000" />
   </v-container>
 </template>
 

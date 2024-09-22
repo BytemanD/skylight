@@ -185,7 +185,6 @@
                     </v-col>
                 </v-window-item>
             </v-window>
-            <v-notifications location="bottom right" :timeout="3000" />
         </v-main>
     </v-app>
 </template>

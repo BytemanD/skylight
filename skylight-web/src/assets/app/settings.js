@@ -1,6 +1,8 @@
 import I18N from "./i18n";
 
-const NOTIFY_POSITION = ['bottom right', 'bottom left', 'bottom center', 'top left', 'top center', 'top right'];
+const NOTIFY_POSITION = [
+    'bottom-right', 'bottom-left', 'bottom-center',
+    'top-left', 'top-center', 'top-right'];
 const LANGUAGE = ['en-US', 'zh-CN'];
 
 class Setting {

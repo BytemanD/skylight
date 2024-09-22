@@ -21,7 +21,6 @@
         </v-col>
       </v-row>
     </v-responsive>
-    <v-notifications location="bottom right" :timeout="3000" />
   </v-container>
 </template>
 
