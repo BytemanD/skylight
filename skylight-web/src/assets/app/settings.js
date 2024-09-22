@@ -1,6 +1,6 @@
 import I18N from "./i18n";
 
-const NOTIFY_POSITION = ['bottom-right', 'bottom-left', 'bottom-center', 'top-left', 'top-center', 'top-right'];
+const NOTIFY_POSITION = ['bottom right', 'bottom left', 'bottom center', 'top left', 'top center', 'top right'];
 const LANGUAGE = ['en-US', 'zh-CN'];
 
 class Setting {
@@ -35,7 +35,7 @@ class NullSetting extends Setting {
     }
 }
 class BooleanSetting extends Setting {
-    constructor(defaultValue, kwargs={}) {
+    constructor(defaultValue, kwargs = {}) {
         super(defaultValue, kwargs);
         this.type = Boolean;
     }
@@ -46,12 +46,7 @@ class NumberSetting extends Setting {
         this.type = Number;
     }
 }
-class LabelSetting extends Setting {
-    constructor(defaultValue, kwargs={}) {
-        super(defaultValue, kwargs);
-        this.type = 'label';
-    }
-}
+
 export class SettingGroup {
     constructor(name, items = {}) {
         this.name = name;
@@ -75,16 +70,16 @@ export class SettingGroup {
         for (let key in this.items) {
             let value = localStorage.getItem(key);
             if (value)
-                if (this.items[key].type == Boolean){
+                if (this.items[key].type == Boolean) {
                     value = value == 'true';
-                } else if (this.items[key].type == Number){
+                } else if (this.items[key].type == Number) {
                     value = Number(value);
                 }
             this.items[key].value = value == null ? this.items[key].default : value;
         }
     }
     save(itemKey = null) {
-        if (itemKey && Object.hasOwn(this.items, itemKey)){
+        if (itemKey && Object.hasOwn(this.items, itemKey)) {
             console.log(`save item ${itemKey} ${this.items[itemKey].value}`)
             localStorage.setItem(itemKey, this.items[itemKey].value);
         } else {
@@ -96,11 +91,28 @@ export class SettingGroup {
     reset() {
         for (let key in this.items) {
             localStorage.removeItem(key);
-            if (this.items[key].type == 'label'){
+            if (this.items[key].type == 'label') {
                 continue
             }
             this.items[key].value = this.items[key].default;
         }
+    }
+    getColItems(totalCol, col) {
+        let MIN_NUM_PER_COL = 10
+      let totalItems = Object.keys(this.items)
+        let itemNumPerCol = Math.ceil(totalItems.length / totalCol)
+        if (itemNumPerCol < MIN_NUM_PER_COL) {
+            itemNumPerCol = MIN_NUM_PER_COL
+        }
+        let endIndex = itemNumPerCol * col
+        let startIndex = Math.max(0, endIndex - itemNumPerCol)
+        console.log(startIndex, endIndex)
+        let itemKeys = totalItems.slice(startIndex, endIndex)
+        let items = {}
+        for (let i in itemKeys) {
+            items[itemKeys[i]] = this.items[itemKeys[i]]
+        }
+        return items
     }
 }
 
@@ -114,7 +126,7 @@ export class AppSettings {
                 navigatorWidth: new NumberSetting(180, { choises: [180, 200, 220, 240, 260, 280, 300] }),
                 messagePosition: new Setting(NOTIFY_POSITION[0], { choises: NOTIFY_POSITION }),
                 consoleLogWidth: new NumberSetting(1000, { choises: [800, 1000, 1200, 1400, 1600] }),
-                resourceWarningPercent: new NumberSetting(80, { choises: [50, 60 , 70, 80, 90] }),
+                resourceWarningPercent: new NumberSetting(80, { choises: [50, 60, 70, 80, 90] }),
             }
         );
         this.openstack = new SettingGroup(
@@ -130,23 +142,23 @@ export class AppSettings {
             }
         )
     }
-    save(){
-        for(let group in this){
+    save() {
+        for (let group in this) {
             this[group].save();
         }
     }
-    load(){
+    load() {
         console.debug('load settings');
-        for(let group in this){
+        for (let group in this) {
             this[group].load();
         }
     }
-    reset(){
-        for(let group in this){
+    reset() {
+        for (let group in this) {
             this[group].reset();
         }
     }
-    updateVersion(version){
+    updateVersion(version) {
         this.about.setItem('version', version)
     }
 }

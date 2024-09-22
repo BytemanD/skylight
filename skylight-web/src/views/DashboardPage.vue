@@ -53,7 +53,7 @@
         <router-view></router-view>
       </v-container>
     </v-main>
-    <v-notifications location="bottom right" :timeout="3000" />
+    <v-notifications :location="ui.notificationPosition.value" :timeout="3000" />
   </v-app>
 </template>
 
@@ -71,7 +71,7 @@ import i18n from '@/assets/app/i18n';
 import SettingSheet from '@/components/dashboard/SettingSheet.vue';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
-import { GetContext, GetLocalContext } from '@/assets/app/context';
+import { GetContext } from '@/assets/app/context';
 // import API from '@/assets/app/api';
 import WS from '@/assets/app/websocket';
 
@@ -119,8 +119,10 @@ export default {
     I18N: i18n,
     name: 'Skylight',
     showSettingSheet: false,
+    notify: notify,
     ui: {
       navigationWidth: SETTINGS.ui.getItem('navigatorWidth'),
+      notificationPosition: SETTINGS.ui.getItem('messagePosition'),
     },
     navigation: {
       group: navigationGroup,

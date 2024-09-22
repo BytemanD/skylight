@@ -16,7 +16,6 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
-import API from './assets/app/api';
 
 const CONFIG = '/config.json'
 

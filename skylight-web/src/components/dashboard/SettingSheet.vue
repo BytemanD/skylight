@@ -1,56 +1,56 @@
 <template>
-    <v-dialog v-model="display" fullscreen>
+    <v-bottom-sheet v-model="display" inset>
         <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon="mdi-cog"></v-btn>
         </template>
-        <v-card>
-            <v-toolbar color="primary" density="compact">
-                <v-toolbar-title>{{ $t('setting') }}</v-toolbar-title>
-                <v-spacer></v-spacer>
-                <v-toolbar-items>
-                    <v-btn icon="mdi-close" @click="display = false"></v-btn>
-                </v-toolbar-items>
-            </v-toolbar>
+        <v-card :title="$t('setting')" density="compact" scrollable>
+            <template v-slot:append>
+                <v-btn color="success" variant="text" @click="save()">{{ $t('save') }}</v-btn>
+                <v-btn color="warning" variant="text" @click="reset()">{{ $t('reset') }}</v-btn>
+                <v-btn icon="mdi-close" density="compact" variant="text" color="warning"
+                    @click="display = false"></v-btn>
+            </template>
+            <v-divider></v-divider>
             <v-card-text>
-                <v-col>
-                    <v-tabs v-model="tab" show-arrows selected-class="bg-blue" slider-color="blue" density="compact">
+                <div class="d-flex flex-row">
+                    <v-tabs v-model="tab" direction="vertical" selected-class="bg-blue" slider-color="blue"
+                        density="compact">
                         <v-tab v-for="group in SETTINGS" :value="group.name" :key="group.name">
                             <strong>{{ $t(group.name) }}</strong>
                         </v-tab>
                     </v-tabs>
-                    <div class="bg-blue" style="height: 2px;"></div>
-                </v-col>
-                <v-window v-model="tab" class="px-10">
-                    <v-window-item v-for="group in SETTINGS" :value="group.name" :key="group.name">
-                        <v-row>
-                            <v-col cols="12" lg="3" v-for="(item, key) in group.items" v-bind:key="key">
-                                <v-select v-if="item.choises" density='compact' outlined v-bind:key="key"
-                                    :label="$t(key)" :items="item.choises" v-model="item.value" hide-details>
-                                </v-select>
-                                <v-switch v-else-if="item.type == Boolean" color="info" density='compact'
-                                    class="ml-2" :label="$t(key)" v-model="item.value"></v-switch>
-                                <div v-else-if="item.type == 'label'" style="width: 4000;">
-                                    {{ $t(key) }}:
-                                    <v-chip density='compact' color="info">{{ item.value }}</v-chip>
-                                </div>
-                                <v-text-field outlined density='compact' v-else :label="$t(key)"
-                                    v-model="item.value">
-                                </v-text-field>
-                            </v-col>
-                        </v-row>
-                    </v-window-item>
-                </v-window>
+                    <v-tabs-window v-model="tab">
+                        <v-card-text>
+                            <v-tabs-window-item v-for="group in SETTINGS" :value="group.name" :key="group.name">
+                                <v-row>
+                                    <v-col cols="12" lg="4" v-for="col in [1, 2, 3]" class="ml-1">
+                                        <template v-for="(item, key) in group.getColItems(3, col)" v-bind:key="key">
+                                            <v-select :min-width="240" v-if="item.choises" density='compact' outlined
+                                                v-bind:key="key" :label="$t(key)" :items="item.choises"
+                                                v-model="item.value">
+                                            </v-select>
+                                            <v-switch :min-width="400" v-else-if="item.type == Boolean" color="info"
+                                                density='compact' class="ml-2" :label="$t(key)"
+                                                v-model="item.value"></v-switch>
+                                            <v-text-field :min-width="240" outlined density='compact' :type="item.type.name" v-else
+                                                :label="$t(key)" v-model="item.value">
+                                            </v-text-field>
+                                        </template>
+                                    </v-col>
+                                </v-row>
+                            </v-tabs-window-item>
+                        </v-card-text>
+                    </v-tabs-window>
+                </div>
             </v-card-text>
+            <v-divider></v-divider>
             <v-card-actions>
                 <v-alert variant="text" density='compact' type="warning">{{ $t('refreshAfterChanged') }}</v-alert>
                 <v-alert variant="text" density='compact' :type="alert.type" v-if="alert.message">
-                    {{ alert.message }}
-                </v-alert>
-                <v-btn color="warning" @click="reset()">{{ $t('reset') }}</v-btn>
-                <v-btn color="primary" @click="save()">{{ $t('save') }}</v-btn>
+                    {{ alert.message }}</v-alert>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </v-bottom-sheet>
 </template>
 
 <script>
