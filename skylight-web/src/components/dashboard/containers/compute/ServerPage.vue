@@ -267,6 +267,9 @@ export default {
       let self = this
       WS.subscribe('create server', function (msg) {
         let data = JSON.parse(msg.data)
+        if (!data.server) {
+          return
+        }
         self.table.updateItem(data.server)
         switch (data.server.status) {
           case "ACTIVE":

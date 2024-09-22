@@ -9,20 +9,21 @@
                 <v-row>
                     <v-col>
                         <v-text-field label="*名字" placeholder="请输入网络名" v-model="dialog.name">
-                        <template v-slot:append>
-                            <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
-                        </template>
+                            <template v-slot:append>
+                                <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                            </template>
                         </v-text-field>
                     </v-col>
-                 </v-row>
+                </v-row>
                 <v-row>
                     <v-col cols="6">
-                        <v-select density='compact' outlined hide-details :items="dialog.netTypes" clearable label="网络类型"
-                            v-model="dialog.params.networkType">
+                        <v-select density='compact' outlined hide-details :items="dialog.netTypes" clearable
+                            label="网络类型" v-model="dialog.params.networkType">
                         </v-select>
                     </v-col>
                     <v-col cols="6">
-                        <v-switch v-model="dialog.params.shared" label="共享" hidde-details class="my-auto"></v-switch>
+                        <v-switch color="info" v-model="dialog.params.shared" label="共享" hidde-details
+                            class="my-auto"></v-switch>
                     </v-col>
                     <v-col cols="6">
                         <v-text-field hide-details label="Segment ID" placeholder="请输入segment ID"
@@ -78,7 +79,7 @@ export default {
     },
     watch: {
         display(newVal) {
-            if (this.display){
+            if (this.display) {
                 this.dialog.init();
             }
         }

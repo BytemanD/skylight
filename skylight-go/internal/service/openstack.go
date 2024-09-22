@@ -183,7 +183,7 @@ func (s *openstackService) watchComputeCreated(req *ghttp.Request, manager *open
 	go func() {
 		for {
 			resp, err := manager.ProxyComputing("GET", proxyUrl, nil, nil)
-			if err != nil {
+			if err != nil || resp.IsError() {
 				break
 			}
 			body := openstack.Server{}

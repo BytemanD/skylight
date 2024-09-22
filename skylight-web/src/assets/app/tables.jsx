@@ -86,7 +86,7 @@ class DataTable {
         this.selected = [];
     }
     updateItem(newItem) {
-        if (!newItem.id) {
+        if (!newItem || !newItem.id) {
             console.warn('newItem id is null');
             return;
         }

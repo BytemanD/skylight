@@ -19,8 +19,6 @@
                     <v-btn variant="text" color="red" @click="deleteCluster(item)">删除</v-btn>
                 </template>
             </v-data-table>
-            <!-- TODO: 按钮旋转 -->
-            <v-progress-linear indeterminate color="purple-darken-2" v-if="refreshing" ></v-progress-linear>
         </v-card-text>
         </v-card>
     </v-dialog>

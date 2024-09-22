@@ -13,8 +13,8 @@
                 </v-text-field>
                 <v-text-field label="描述" outlined density='compact' placeholder="请输入描述信息"
                     v-model="dialog.description"></v-text-field>
-                <v-switch hide-details v-model="dialog.isDefault" label="设为默认"></v-switch>
-                <v-switch  hide-details v-model="dialog.shared" label="设为共享"></v-switch>
+                <v-switch hide-details color="info" v-model="dialog.isDefault" label="设为默认"></v-switch>
+                <v-switch hide-details color="info" v-model="dialog.shared" label="设为共享"></v-switch>
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>

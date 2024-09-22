@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, watch } from 'vue'
+import { ref, watch } from 'vue'
 import SETTINGS from '@/assets/app/settings';
 import { Utils } from '@/assets/app/lib';
 import API from '@/assets/app/api';
