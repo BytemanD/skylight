@@ -2,10 +2,10 @@
 
 Openstack Dashboard with Vuetify
 
-<!-- 预览
+预览
 
 ![](./doc/preview.png) 
--->
+
 
 ## 1 环境要求
 
