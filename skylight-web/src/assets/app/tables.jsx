@@ -6,6 +6,7 @@ import API from './api.js'
 import { LOG, ServerTasks, Utils } from './lib.js'
 import Notify from '@/assets/app/notify'
 import { GetContext, GetLocalContext } from './context.js';
+import notify from '@/assets/app/notify';
 // const {appContitle: {config: globalProperties}} = getCurrentInstance()
 
 // const vue = globalProperties;
@@ -1613,13 +1614,51 @@ export class ImageDataTable extends DataTable {
             { title: '名字', key: 'name' },
             { title: '大小', key: 'size', align: 'end' },
         ]
+        this.hasNext = false;
+        this.markers = []
     }
-    refresh() {
-        let filter = {}
-        if (this.visibility) {
-            filter.visibility = this.visibility;
+    async refresh(fistPage=false) {
+        if (fistPage) {
+            this.markers = []
         }
-        super.refresh(filter)
+        this.loading = true;
+        try {
+            let data = (await this.api.list(this.getQueryParams()))
+            this.items = data.images
+            this.hasNext = data.next ? true : false
+        } catch (e) {
+            notify.error("查询失败")
+        } finally {
+            this.loading = false;
+        }
+    }
+    getQueryParams() {
+        let queryParams = {
+            limit: this.itemsPerPage
+        }
+        if (this.visibility) {
+            queryParams.visibility = this.visibility
+        }
+        if (this.markers.length > 0) {
+            let marker = this.markers[this.markers.length -1]
+            if (marker) {
+                queryParams.marker = marker
+            }
+        }
+        return queryParams
+    }
+    async previsousPage() {
+        this.markers.pop()
+        this.refresh()
+    }
+    async nextPage() {
+        if (this.items.length > 0) {
+            // queryParams.marker = this.items[this.items.length -1].id
+            this.markers.push(this.items[this.items.length -1].id)
+        } else {
+            this.markers.push(null)
+        }
+        this.refresh()
     }
     humanSize(image) {
         if (!image.size) {

@@ -8,7 +8,7 @@
     <v-col lg="3">
       <v-card>
         <v-card-actions class="pa-1">
-          <v-btn-toggle density="compact" variant="outlined" color="info" @click="table.refresh()"
+          <v-btn-toggle density="compact" variant="outlined" color="info" @click="table.refresh(true)"
             v-model="table.visibility" class="mx-auto">
             <v-btn value="public">{{ $t('public') }}</v-btn>
             <v-btn value="shared">{{ $t('shared') }}</v-btn>
@@ -38,7 +38,7 @@
     <v-col cols="10" v-if="simple">
       <!-- 简单的表格 -->
       <v-data-table density='compact' :loading="table.loading" :headers="table.MiniHeaders" :items="table.items"
-        :items-per-page="5" :search="table.search" @click:row="selectImage" hover>
+        :items-per-page="5" :search="table.search" @click:row="selectImage" hover hide-default-footer>
 
         <template v-slot:[`item.id`]="{ item }">
           <v-chip v-if="item.id == selectedImage.id" density="compact"
@@ -49,12 +49,19 @@
         </template>
         <template v-slot:[`item.size`]="{ item }"><span class="blue--text">{{ table.humanSize(item) }}</span></template>
       </v-data-table>
+      <v-toolbar density="compact">
+        <v-spacer></v-spacer>
+        每页个数：{{ table.itemsPerPage }}
+        <v-btn color="info" density="compact" @click="prePage"
+          :disabled="!table.markers[table.markers.length - 1]">上一页</v-btn>
+        <v-btn color="info" density="compact" @click="nextPage" :disabled="!table.hasNext">下一页</v-btn>
+      </v-toolbar>
     </v-col>
     <v-col cols=12 v-else>
       <!-- 详细数据表 -->
-      <v-data-table density='compact' show-select show-expand :loading="table.loading"
-        :headers="table.headers" :items="table.items"
-        :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected" hover>
+      <v-data-table density='compact' show-select show-expand :loading="table.loading" :headers="table.headers"
+        :items="table.items" :items-length="table.items.length" :items-per-page="table.itemsPerPage"
+        :search="table.search" v-model="table.selected" hover hide-default-footer>
 
         <template v-slot:[`item.status`]="{ item }">
           <v-icon v-if="item.status == 'active'" color="success">mdi-emoticon-happy</v-icon>
@@ -101,6 +108,13 @@
           </td>
         </template>
       </v-data-table>
+      <v-toolbar density="compact">
+        <v-spacer></v-spacer>
+        每页个数：{{ table.itemsPerPage }}
+        <v-btn color="info" density="compact" @click="prePage"
+          :disabled="!table.markers[table.markers.length - 1]">上一页</v-btn>
+        <v-btn color="info" density="compact" @click="nextPage" :disabled="!table.hasNext">下一页</v-btn>
+      </v-toolbar>
     </v-col>
     <ImagePropertiesDialog :show.sync="showImagePropertiesDialog" @update:show="(e) => showImagePropertiesDialog = e"
       :image="selectedImage" @completed="table.refresh()" />
@@ -145,10 +159,22 @@ export default {
     openImagePropertiesDialog(image) {
       this.selectedImage = image;
       this.showImagePropertiesDialog = !this.showImagePropertiesDialog;
-    }
+    },
+    pageUpdate: function ({ page, itemsPerPage, sortBy }) {
+      this.table.pageUpdate(page, itemsPerPage, sortBy)
+    },
+    prePage: function () {
+      this.table.previsousPage()
+    },
+    nextPage: function () {
+      this.table.nextPage()
+    },
   },
   created() {
-    this.table.refresh()
+    if (this.simple) {
+      this.table.itemsPerPage = 5
+    }
+    this.nextPage()
   }
 };
 </script>

@@ -563,26 +563,12 @@ class Image extends Restfulclient {
     constructor() {
         super('/image/images');
     }
-    async list(filters={}){
-        let images = []
-        do {
-            let data = await super.list(filters)
-            if (data.images) {
-                images = images.concat(data.images)
-            }
-            if (!data.next){
-                break
-            }
-            //  = new URL(data.next)
-            let params = new URLSearchParams(data.next.split('?')[1])
-            let marker = params.get('marker')
-            if (! marker) {
-                break
-            }
-            filters['marker'] = marker
-        } while (true)
-        return {images: images}
-    }
+    // async list(filters={}){
+    //     let images = []
+    //     return await super.list(filters)
+    //     // images = data.images
+    //     // return data
+    // }
     async removeProperties(id, properties) {
         let data = [];
         for (let i in properties) {
