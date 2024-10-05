@@ -5,7 +5,6 @@ import API from './api.js'
 // import I18N from './i18n.js';
 import { LOG, ServerTasks, Utils } from './lib.js'
 import Notify from '@/assets/app/notify'
-import { GetContext, GetLocalContext } from './context.js';
 import notify from '@/assets/app/notify';
 // const {appContitle: {config: globalProperties}} = getCurrentInstance()
 
@@ -591,7 +590,6 @@ export class ServerDataTable extends DataTable {
         return queryParams
     }
     async refreshTotalServers() {
-        this.totalItems = this.totalItems
         this.totalItems = await this.api.list(this.getQueryParams())
     }
     async pageUpdate(page, itemsPerPage, sortBy) {
@@ -1973,6 +1971,5 @@ export class VolumeTaskWaiter {
         Notify.success(`${this.volume.name || this.volume.id} ${action} 成功`)
     }
 }
-
 
 export default DataTable;

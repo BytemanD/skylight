@@ -15,20 +15,20 @@
         <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
-                    <new-volume-dialog @create="(item) => { table.createItem(item) }" />
+                    <new-volume-dialog @create="(item) => { table.addItem(item) }" />
                     <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
                     </VolumeExtendVue>
                     <VolumeStatusResetDialog :volumes="table.selected" @completed="refresh()" />
                     <v-spacer></v-spacer>
                     <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除卷?"
-                        @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
+                        @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
                 </v-card-actions>
             </v-card>
         </v-col>
         <v-col>
             <v-data-table-server show-expand single-expand show-select density='compact' :loading="table.loading"
                 :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
-                :search="table.search" v-model="table.selected" :items-length="totlaVolumes.length"
+                :search="table.search" v-model="table.selected" :items-length="table.totalItems.length"
                 @update:options="pageRefresh">
 
                 <template v-slot:[`item.status`]="{ item }">
@@ -95,9 +95,8 @@
 
 <script>
 import API from '@/assets/app/api';
-import { VolumeDataTable } from '@/assets/app/tables.jsx';
+import { VolumeDataTable } from '@/assets/app/data_tables.js';
 import { Utils } from '@/assets/app/lib.js';
-import SETTINGS from '@/assets/app/settings';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 import NewVolumeDialog from './dialogs/NewVolume.vue';
@@ -124,56 +123,10 @@ export default {
     }),
     methods: {
         deleteSelected: async function () {
-            // let selected = this.table.selected;
             await this.table.deleteSelected()
-            // for (let i in selected) {
-            //     let serverId = selected[i];
-            //     await this.table.waitVolumeDeleted(serverId)
-            //     this.refreshTotalVolumes()
-            // }
-            // this.refreshTotlaServers()
-        },
-        refreshTotalVolumes: async function () {
-            let data = (await API.volume.list()).volumes
-            this.totlaVolumes = data;
-
-            // .then((data) => {
-            //     self.totlaVolumes = data.volumes
-            // })
-            if (this.iSupportResourceAction == null && this.totlaVolumes.length > 0) {
-                let volume = this.totlaVolumes[0]
-                try {
-                    API.volume.actionList(volume.id)
-                    this.iSupportResourceAction = true;
-                } catch {
-                    this.iSupportResourceAction = false;
-                }
-                console.log(this.iSupportResourceAction)
-            }
         },
         pageRefresh: function ({ page, itemsPerPage, sortBy }) {
-            this.table.page = page
-            this.table.itemsPerPage = itemsPerPage
-            this.table.sortBy = sortBy
-
-            let filter = {}
-            if (itemsPerPage) {
-                if (itemsPerPage >= 0) {
-                    filter.limit = itemsPerPage
-                }
-            } else {
-                filter.limit = this.table.itemsPerPage
-            }
-            if (page > 1 && this.totlaVolumes.length > 1) {
-                let index = filter.limit * (page - 1) - 1
-                filter.marker = this.totlaVolumes[index].id
-            }
-            if (page > 1 && this.totlaVolumes.length > 1) {
-                let index = itemsPerPage * (page - 1) - 1
-                filter.marker = this.totlaVolumes[index].id
-            }
-            this.table.refresh(filter)
-            this.refreshTotalVolumes()
+            this.table.pageUpdate(page, itemsPerPage, sortBy)
         },
         openResourceActionsDialog(item) {
             this.selectedVolume = item;
@@ -183,11 +136,7 @@ export default {
             this.table.updateItem(item)
         },
         refresh() {
-            this.pageRefresh({
-                page: this.table.page,
-                itemsPerPage: this.table.itemsPerPage,
-                sortBy: this.table.sortBy,
-            })
+            this.table.refreshPage()
         }
     },
     created() {
