@@ -186,7 +186,7 @@ class DataTable {
             items = items.filter(filterFunc)
         }
         if (items.length > 0) {
-            this.lastItem = items[0]
+            this.lastItem = items[items.length-1]
         }
         this.items = items
         this.sortItems()

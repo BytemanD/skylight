@@ -12,7 +12,7 @@
                 </v-card-actions>
             </v-card>
         </v-col>
-        <v-col cols="3" v-if="!simple">
+        <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
                     <NewBackupVue @completed="table.refresh()" />

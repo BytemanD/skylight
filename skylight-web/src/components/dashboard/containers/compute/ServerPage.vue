@@ -72,7 +72,7 @@
     </v-col>
     <v-divider></v-divider>
     <v-col cols='12'>
-      <!-- {{ this.table.items[0].name }} -->
+      {{ this.table.lastItem }}
       <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" earch="table.search"
         v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page

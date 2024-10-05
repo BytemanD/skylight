@@ -8,17 +8,17 @@
         <v-col cols="1">
             <v-card>
                 <v-card-actions class="py-1">
-                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
                 </v-card-actions>
             </v-card>
         </v-col>
-        <v-col cols="3" v-if="!simple">
+        <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
                     <new-volume-dialog @create="(item) => { table.createItem(item) }" />
                     <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
                     </VolumeExtendVue>
-                    <VolumeStatusResetDialog :volumes="table.selected" @completed="table.refresh()" />
+                    <VolumeStatusResetDialog :volumes="table.selected" @completed="refresh()" />
                     <v-spacer></v-spacer>
                     <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除卷?"
                         @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
@@ -182,6 +182,13 @@ export default {
         updateVolume: async function (item) {
             this.table.updateItem(item)
         },
+        refresh() {
+            this.pageRefresh({
+                page: this.table.page,
+                itemsPerPage: this.table.itemsPerPage,
+                sortBy: this.table.sortBy,
+            })
+        }
     },
     created() {
         // this.table.refresh();
