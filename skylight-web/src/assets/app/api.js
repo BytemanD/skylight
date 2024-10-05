@@ -786,14 +786,6 @@ class Backup extends OpenstackProxyAPI {
         }
         return backupBody
     }
-    async detail(filters = {}) {
-        filters.all_tenants = 1
-        return await super.detail(filters)
-    }
-    async list(filters = {}) {
-        filters.all_tenants = 1
-        return await super.list(filters)
-    }
     async create(data) { return (await this.post({ backup: data })) }
     async resetState(id, status) {
         return await this.doAction(id, { 'os-reset_status': { status: status } })

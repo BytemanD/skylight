@@ -1,7 +1,8 @@
 import notify from '@/assets/app/notify';
 
-import API from './api.js'
-import { Utils } from './lib.js'
+import i18n from '@/assets/app/i18n.js'
+import API from '@/assets/app/api.js'
+import { Utils } from '@/assets/app/lib.js'
 
 
 class DataTable {
@@ -17,9 +18,9 @@ class DataTable {
 
         this.search = '';
         this.items = [];
-        this.lastItem = null
         this.totalItems = [];
         this.selected = []
+        this.subscribe = false;
     }
     getItemById(id) {
         for (let i in this.items) {
@@ -51,7 +52,7 @@ class DataTable {
                 notify.error(`删除 ${item} 失败`)
             }
             if (!this.subscribe) {
-                await this.watchDeleting(item)
+                this.watchDeleting(item)
             }
         }
         this.resetSelected()
@@ -64,13 +65,13 @@ class DataTable {
             } catch (e) {
                 console.error(e)
                 if (e.response.status == 404) {
-                    notify.success(`${this.name} ${itemId} 已删除`)
                     this.removeItem(itemId)
                     break;
                 }
             }
             await Utils.sleep(2)
         } while (true)
+        this.refreshPage()
     }
     resetSelected() {
         this.selected = [];
@@ -99,7 +100,6 @@ class DataTable {
         if (this.items.length >= this.itemsPerPage) {
             this.items.pop()
         }
-        this.lastItem = this.items[this.items.length -1]
     }
 
     removeItem(id) {
@@ -133,7 +133,7 @@ class DataTable {
             } else {
                 result = await this.api.list(filters)
             }
-        } catch(e) {
+        } catch (e) {
             notify.error(`${this.name || '资源'} 查询失败`)
             console.error(e)
             return;
@@ -141,19 +141,23 @@ class DataTable {
             this.loading = false;
         }
         let items = this.bodyKey ? result[this.bodyKey] : result;
-        if (items.length > 0) {
-            this.lastItem = items[items.length - 1]
-        }
         this.items = items
     }
 }
-// server data table
-class LimitMarkerDataTable extends DataTable {
+// openstack data table
+class OpenstackDataTableServer extends DataTable {
     constructor(headers, api, bodyKey = null, name = '') {
         super(headers, api, bodyKey, name)
 
         this.page = 1
         this.sortBy = []
+        this.all_tenants = false
+        this.deleted = false
+
+        // 自定义查询参数
+        this.customQueryParams = []
+        this.selectedCustomQuery = this.customQueryParams[0];
+        this.customQueryValue = null
     }
     sortItems() {
         if (!this.sortBy || this.sortBy.length == 0) {
@@ -171,21 +175,36 @@ class LimitMarkerDataTable extends DataTable {
         )
     }
     getDefaultQueryParams() {
-        return {}
+        let queryParams = { deleted: false }
+        if (this.all_tenants) {
+            queryParams.all_tenants = 1
+        }
+        if (this.customQueryValue) {
+            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
+        }
+        return queryParams
     }
     async addItem(item) {
         super.addItem(item)
-        this.totalItems.unshift({id: item.id})
+        this.totalItems.unshift({ id: item.id })
     }
     async refreshTotal() {
-        this.totalItems = (await this.api.list(this.getDefaultQueryParams())).volumes
+        let result = await this.api.list(this.getDefaultQueryParams())
+        let items = this.bodyKey ? result[this.bodyKey] : result;
+
+        this.totalItems = items
+    }
+    getMarker(page, itemsPerPage) {
+        let markerIndex = Math.min(itemsPerPage * (page - 1), this.totalItems.length)
+        markerIndex = Math.max(0, markerIndex)
+        return this.totalItems[markerIndex].id
     }
     async refreshPage() {
         let queryParams = this.getDefaultQueryParams()
         // 添加分页查询参数
         queryParams.limit = this.itemsPerPage
-        if (this.page > 1 && this.lastItem) {
-            queryParams.marker = this.lastItem.id
+        if (this.page > 1) {
+            queryParams.marker = this.getMarker(this.page, this.itemsPerPage)
         }
         console.log("queryParams", queryParams)
         await this.refresh(queryParams)
@@ -205,7 +224,7 @@ class LimitMarkerDataTable extends DataTable {
     }
 }
 
-export class VolumeDataTable extends LimitMarkerDataTable {
+export class VolumeDataTable extends OpenstackDataTableServer {
     constructor() {
         super([
             { title: 'ID', key: 'id', minWidth: 300 },
@@ -227,20 +246,17 @@ export class VolumeDataTable extends LimitMarkerDataTable {
             { title: 'created_at', key: 'created_at' },
             { title: 'updated_at', key: 'updated_at' },
         ];
-        this.all_tenants = false;
-        this.deleted = false;
+        this.customQueryParams = [
+            { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("status"), value: "status" },
+        ]
+        this.selectedCustomQuery = this.customQueryParams[0];
         // TODO: 补充其他状态
         this.doingStatus = [
             'creating', 'downloading', 'attaching', 'deleting'
         ]
     }
-    getDefaultQueryParams() {
-        let queryParams = {deleted: false}
-        if (this.all_tenants) {
-            queryParams.all_tenants = 1
-        }
-        return queryParams
-    }
+
     isDoing(item) {
         return this.doingStatus.indexOf(item.status) >= 0;
     }
@@ -259,20 +275,91 @@ export class VolumeDataTable extends LimitMarkerDataTable {
         }
         this.refresh();
     }
-    async waitVolumeDeleted(volumeId) {
-        do {
-            try {
-                let volume = (await API.volume.get(volumeId)).volume
-                this.updateItem(volume)
-            } catch (e) {
-                console.error(e)
-                if (e.response.status == 404) {
-                    notify.success(`卷 ${volumeId} 已删除`)
-                    this.removeItem(volumeId)
-                    break;
-                }
+
+}
+export class BackupDataTable extends OpenstackDataTableServer {
+    constructor() {
+        super([{ title: '名字', key: 'name' },
+        { title: '状态', key: 'status' },
+        { title: '大小', key: 'size' },
+        { title: '卷ID', key: 'volume_id' },
+        ], API.backup, 'backups', '备份');
+        this.extendItems = [
+            { title: 'id', key: 'id' },
+            { title: 'fail_reason', key: 'fail_reason' },
+            { title: 'snapshot_id', key: 'metadata' },
+            { title: 'has_dependent_backups', key: 'has_dependent_backups' },
+            { title: 'created_at', key: 'created_at' },
+            { title: 'availability_zone', key: 'availability_zone' },
+            { title: 'description', key: 'description' },
+        ];
+    }
+    async waitBackupCreated(backupId) {
+        let backup = {};
+        let expectStatus = ['available', 'error'];
+        let oldStatus = ''
+        while (expectStatus.indexOf(backup.status) < 0) {
+            backup = (await API.backup.get(backupId)).backup;
+            LOG.debug(`wait backup ${backupId} status to be ${expectStatus}, now: ${backup.status}`)
+            if (backup.status != oldStatus) {
+                this.refresh();
             }
-            await Utils.sleep(2)
-        } while (true)
+            oldStatus = backup.status;
+            if (expectStatus.indexOf(backup.status) < 0) {
+                await Utils.sleep(3);
+            }
+        }
+        return backup
+    }
+    async waitBackupStatus(backupId, status) {
+        let backup = {};
+        while (backup.status != status) {
+            try {
+                LOG.debug(`wait backup ${backupId} status to be ${status}`)
+                backup = (await API.backup.get(backupId)).backup;
+                if (backup.status != status) {
+                    await Utils.sleep(3);
+                }
+            } catch (error) {
+                console.error(error);
+                break
+            }
+        }
+        this.refreshPage();
+        return backup
+    }
+    async resetState(backupId) {
+        console.info(`TODO resetState ${backupId}`)
+    }
+}
+export class SnapshotDataTable extends OpenstackDataTableServer {
+    constructor() {
+        super([{ title: '名字', key: 'name' },
+        { title: '状态', key: 'status' },
+        { title: '大小', key: 'size' },
+        { title: '卷ID', key: 'volume_id' },
+        ], API.snapshot, 'snapshots', '快照');
+        this.extendItems = [
+            { title: '描述', key: 'description' },
+            { title: 'created_at', key: 'created_at' },
+            { title: 'updated_at', key: 'updated_at' },
+        ]
+    }
+    async waitSnapshotCreated(snapshot_id) {
+        let snapshot = {};
+        let expectStatus = ['available', 'error'];
+        let oldStatus = ''
+        while (expectStatus.indexOf(snapshot.status) < 0) {
+            snapshot = (await API.snapshot.get(snapshot_id)).snapshot;
+            LOG.debug(`wait snapshot ${snapshot_id} status to be ${expectStatus}, now: ${snapshot.status}`)
+            if (snapshot.status != oldStatus) {
+                this.refresh();
+            }
+            oldStatus = snapshot.status;
+            if (expectStatus.indexOf(snapshot.status) < 0) {
+                await Utils.sleep(3);
+            }
+        }
+        return snapshot
     }
 }

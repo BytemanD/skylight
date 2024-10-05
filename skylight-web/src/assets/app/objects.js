@@ -1,6 +1,6 @@
 import {
     DomainTable, ProjectTable, RoleTable, UserTable, HypervisortTable,
-    VolumeDataTable, VolumeTypeTable, SnapshotTable, BackupTable,
+    VolumeTypeTable, 
     FlavorDataTable,VolumeServiceTable ,KeypairDataTable, ServerDataTable, UsageTable, ComputeServiceTable,
     RegionTable, AZDataTable,
     RouterDataTable, NetDataTable, PortDataTable, SecurityGroupDataTable, QosPolicyDataTable, 
@@ -8,26 +8,9 @@ import {
     ClusterTable,
     AggDataTable, MigrationDataTable, EndpointTable,
 } from './tables.jsx';
-// import { 
-//     NewClusterDialog, ProjectUserDialog, NewUserDialog, RolesDialog, NewRoleDialog,
-    
-//     NewServerDialog, ServerVolumeDialog, ServerInterfaceDialog, NewFlavorDialog,
-//     FlavorExtraDialog, ChangePasswordDialog, ChangeServerNameDialog,
-//     ResizeDialog, MigrateDialog, NewKeypairDialog, RebuildDialog,
-//     EvacuateDialog, UpdateServerSG,
-//     ServerTopology, ServerActionsDialog,
-//     ServerActionEventsDialog,
-//     ServerConsoleLogDialog,
-
-//     NewVolumeDialog, NewVolumeTypeDialog, NewSnapshotDialog, NewBackupDialog,
-//     VolumeResetStateDialog, BackupResetStateDialog, SnapshotResetStateDialog,
-//     ImageDeleteSmartDialog, ImagePropertiesDialog,
-
-//     NewRouterkDialog, NewNetworkDialog, NewSubnetDialog, RouterInterfacesDialog,
-//     NewPortDialog, UpdatePort, NewQosPolicyDialog, QosPolicyRules,
-//     NewQosPolicyRule, NewSGDialog, NewSGRuleDialog, SGRulesDialog,
-// } from './dialogs.js';
-
+import {
+    VolumeDataTable, BackupDataTable, SnapshotDataTable,
+} from './data_tables.js';
 
 export const userTable = new UserTable();
 export const projectTable = new ProjectTable();
@@ -38,9 +21,9 @@ export const endpointTable = new EndpointTable();
 export const hypervisorTable = new HypervisortTable();
 export const volumeTable = new VolumeDataTable();
 export const volumeTypeTable = new VolumeTypeTable();
-export const snapshotTable = new SnapshotTable();
+export const snapshotTable = new SnapshotDataTable();
 export const flavorTable = new FlavorDataTable();
-export const backupTable = new BackupTable();
+export const backupTable = new BackupDataTable();
 export const volumeComputeServiceTable = new VolumeServiceTable();
 
 export const keypairTable = new KeypairDataTable();

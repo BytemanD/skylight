@@ -2,12 +2,37 @@
     <v-row>
         <v-col sm="12" lg="6">
             <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-                v-model="table.search">
+                v-model="table.customQueryValue" @keyup.enter.native="refresh()">
+                <template v-slot:prepend>
+                    <v-menu>
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" color="grey" icon="mdi-filter-menu"></v-btn>
+                        </template>
+                        <v-list density="compact">
+                            <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
+                                :class="table.selectedCustomQuery.value == item.value ? 'bg-info' : ''"
+                                @click="table.selectedCustomQuery = item">
+                                <v-list-item-title>{{ item.title }}</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                </template>
+                <template v-slot:prepend-inner>
+                    <v-chip size="small">{{ table.selectedCustomQuery && table.selectedCustomQuery.title }}</v-chip>
+                </template>
             </v-text-field>
         </v-col>
-        <v-col cols="1">
+        <v-col cols="2">
             <v-card>
                 <v-card-actions class="py-1">
+                    <v-tooltip location="top">
+                        <template v-slot:activator="{ props }">
+                            <v-btn icon variant="text" v-bind="props" v-on:click="()=>{table.all_tenants = !table.all_tenants; refresh()}">
+                                <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
+                            </v-btn>
+                        </template>
+                        查询全部租户
+                    </v-tooltip>
                     <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
                 </v-card-actions>
             </v-card>
@@ -26,7 +51,7 @@
             </v-card>
         </v-col>
         <v-col>
-            <v-data-table-server show-expand single-expand show-select density='compact' :loading="table.loading"
+            <v-data-table-server show-expand single-expand show-select hover density='compact' :loading="table.loading"
                 :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
                 :search="table.search" v-model="table.selected" :items-length="table.totalItems.length"
                 @update:options="pageRefresh">
@@ -63,7 +88,6 @@
                         </template>
                         <v-list density='compact'>
                             <v-list-item @click="openResourceActionsDialog(item)" :disabled="!iSupportResourceAction">
-
                                 <v-list-item-title>操作记录</v-list-item-title>
                             </v-list-item>
                         </v-list>

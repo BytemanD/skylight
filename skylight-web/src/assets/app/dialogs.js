@@ -8,9 +8,13 @@ import API, {
 import SETTINGS from './settings.js';
 import { Utils, LOG, CONST } from './lib.js';
 import {
-    BackupTable, VolumeDataTable, UserTable, RegionDataTable,
+    UserTable, RegionDataTable,
     ServiceTable, HypervisortTable,
 } from './tables.jsx';
+import {
+    VolumeDataTable, BackupDataTable,
+} from './data_tables.js';
+
 import {
     imageTable,
     snapshotTable,
@@ -1401,7 +1405,7 @@ export class NewBackupDialog extends Dialog {
         let backup = (await API.backup.create(data)).backup;
         notify.info(`备份 ${this.name} 创建中`);
         this.hide();
-        let backupTable = new BackupTable()
+        let backupTable = new BackupDataTable()
         let result = await backupTable.waitBackupCreated(backup.id);
         if (result.status == 'error') {
             notify.error(`备份 ${this.name} 创建失败`);
@@ -1447,7 +1451,7 @@ export class BackupResetStateDialog extends Dialog {
         super();
         this.status = 'available';
         this.statusList = ['available', 'error']
-        this.backupTable = new BackupTable();
+        this.backupTable = new BackupDataTable();
     }
     async commit(backups) {
         for (let i in backups) {

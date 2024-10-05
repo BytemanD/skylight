@@ -568,6 +568,7 @@ export class ServerDataTable extends DataTable {
             { title: i18n.global.t("ID"), value: "id" },
             { title: i18n.global.t("hostName"), value: "host" },
             { title: i18n.global.t("flavor"), value: "flavor" },
+            { title: i18n.global.t("status"), value: "status" },
         ]
         this.selectedCustomQuery = this.customQueryParams[0];
         this.customQueryValue = null
@@ -997,83 +998,6 @@ export class UsageTable extends DataTable {
         super.refresh(params);
     }
 }
-export class VolumeDataTable extends DataTable {
-    constructor() {
-        super([
-            { title: 'ID', key: 'id', minWidth: 300 },
-            { title: '名字', key: 'name', },
-            { title: '状态', key: 'status', minWidth: 100 },
-            { title: '大小', key: 'size', minWidth: 90 },
-            { title: '卷类型', key: 'volume_type' },
-            { title: '镜像名', key: 'image_name', maxWidth: 300 },
-            { title: '操作', key: 'actions' },
-        ], API.volume, 'volumes', '卷');
-        this.extendItems = [
-            { title: 'description', key: 'description' },
-            { title: 'attached_servers', key: 'attached_servers' },
-            { title: 'migration_status', key: 'migration_status' },
-            { title: 'replication_status', key: 'replication_status' },
-            { title: 'tenant_id', key: 'tenant_id' },
-            { title: 'volume_image_metadata', key: 'volume_image_metadata' },
-            { title: 'metadata', key: 'metadata' },
-            { title: 'created_at', key: 'created_at' },
-            { title: 'updated_at', key: 'updated_at' },
-        ];
-        // TODO: 补充其他状态
-        this.doingStatus = [
-            'creating', 'downloading', 'attaching', 'deleting'
-        ]
-    }
-    isDoing(item) {
-        return this.doingStatus.indexOf(item.status) >= 0;
-    }
-    extendSelected(newSize) {
-        if (this.selected.length == 0) {
-            return;
-        }
-        Notify.info(`开始扩容`);
-        for (let i in this.selected) {
-            let item = this.selected[i];
-            try {
-                this.api.extend(item.id, newSize);
-            } catch {
-                Notify.error(`扩容 ${item.name} ${item.id} 失败`)
-            }
-        }
-        this.refresh();
-    }
-    async refresh(filters = {}) {
-        // search only for volume.name or volume.id
-        await super.refresh(filters);
-
-        if (this.search) {
-            let filterItems = [];
-            for (let i in this.items) {
-                if (this.items[i].id.includes(this.search)
-                    || this.items[i].name.includes(this.search)) {
-                    filterItems.push(this.items[i])
-                }
-            }
-            this.items = filterItems
-        }
-    }
-    async waitVolumeDeleted(volumeId) {
-        do {
-            try {
-                let volume = (await API.volume.get(volumeId)).volume
-                this.updateItem(volume)
-            } catch (e) {
-                console.error(e)
-                if (e.response.status == 404) {
-                    Notify.success(`卷 ${volumeId} 已删除`)
-                    this.removeItem(volumeId)
-                    break;
-                }
-            }
-            await Utils.sleep(2)
-        } while (true)
-    }
-}
 
 export class VolumeTypeTable extends DataTable {
     constructor() {
@@ -1090,93 +1014,7 @@ export class VolumeTypeTable extends DataTable {
     }
 }
 
-export class SnapshotTable extends DataTable {
-    constructor() {
-        super([{ title: '名字', key: 'name' },
-        { title: '状态', key: 'status' },
-        { title: '大小', key: 'size' },
-        { title: '卷ID', key: 'volume_id' },
-        ], API.snapshot, 'snapshots', '快照');
-        this.extendItems = [
-            { title: '描述', key: 'description' },
-            { title: 'created_at', key: 'created_at' },
-            { title: 'updated_at', key: 'updated_at' },
-        ]
-    }
-    async waitSnapshotCreated(snapshot_id) {
-        let snapshot = {};
-        let expectStatus = ['available', 'error'];
-        let oldStatus = ''
-        while (expectStatus.indexOf(snapshot.status) < 0) {
-            snapshot = (await API.snapshot.get(snapshot_id)).snapshot;
-            LOG.debug(`wait snapshot ${snapshot_id} status to be ${expectStatus}, now: ${snapshot.status}`)
-            if (snapshot.status != oldStatus) {
-                this.refresh();
-            }
-            oldStatus = snapshot.status;
-            if (expectStatus.indexOf(snapshot.status) < 0) {
-                await Utils.sleep(3);
-            }
-        }
-        return snapshot
-    }
-}
-export class BackupTable extends DataTable {
-    constructor() {
-        super([{ title: '名字', key: 'name' },
-        { title: '状态', key: 'status' },
-        { title: '大小', key: 'size' },
-        { title: '卷ID', key: 'volume_id' },
-        ], API.backup, 'backups', '备份');
-        this.extendItems = [
-            { title: 'id', key: 'id' },
-            { title: 'fail_reason', key: 'fail_reason' },
-            { title: 'snapshot_id', key: 'metadata' },
-            { title: 'has_dependent_backups', key: 'has_dependent_backups' },
-            { title: 'created_at', key: 'created_at' },
-            { title: 'availability_zone', key: 'availability_zone' },
-            { title: 'description', key: 'description' },
-        ];
-    }
-    async waitBackupCreated(backupId) {
-        let backup = {};
-        let expectStatus = ['available', 'error'];
-        let oldStatus = ''
-        while (expectStatus.indexOf(backup.status) < 0) {
-            backup = (await API.backup.get(backupId)).backup;
-            LOG.debug(`wait backup ${backupId} status to be ${expectStatus}, now: ${backup.status}`)
-            if (backup.status != oldStatus) {
-                this.refresh();
-            }
-            oldStatus = backup.status;
-            if (expectStatus.indexOf(backup.status) < 0) {
-                await Utils.sleep(3);
-            }
-        }
-        return backup
-    }
-    async waitBackupStatus(backupId, status) {
-        let backup = {};
-        while (backup.status != status) {
-            try {
-                LOG.debug(`wait backup ${backupId} status to be ${status}`)
-                backup = (await API.backup.get(backupId)).backup;
-                if (backup.status != status) {
-                    await Utils.sleep(3);
-                }
-            } catch (error) {
-                console.error(error);
-                break
-            }
-        }
-        this.refresh();
-        return backup
-    }
-    async resetState(backupId) {
-        console.info(`TODO resetState ${backupId}`)
-        // API.backup.resetState(backupId, status =)
-    }
-}
+
 export class VolumeServiceTable extends DataTable {
     constructor() {
         super([

@@ -73,7 +73,7 @@
     <v-divider></v-divider>
     <v-col cols='12'>
       <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
-        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" earch="table.search"
+        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
         v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page
         v-bind:page="table.page">
         <template v-slot:[`item.name`]="{ item }">

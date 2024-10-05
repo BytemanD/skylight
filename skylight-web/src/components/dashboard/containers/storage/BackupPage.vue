@@ -8,14 +8,14 @@
         <v-col cols="1">
             <v-card>
                 <v-card-actions class="py-1">
-                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
                 </v-card-actions>
             </v-card>
         </v-col>
         <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
-                    <NewBackupVue @completed="table.refresh()" />
+                    <NewBackupVue @completed="refresh()" />
                     <v-btn color="warning" @click="showBackupStateResetDialog = !showBackupStateResetDialog"
                         :disabled="table.selected.length == 0">状态重置</v-btn>
                     <v-spacer></v-spacer>
@@ -25,31 +25,32 @@
             </v-card>
         </v-col>
         <v-col cols="12">
-            <v-data-table show-expand single-expand show-select density='compact' :loading="table.loading"
-                :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
-                :search="table.search" class="elevation-1" v-model="table.selected">
+            <v-data-table-server show-expand single-expand show-select hover density='compact' class="elevation-1"
+                :loading="table.loading" :headers="table.headers" :items="table.items"
+                :items-per-page="table.itemsPerPage" :items-length="table.totalItems.length" :search="table.search"
+                v-model="table.selected" @update:options="pageRefresh">
 
                 <template v-slot:[`item.status`]="{ item }">
                     <v-icon v-if="item.status == 'available'" color="success">mdi-check</v-icon>
                     <span v-else>{{ item.status }}</span>
                 </template>
                 <template v-slot:[`item.image_name`]="{ item }">
-                    <v-chip x-small label v-if="item.volume_image_metadata">{{ item.volume_image_metadata.image_name
-                        }}</v-chip>
+                    <v-chip x-small label v-if="item.volume_image_metadata">
+                        {{ item.volume_image_metadata.image_name }}</v-chip>
                 </template>
 
                 <template v-slot:expanded-row="{ columns, item }">
                     <td></td>
                     <td :colspan="columns.length - 1">
                         <table>
-                            <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.title">
+                            <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.key">
                                 <td><strong>{{ extendItem.title }}:</strong></td>
                                 <td>{{ item[extendItem.key] }}</td>
                             </tr>
                         </table>
                     </td>
                 </template>
-            </v-data-table>
+            </v-data-table-server>
         </v-col>
         <BackupStatusResetDialog v-model="showBackupStateResetDialog" show.sync="showBackupStateResetDialog"
             :backups="table.selected" @completed="table.refresh()" />
@@ -57,7 +58,7 @@
 </template>
 
 <script>
-import { BackupTable } from '@/assets/app/tables.jsx';
+import { BackupDataTable } from '@/assets/app/data_tables.js';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 import NewBackupVue from './dialogs/NewBackup.vue';
@@ -69,15 +70,20 @@ export default {
     },
 
     data: () => ({
-        table: new BackupTable(),
+        table: new BackupDataTable(),
         showBackupStateResetDialog: false,
         showNewBackupDialog: false,
     }),
     methods: {
-
+        pageRefresh: function ({ page, itemsPerPage, sortBy }) {
+            this.table.pageUpdate(page, itemsPerPage, sortBy)
+        },
+        refresh() {
+            this.table.refreshPage()
+        }
     },
     created() {
-        this.table.refresh();
+        // this.refresh()
     }
 };
 </script>

@@ -8,14 +8,14 @@
         <v-col cols="1">
             <v-card>
                 <v-card-actions class="py-1">
-                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
                 </v-card-actions>
             </v-card>
         </v-col>
         <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
-                    <NewSnapshotDialog @completed="table.refresh()" />
+                    <NewSnapshotDialog @completed="refresh()" />
                     <v-btn small class="mr-1" color="warning"
                         @click="showSnapshotResetStateDialog = !showSnapshotResetStateDialog"
                         :disabled="table.selected.length == 0">状态重置</v-btn>
@@ -26,31 +26,32 @@
             </v-card>
         </v-col>
         <v-col cols=12>
-            <v-data-table show-expand single-expand show-select density='compact' :loading="table.loading"
+            <v-data-table-server show-expand single-expand show-select hover density='compact' :loading="table.loading"
                 :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" :search="table.search"
-                v-model="table.selected">
+                v-model="table.selected" :items-length="table.totalItems.length"
+                @update:options="pageRefresh">
         
                 <template v-slot:expanded-row="{ columns, item }">
                     <td></td>
                     <td :colspan="columns.length - 1">
                         <table>
-                            <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.text">
-                                <td><strong>{{ extendItem.text }}:</strong></td>
-                                <td>{{ item[extendItem.value] }}</td>
+                            <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.key">
+                                <td><strong>{{ extendItem.title }}:</strong></td>
+                                <td>{{ item[extendItem.key] }}</td>
                             </tr>
                         </table>
                     </td>
                 </template>
-            </v-data-table>
+            </v-data-table-server>
     
         </v-col>
     </v-row>
     <SnapshotStatusResetDialog v-model="showSnapshotResetStateDialog" :show.sync="showSnapshotResetStateDialog"
-        :snapshots="table.selected" @completed="table.refresh()" />
+        :snapshots="table.selected" @completed="refresh()" />
 </template>
 
 <script>
-import { SnapshotTable } from '@/assets/app/tables.jsx';
+import { SnapshotDataTable } from '@/assets/app/data_tables.js';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 import NewSnapshotDialog from './dialogs/NewSnapshotDialog.vue';
@@ -61,12 +62,17 @@ export default {
         NewSnapshotDialog, SnapshotStatusResetDialog, DeleteComfirmDialog
     },
     data: () => ({
-        table: new SnapshotTable(),
+        table: new SnapshotDataTable(),
         showNewSnapshotDialog: false,
         showSnapshotResetStateDialog: false,
     }),
     methods: {
-
+        pageRefresh: function ({ page, itemsPerPage, sortBy }) {
+            this.table.pageUpdate(page, itemsPerPage, sortBy)
+        },
+        refresh() {
+            this.table.refreshPage()
+        }
     },
     created() {
         this.table.refresh();
