@@ -27,7 +27,8 @@
                 <v-card-actions class="py-1">
                     <v-tooltip location="top">
                         <template v-slot:activator="{ props }">
-                            <v-btn icon variant="text" v-bind="props" v-on:click="()=>{table.all_tenants = !table.all_tenants; refresh()}">
+                            <v-btn icon variant="text" v-bind="props" :disabled="!context || context.isAdmin()"
+                                v-on:click="() => { table.all_tenants = !table.all_tenants; refresh() }">
                                 <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
                             </v-btn>
                         </template>
@@ -144,6 +145,7 @@ export default {
         iSupportResourceAction: null,
         table: new VolumeDataTable(),
         totlaVolumes: [],
+        context: new Context(),
     }),
     methods: {
         deleteSelected: async function () {
@@ -164,7 +166,7 @@ export default {
         }
     },
     created() {
-        // this.table.refresh();
+        this.context = GetLocalContext()
     }
 };
 </script>

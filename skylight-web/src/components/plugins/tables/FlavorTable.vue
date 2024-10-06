@@ -9,21 +9,21 @@
       <v-card>
         <v-card-actions class="py-1">
           <v-checkbox hide-details color="info" v-model="table.isPublic" label="公共" density="compact"
-            class="my-1 mx-auto" @update:model-value="table.refresh()"></v-checkbox>
+            class="my-1 mx-auto" @update:model-value="table.refreshPage()"></v-checkbox>
         </v-card-actions>
       </v-card>
     </v-col>
     <v-col cols="1">
       <v-card>
         <v-card-actions class="py-1">
-          <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refresh()"></v-btn>
+          <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refreshPage()"></v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
     <v-col cols="3" v-if="!simple">
       <v-card>
         <v-card-actions class="py-1">
-          <NewFlavorDialog @completed="table.refresh()" />
+          <NewFlavorDialog @completed="table.refreshPage()" />
           <v-spacer></v-spacer>
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除规格?"
             @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
@@ -32,9 +32,9 @@
     </v-col>
     <v-col cols="10" v-if="simple">
       <!-- 简单的表格 -->
-      <v-data-table density='compact' :loading="table.loading" :headers="table.MiniHeaders"
-        :items="table.items" :items-per-page="5" :search="table.search" @click:row="selectFlavor" hover>
-  
+      <v-data-table density='compact' :loading="table.loading" :headers="table.MiniHeaders" :items="table.items"
+        :items-per-page="table.itemsPerPage" @click:row="selectFlavor" :search="table.search" hover hide-default-footer>
+
         <template v-slot:[`item.name`]="{ item }">
           <v-chip v-if="item.name == selectedFlavor.name" density="compact"
             :color="item.name == selectedFlavor.name ? 'info' : ''" prepend-icon="mdi-star">
@@ -44,30 +44,43 @@
         </template>
         <template v-slot:[`item.ram`]="{ item }">{{ Utils.humanRam(item.ram) }}</template>
       </v-data-table>
-
+      <v-toolbar density="compact">
+        <v-spacer></v-spacer>
+        每页个数：{{ table.itemsPerPage }}
+        <v-btn color="info" density="compact" @click="prePage" :disabled="table.markers.length < 1">上一页</v-btn>
+        <v-chip density="compact">{{ table.page }}</v-chip>
+        <v-btn color="info" density="compact" @click="nextPage"
+          :disabled="table.items.length < table.itemsPerPage">下一页</v-btn>
+      </v-toolbar>
     </v-col>
     <v-col v-else cols="12">
       <!-- 详细的表格 -->
-      <v-data-table density='compact' show-select :loading="table.loading"
-        :headers="table.headers" :items="table.items"
-        :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected" hover>
+      <v-data-table density='compact' show-select :loading="table.loading" :headers="table.headers" :items="table.items"
+        :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected" hover hide-default-footer>
 
-        <template v-slot:[`item.name`]="{ item }">{{ item.id }}</template>
         <template v-slot:[`item.ram`]="{ item }">{{ Utils.humanRam(item.ram) }}</template>
         <template v-slot:[`item.action`]="{ item }">
           <v-btn text="属性" color="warning" variant="text" class="my-auto" @click="openFlavorExtraDialog(item)"></v-btn>
         </template>
       </v-data-table>
+      <v-toolbar density="compact">
+        <v-spacer></v-spacer>
+        每页个数：{{ table.itemsPerPage }}
+        <v-btn color="info" density="compact" @click="prePage" :disabled="table.markers.length < 1">上一页</v-btn>
+        <v-chip density="compact">{{ table.page }}</v-chip>
+        <v-btn color="info" density="compact" @click="nextPage"
+          :disabled="table.items.length < table.itemsPerPage">下一页</v-btn>
+      </v-toolbar>
     </v-col>
     <FlavorExtraDialog :show="showFlavorExtraDialog" @update:show="(e) => showFlavorExtraDialog = e"
-      :flavor="selectedFlavor" @completed="table.refresh()" />
+      :flavor="selectedFlavor" @completed="table.refreshPage()" />
   </v-row>
 </template>
 
 <script>
 import { Utils } from '@/assets/app/lib.js';
 
-import { FlavorDataTable } from '@/assets/app/tables';
+import { FlavorDataTable } from '@/assets/app/data_tables';
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 
 import NewFlavorDialog from '@/components/dashboard/containers/compute/dialogs/NewFlavorDialog.vue';
@@ -101,10 +114,19 @@ export default {
     openFlavorExtraDialog(item) {
       this.selectedFlavor = item;
       this.showFlavorExtraDialog = !this.showFlavorExtraDialog;
-    }
+    },
+    prePage: function () {
+      this.table.prePage()
+    },
+    nextPage: function () {
+      this.table.nextPage()
+    },
   },
   created() {
-    this.table.refresh()
+    if (this.simple) {
+      this.table.itemsPerPage = 5
+    }
+    this.table.nextPage()
   }
 };
 </script>

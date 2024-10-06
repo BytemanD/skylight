@@ -136,16 +136,17 @@ class DataTable {
         } catch (e) {
             notify.error(`${this.name || '资源'} 查询失败`)
             console.error(e)
-            return;
+            throw e
         } finally {
             this.loading = false;
         }
-        let items = this.bodyKey ? result[this.bodyKey] : result;
-        this.items = items
+        this.items = this.bodyKey ? result[this.bodyKey] : result;
+        return result
     }
 }
+
 // openstack data table
-class OpenstackDataTableServer extends DataTable {
+class OpenstackPageTable extends DataTable {
     constructor(headers, api, bodyKey = null, name = '') {
         super(headers, api, bodyKey, name)
 
@@ -223,8 +224,110 @@ class OpenstackDataTableServer extends DataTable {
         this.refreshPage()
     }
 }
+class OpenstackLimitMarkerTable extends OpenstackPageTable {
+    constructor(headers, api, bodyKey = null, name = '') {
+        super(headers, api, bodyKey, name)
+        this.page = 0
+        this.markers = []
+        // 自定义查询参数
+        this.customQueryParams = []
+        this.selectedCustomQuery = this.customQueryParams[0];
+        this.customQueryValue = null
+    }
+    async refreshPage() {
+        let queryParams = this.getDefaultQueryParams()
+        // 添加分页查询参数
+        queryParams.limit = this.itemsPerPage
+        let marker = this.markers[this.markers.length - 1]
+        if (this.page > 1 && marker) {
+            queryParams.marker = marker
+        }
+        await this.refresh(queryParams)
+    }
+    getDefaultQueryParams() {
+        let queryParams = { deleted: false }
+        if (this.all_tenants) {
+            queryParams.all_tenants = 1
+        }
+        if (this.customQueryValue) {
+            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
+        }
+        return queryParams
+    }
+    async prePage() {
+        let queryParams = this.getDefaultQueryParams()
+        // 添加分页查询参数
+        queryParams.limit = this.itemsPerPage
+        let preMarker = this.markers[this.markers.length - 2]
+        if (this.page > 1 && preMarker) {
+            queryParams.marker = preMarker
+        }
+        await this.refresh(queryParams)
+        this.page -= 1
+        this.markers.pop()
+    }
+    async nextPage() {
+        let queryParams = this.getDefaultQueryParams()
+        // 添加分页查询参数
+        queryParams.limit = this.itemsPerPage
+        let lastItem = this.items[this.items.length - 1]
+        if (lastItem) {
+            queryParams.marker = lastItem.id
+        }
+        await this.refresh(queryParams)
+        this.page += 1
+        this.markers.push(lastItem.id)
+    }
+}
+export class FlavorDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([{ title: 'ID', key: 'id' },
+        { title: '名字', key: 'name' },
+        { title: 'vcpu', key: 'vcpus', align: 'end' },
+        { title: '内存', key: 'ram', align: 'end' },
+        { title: '磁盘', key: 'disk', align: 'end' },
+        { title: 'swap', key: 'swap', align: 'end' },
+        { title: 'ephemeral', key: 'OS-FLV-EXT-DATA:ephemeral' },
+        { title: '操作', key: 'action' },
+        ], API.flavor, 'flavors', '规格');
+        this.MiniHeaders = [
+            { title: '名字', key: 'name', minWidth: 300, },
+            { title: 'vcpu', key: 'vcpus', align: 'end' },
+            { title: '内存', key: 'ram', align: 'end' },
+        ]
+        this.extraSpecsMap = {};
+        this.isPublic = true;
+        this.customQueryParams = [
+            { title: i18n.global.t("name"), value: "name" },
+        ]
+        this.selectedCustomQuery = this.customQueryParams[0];
+    }
+    updateMarker(body) {
+        let links = body.flavors_links
+        console.log("xxxxxxx", links)
+        for (let i in links) {
+            let params = new URLSearchParams(links[i])
+            if (links[i].rel = 'next') {
+                this.nextMarker = params.get('marker')
+            } else if (links[i].rel = 'next') {
 
-export class VolumeDataTable extends OpenstackDataTableServer {
+            }
+        }
+    }
+    getDefaultQueryParams() {
+        let queryParams = {}
+        if (this.all_tenants) {
+            queryParams.all_tenants = 1
+        }
+        queryParams.is_public = this.isPublic
+        if (this.customQueryValue) {
+            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
+        }
+        return queryParams
+    }
+}
+
+export class VolumeDataTable extends OpenstackPageTable {
     constructor() {
         super([
             { title: 'ID', key: 'id', minWidth: 300 },
@@ -277,7 +380,7 @@ export class VolumeDataTable extends OpenstackDataTableServer {
     }
 
 }
-export class BackupDataTable extends OpenstackDataTableServer {
+export class BackupDataTable extends OpenstackPageTable {
     constructor() {
         super([{ title: '名字', key: 'name' },
         { title: '状态', key: 'status' },
@@ -332,7 +435,7 @@ export class BackupDataTable extends OpenstackDataTableServer {
         console.info(`TODO resetState ${backupId}`)
     }
 }
-export class SnapshotDataTable extends OpenstackDataTableServer {
+export class SnapshotDataTable extends OpenstackPageTable {
     constructor() {
         super([{ title: '名字', key: 'name' },
         { title: '状态', key: 'status' },
