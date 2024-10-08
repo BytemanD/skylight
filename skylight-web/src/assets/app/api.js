@@ -648,7 +648,7 @@ class Port extends Restfulclient {
     constructor() { super('/networking/ports') }
 }
 class SecurityGroup extends Restfulclient {
-    constructor() { super('/networking/security_groups') }
+    constructor() { super('/networking/security-groups') }
 }
 class SecurityGroupRule extends Restfulclient {
     constructor() { super('/networking/security_group_rules') }
