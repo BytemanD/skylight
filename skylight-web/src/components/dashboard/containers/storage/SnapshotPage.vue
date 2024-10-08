@@ -1,8 +1,8 @@
 <template>
     <v-row>
         <v-col sm="12" lg="6">
-            <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-                v-model="table.customQueryValue" @keyup.enter.native="refresh()">
+            <v-text-field label="查找..." single-line variant="solo" hide-details v-model="table.customQueryValue"
+                @keyup.enter.native="refresh()">
                 <template v-slot:prepend>
                     <v-menu>
                         <template v-slot:activator="{ props }">
