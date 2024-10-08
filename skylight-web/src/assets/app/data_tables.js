@@ -196,8 +196,10 @@ class OpenstackPageTable extends DataTable {
         this.totalItems = items
     }
     getMarker(page, itemsPerPage) {
-        let markerIndex = Math.min(itemsPerPage * (page - 1), this.totalItems.length)
+        let markerIndex = Math.min(itemsPerPage * (page - 1) -1, this.totalItems.length)
         markerIndex = Math.max(0, markerIndex)
+
+        console.log("markerIndex", markerIndex, this.totalItems.length)
         return this.totalItems[markerIndex].id
     }
     async refreshPage() {
@@ -304,7 +306,6 @@ export class FlavorDataTable extends OpenstackLimitMarkerTable {
     }
     updateMarker(body) {
         let links = body.flavors_links
-        console.log("xxxxxxx", links)
         for (let i in links) {
             let params = new URLSearchParams(links[i])
             if (links[i].rel = 'next') {
@@ -396,6 +397,11 @@ export class BackupDataTable extends OpenstackPageTable {
             { title: 'availability_zone', key: 'availability_zone' },
             { title: 'description', key: 'description' },
         ];
+        this.customQueryParams = [
+            { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("status"), value: "status" },
+        ]
+        this.selectedCustomQuery = this.customQueryParams[0];
     }
     async waitBackupCreated(backupId) {
         let backup = {};
@@ -403,7 +409,7 @@ export class BackupDataTable extends OpenstackPageTable {
         let oldStatus = ''
         while (expectStatus.indexOf(backup.status) < 0) {
             backup = (await API.backup.get(backupId)).backup;
-            LOG.debug(`wait backup ${backupId} status to be ${expectStatus}, now: ${backup.status}`)
+            console.debug(`wait backup ${backupId} status to be ${expectStatus}, now: ${backup.status}`)
             if (backup.status != oldStatus) {
                 this.refresh();
             }
@@ -418,7 +424,7 @@ export class BackupDataTable extends OpenstackPageTable {
         let backup = {};
         while (backup.status != status) {
             try {
-                LOG.debug(`wait backup ${backupId} status to be ${status}`)
+                console.debug(`wait backup ${backupId} status to be ${status}`)
                 backup = (await API.backup.get(backupId)).backup;
                 if (backup.status != status) {
                     await Utils.sleep(3);
@@ -447,6 +453,11 @@ export class SnapshotDataTable extends OpenstackPageTable {
             { title: 'created_at', key: 'created_at' },
             { title: 'updated_at', key: 'updated_at' },
         ]
+        this.customQueryParams = [
+            { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("status"), value: "status" },
+        ]
+        this.selectedCustomQuery = this.customQueryParams[0];
     }
     async waitSnapshotCreated(snapshot_id) {
         let snapshot = {};
@@ -454,7 +465,7 @@ export class SnapshotDataTable extends OpenstackPageTable {
         let oldStatus = ''
         while (expectStatus.indexOf(snapshot.status) < 0) {
             snapshot = (await API.snapshot.get(snapshot_id)).snapshot;
-            LOG.debug(`wait snapshot ${snapshot_id} status to be ${expectStatus}, now: ${snapshot.status}`)
+            console.debug(`wait snapshot ${snapshot_id} status to be ${expectStatus}, now: ${snapshot.status}`)
             if (snapshot.status != oldStatus) {
                 this.refresh();
             }

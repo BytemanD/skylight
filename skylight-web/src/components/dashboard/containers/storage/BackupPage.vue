@@ -2,7 +2,24 @@
     <v-row>
         <v-col sm="12" lg="6">
             <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-                v-model="table.search">
+                v-model="table.customQueryValue" @keyup.enter.native="refresh()">
+                <template v-slot:prepend>
+                    <v-menu>
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" color="grey" icon="mdi-filter-menu"></v-btn>
+                        </template>
+                        <v-list density="compact">
+                            <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
+                                :class="table.selectedCustomQuery.value == item.value ? 'bg-info' : ''"
+                                @click="table.selectedCustomQuery = item">
+                                <v-list-item-title>{{ item.title }}</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                </template>
+                <template v-slot:prepend-inner>
+                    <v-chip size="small">{{ table.selectedCustomQuery && table.selectedCustomQuery.title }}</v-chip>
+                </template>
             </v-text-field>
         </v-col>
         <v-col cols="1">

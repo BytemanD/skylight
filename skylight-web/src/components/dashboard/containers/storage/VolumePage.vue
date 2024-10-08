@@ -27,7 +27,7 @@
                 <v-card-actions class="py-1">
                     <v-tooltip location="top">
                         <template v-slot:activator="{ props }">
-                            <v-btn icon variant="text" v-bind="props" :disabled="!context || context.isAdmin()"
+                            <v-btn icon variant="text" v-bind="props" :disabled="!context || !context.isAdmin()"
                                 v-on:click="() => { table.all_tenants = !table.all_tenants; refresh() }">
                                 <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
                             </v-btn>
@@ -119,9 +119,9 @@
 </template>
 
 <script>
-import API from '@/assets/app/api';
 import { VolumeDataTable } from '@/assets/app/data_tables.js';
 import { Utils } from '@/assets/app/lib.js';
+import { Context, GetLocalContext } from '@/assets/app/context';
 
 import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialog.vue';
 import NewVolumeDialog from './dialogs/NewVolume.vue';
