@@ -1,8 +1,9 @@
 <template>
   <v-row>
     <v-col sm="12" lg="5">
-      <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-        v-model="table.search">
+      <v-text-field :label="'查询镜像' + (table.supportFuzzyNameSearch ? '(模糊查询)': '' )+ '...'" 
+      single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+        v-model="table.search" @keyup.enter.native="search()">
       </v-text-field>
     </v-col>
     <v-col lg="3">
@@ -38,7 +39,8 @@
     <v-col cols="10" v-if="simple">
       <!-- 简单的表格 -->
       <v-data-table density='compact' :loading="table.loading" :headers="table.MiniHeaders" :items="table.items"
-        :items-per-page="5" :search="table.search" @click:row="selectImage" hover hide-default-footer>
+        :items-per-page="5" :search="table.search" @click:row="selectImage" @keyup.enter.native="search()"
+        hover hide-default-footer>
 
         <template v-slot:[`item.id`]="{ item }">
           <v-chip v-if="item.id == selectedImage.id" density="compact"
@@ -61,7 +63,7 @@
       <!-- 详细数据表 -->
       <v-data-table density='compact' show-select show-expand :loading="table.loading" :headers="table.headers"
         :items="table.items" :items-length="table.items.length" :items-per-page="table.itemsPerPage"
-        :search="table.search" v-model="table.selected" hover hide-default-footer>
+        v-model="table.selected" hover hide-default-footer>
 
         <template v-slot:[`item.status`]="{ item }">
           <v-icon v-if="item.status == 'active'" color="success">mdi-emoticon-happy</v-icon>
@@ -129,6 +131,7 @@ import DeleteComfirmDialog from '@/components/plugins/dialogs/DeleteComfirmDialo
 import ImageDeleteSmartDialog from '@/components/dashboard/containers/image/dialogs/ImageDeleteSmartDialog.vue';
 import ImagePropertiesDialog from '@/components/dashboard/containers/image/dialogs/ImagePropertiesDialog.vue';
 import TasksDialog from '@/components/dashboard/containers/image/dialogs/TasksDialog.vue';
+import notify from '@/assets/app/notify';
 
 export default {
   components: {
@@ -169,6 +172,13 @@ export default {
     nextPage: function () {
       this.table.nextPage()
     },
+    search(){
+      if (!this.table.search) {
+        this.table.refresh(true)
+        return
+      }
+      this.table.searchByName()
+    }
   },
   created() {
     if (this.simple) {

@@ -141,6 +141,7 @@ export class AppSettings {
                 imageUploadBlockSize: new NumberSetting(8, { 'choises': [1, 2, 3, 4, 5, 6, 7, 8] }),
                 bootWithVolume: new BooleanSetting(true),
                 // supportResourceAction: new BooleanSetting(false),
+                supportFuzzyNameSearch: new BooleanSetting(false),
             }
         )
     }

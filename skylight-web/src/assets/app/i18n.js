@@ -50,7 +50,7 @@ const MESSAGES = {
         new: 'new',
         workload: 'Workload',
         serverTopology: 'Server Topology',
-        // 配置项解释
+        // 配置项说明
         uiSettings: 'UI Settings',
         openstackSettings: 'OpenStack Settings',
         defaultRegion: 'Default regoin',
@@ -60,6 +60,7 @@ const MESSAGES = {
         resourceWarningPercent: 'Resource warning percent',
         bootWithVolume: 'Boot with volume',
         supportResourceAction: 'Cinder support query resource actions',
+        supportFuzzyNameSearch: 'Support Search image by fuzzy name',
         // 实例任务状态
         'scheduling': 'scheduling',
         'block_device_mapping': 'block device mapping',
@@ -188,6 +189,7 @@ const MESSAGES = {
         resourceWarningPercent: '资源警告阈值(%)',
         bootWithVolume: '使用云盘创建实例',
         supportResourceAction: 'Cinder支持查询资源操作记录',
+        supportFuzzyNameSearch: '支持镜像名模糊查询',
         // 实例任务状态
         'scheduling': '调度中',
         'block_device_mapping': '创建系统盘',

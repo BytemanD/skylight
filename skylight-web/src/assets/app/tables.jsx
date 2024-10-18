@@ -6,6 +6,7 @@ import API from './api.js'
 import { LOG, ServerTasks, Utils } from './lib.js'
 import Notify from '@/assets/app/notify'
 import notify from '@/assets/app/notify';
+import SETTINGS from './settings.js';
 // const {appContitle: {config: globalProperties}} = getCurrentInstance()
 
 // const vue = globalProperties;
@@ -1452,14 +1453,35 @@ export class ImageDataTable extends DataTable {
         ]
         this.hasNext = false;
         this.markers = []
+        this.supportFuzzyNameSearch = SETTINGS.openstack.getItem('supportFuzzyNameSearch').value
     }
     async refresh(fistPage=false) {
         if (fistPage) {
             this.markers = []
         }
         this.loading = true;
+        let queryParams = this.getQueryParams()
         try {
-            let data = (await this.api.list(this.getQueryParams()))
+            let data = (await this.api.list(queryParams))
+            this.items = data.images
+            this.hasNext = data.next ? true : false
+        } catch (e) {
+            notify.error("查询失败")
+        } finally {
+            this.loading = false;
+        }
+    }
+    async searchByName() {
+        this.markers = []
+        let queryParams = this.getQueryParams()
+        if (this.supportFuzzyNameSearch) {
+            queryParams['fuzzy_name'] = encodeURIComponent(`${this.search}%`)
+        } else {
+            queryParams['name'] = encodeURIComponent(`${this.search}`)
+        }
+        this.loading = true;
+        try {
+            let data = (await this.api.list(queryParams))
             this.items = data.images
             this.hasNext = data.next ? true : false
         } catch (e) {
@@ -1491,8 +1513,6 @@ export class ImageDataTable extends DataTable {
         if (this.items.length > 0) {
             // queryParams.marker = this.items[this.items.length -1].id
             this.markers.push(this.items[this.items.length -1].id)
-        } else {
-            this.markers.push(null)
         }
         this.refresh()
     }

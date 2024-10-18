@@ -11,8 +11,8 @@ import SETTINGS from './settings';
         this.infoTimtout = 1000 * 3;
         this.successTimtout = 1000 * 3;
     }
-    success(msg){
-        this.driver.success(msg, {timeout: this.successTimtout})
+    success(msg, timeout=null){
+        this.driver.success(msg, {timeout: timeout || this.successTimtout})
     }
     info(msg){
         this.driver.info(msg, {timeout: this.infoTimtout})

@@ -55,6 +55,7 @@
 
 <script>
 import I18N from '@/assets/app/i18n';
+import notify from '@/assets/app/notify';
 import SETTINGS from '@/assets/app/settings';
 
 export default {
@@ -75,19 +76,13 @@ export default {
     methods: {
         save: function () {
             this.SETTINGS.save()
-            this.alert = { message: '配置保存成功', type: 'success' }
-            let self = this;
-            setTimeout(() => {
-                self.alert.message = "";
-            }, 2000)
+            notify.success('保存成功', 1000)
+            this.display = false;
         },
         reset: function () {
             this.SETTINGS.reset()
-            this.alert = { message: '配置重置成功', type: 'success' }
-            let self = this;
-            setTimeout(() => {
-                self.alert.message = "";
-            }, 2000)
+            notify.success('重置成功', 1000)
+            this.display = false;
         }
     },
     created() {
