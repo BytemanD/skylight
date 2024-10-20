@@ -24,6 +24,7 @@
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword">
         </v-text-field>
+        <v-switch color="warning" hide-details v-model="remenber" label="记住密码"></v-switch>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -37,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance } from 'vue';
+import { ref, getCurrentInstance, watch } from 'vue';
 
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
@@ -53,11 +54,14 @@ const { proxy } = getCurrentInstance()
 const clusters = ref([])
 const regions = ref([])
 const showRegions = ref(false);
+const remenber = ref(false)
 
-function saveSessionCluster(){
+var loginInfo = {}
+
+function saveSessionCluster() {
   sessionStorage.setItem("cluster", auth.value.cluster)
 }
-function pickSessionCluster(){
+function pickSessionCluster() {
   return sessionStorage.getItem("cluster")
 }
 async function refreshClusters() {
@@ -99,8 +103,8 @@ async function login() {
     let resp = await API.system.login(
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
-      notify.success('登录成功')
-      regions.value = resp.regions
+    notify.success('登录成功')
+    regions.value = resp.regions
   } catch (e) {
     notify.error('登录失败')
     return
@@ -112,6 +116,11 @@ async function login() {
     await API.system.changeRegion(regions.value[0])
     let auth = (await API.system.isLogin()).auth
     saveContext(auth)
+    if (remenber.value) {
+      saveLoginInfo()
+    } else {
+      cleanLoginInfo()
+    }
     proxy.$router.push('/dashboard')
   } else if (regions.value.length > 1) {
     showRegions.value = true;
@@ -124,12 +133,65 @@ async function selectedRegion(region) {
   await API.system.changeRegion(region)
   let auth = (await API.system.isLogin()).auth
   saveContext(auth)
+  if (remenber.value) {
+    saveLoginInfo()
+  } else {
+    cleanLoginInfo()
+  }
   proxy.$router.push('/dashboard')
 }
 async function cancleRegion() {
   showRegions.value = false
   await API.system.logout()
 }
+
+function loadLoginInfo() {
+  let loginInfoString = localStorage.getItem("loginInfo")
+  if (!loginInfoString) {
+    loginInfo = {}
+    return
+  }
+  loginInfo = JSON.parse(loginInfoString)
+}
+function saveLoginInfo() {
+  loginInfo[auth.value.cluster] = {
+    project: auth.value.project,
+    username: auth.value.username,
+    password: auth.value.password
+  }
+  localStorage.setItem('loginInfo', JSON.stringify(loginInfo))
+}
+function cleanLoginInfo() {
+  console.log(111111111111)
+  let info = loginInfo[auth.value.cluster]
+  if (info) {
+    delete loginInfo[auth.value.cluster]
+    localStorage.setItem('loginInfo', JSON.stringify(loginInfo))
+  }
+}
+function inputLoginInfo() {
+  let info = loginInfo[auth.value.cluster]
+  if (info) {
+    remenber.value = true
+    auth.value.project = info.project
+    auth.value.username = info.username
+    auth.value.password = info.password
+  } else {
+    remenber.value = false
+    auth.value.project = null
+    auth.value.username = null
+    auth.value.password = null
+  }
+}
+
+watch(
+  () => auth.value.cluster,
+  (newValue, oldValue) => {
+    inputLoginInfo()
+  }
+)
+
+loadLoginInfo()
 refreshClusters()
 
 </script>
