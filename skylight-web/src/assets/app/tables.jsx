@@ -626,7 +626,7 @@ export class ServerDataTable extends DataTable {
                 serverTasks.delete(serverId)
                 continue;
             }
-            console.log('waitServerStatus ' + serverId)
+            console.log('waitServerStatus', serverId)
             this.waitServerStatus(serverId).then(() => {
                 serverTasks.delete(serverId);
             });
@@ -728,7 +728,6 @@ export class ServerDataTable extends DataTable {
             let serverId = this.selected[i]
             let item = (await API.server.show(serverId))
             if (item.status.toUpperCase() != 'SHUTOFF') {
-                console.log(item.name, item.status)
                 statusMap.notShutoff.push(item);
                 continue;
             }
@@ -985,7 +984,6 @@ export class UsageTable extends DataTable {
         this.end = ''
     }
     refresh() {
-        // console.log(this.start, this.end)
         let params = { detailed: 1 };
         if (this.start != this.end) {
             if (this.start) {
@@ -1353,7 +1351,6 @@ export class AZDataTable extends DataTable {
         var chartDom = null;
         do {
             chartDom = document.getElementById(eleId);
-            console.log(chartDom)
             if (!chartDom) {
                 Utils.sleep(0.1)
             }

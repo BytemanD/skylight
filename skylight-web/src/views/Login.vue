@@ -162,7 +162,6 @@ function saveLoginInfo() {
   localStorage.setItem('loginInfo', JSON.stringify(loginInfo))
 }
 function cleanLoginInfo() {
-  console.log(111111111111)
   let info = loginInfo[auth.value.cluster]
   if (info) {
     delete loginInfo[auth.value.cluster]

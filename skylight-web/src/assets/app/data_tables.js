@@ -200,7 +200,6 @@ class OpenstackPageTable extends DataTable {
         let markerIndex = Math.min(itemsPerPage * (page - 1) - 1, this.totalItems.length)
         markerIndex = Math.max(0, markerIndex)
 
-        console.log("markerIndex", markerIndex, this.totalItems.length)
         return this.totalItems[markerIndex].id
     }
     async refreshPage() {
@@ -210,7 +209,6 @@ class OpenstackPageTable extends DataTable {
         if (this.page > 1) {
             queryParams.marker = this.getMarker(this.page, this.itemsPerPage)
         }
-        console.log("queryParams", queryParams)
         await this.refresh(queryParams)
         this.refreshTotal()
     }
@@ -248,6 +246,7 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
             queryParams.marker = marker
         }
         await this.refresh(queryParams)
+        this.hasNext = this.items.length >= this.limit
     }
     getDefaultQueryParams() {
         let queryParams = { deleted: false, limit: this.limit }
@@ -268,7 +267,7 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
             queryParams.marker = marker
         }
         await this.refresh(queryParams)
-        this.hasNext = this.items.length >= console.log
+        this.hasNext = this.items.length >= this.limit
     }
     async nextPage() {
         let queryParams = this.getDefaultQueryParams()
@@ -495,7 +494,9 @@ export class ImageDataTable extends OpenstackLimitMarkerTable {
     }
     getDefaultQueryParams(){
         let queryParams = super.getDefaultQueryParams()
-        queryParams.visibility = this.visibility
+        if (this.visibility) {
+            queryParams.visibility = this.visibility
+        }
         if (this.searchName) {
             if (this.supportFuzzyNameSearch) {
                 queryParams.fuzzy_name = encodeURIComponent(`${this.searchName}%`)
@@ -538,7 +539,7 @@ export class ImageDataTable extends OpenstackLimitMarkerTable {
         while (true) {
             let image = (await this.api.show(imageId))
             this.updateItem(image)
-            console.log(image.status)
+            console.log('image status', image.status)
             if (image.status == 'error') {
                 break
             }

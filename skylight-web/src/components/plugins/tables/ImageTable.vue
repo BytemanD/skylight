@@ -7,7 +7,7 @@
     </v-col>
     <v-col lg="2" md="3" class="px-1 py-auto">
       <v-card-actions class="py-auto">
-        <v-btn-toggle variant="outlined" color="info" @click="table.refreshPage()" v-model="table.visibility"
+        <v-btn-toggle variant="outlined" color="info" @click="changeVisibility()" v-model="table.visibility"
           class="mx-auto">
           <v-btn value="public">{{ $t('public') }}</v-btn>
           <v-btn value="shared">{{ $t('shared') }}</v-btn>
@@ -33,9 +33,7 @@
       </v-text-field>
     </v-col>
     <v-col class="px-1">
-
-        <v-card-actions>
-
+      <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
           icon="mdi-chevron-double-left"></v-btn>
@@ -149,10 +147,6 @@ export default {
       this.selectedImage = data.item;
       this.$emit("select-image", data.item);
     },
-    rowFocuse: function (event, data) {
-      console.log(event, data)
-
-    },
     openImagePropertiesDialog(image) {
       this.selectedImage = image;
       this.showImagePropertiesDialog = !this.showImagePropertiesDialog;
@@ -169,6 +163,11 @@ export default {
     search() {
       this.table.page = 1
       this.table.refreshPage()
+    },
+    changeVisibility() {
+      this.table.page = 1
+      this.table.markers = [],
+        this.table.refreshPage()
     }
   },
   created() {

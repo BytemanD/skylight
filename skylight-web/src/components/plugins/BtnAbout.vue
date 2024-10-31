@@ -27,11 +27,9 @@ var version = ref({})
 
 async function refresh(){
     version.value = await API.version.get();
-    console.log(version)
 }
 
 watch(() => display.value, (newValue, oldValue) => {
-    console.log(newValue, oldValue)
     if (newValue) {
         refresh()
     }

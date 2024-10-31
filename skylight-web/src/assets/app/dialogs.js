@@ -1531,10 +1531,6 @@ export class ResourceActionsDialog extends Dialog {
             return false;
         }
     }
-    async getserverAction(reqId) {
-        let action = (await API.server.actionShow(this.server.id, reqId));
-        console.log(action.events);
-    }
 }
 export class ResourceActionEventsDialog extends Dialog {
     constructor() {
@@ -2228,9 +2224,6 @@ export class ServerActionsDialog extends Dialog {
         else {
             return false;
         }
-    }
-    async getserverAction(reqId) {
-        let action = (await API.server.actionShow(this.server.id, reqId));
     }
 }
 export class ServerActionEventsDialog extends Dialog {

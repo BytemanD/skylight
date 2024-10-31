@@ -290,7 +290,7 @@ export default {
             break
           case "info":
             let data = JSON.parse(msg.data)
-            console.log("update", data)
+            console.log("update server", data)
             self.table.updateItem(data.server)
             break
         }

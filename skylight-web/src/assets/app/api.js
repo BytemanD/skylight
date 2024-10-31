@@ -6,7 +6,7 @@ import { LOG, Utils, MESSAGE } from "./lib.js";
 async function waitDeletedByList(api, bodyKey, item){
     let items = [];
     do {
-        console.debug(new Date().toLocaleString(), `wait ${item.name || item.id} to be deleted`);
+        console.debug(`wait ${item.name || item.id} to be deleted`);
         items = (await api.list({ id: item.id }))[bodyKey];
         if (items.length != 0) {
             await Utils.sleep(5);
@@ -18,7 +18,7 @@ async function waitDeletedByGet(api, bodyKey, item) {
     let deleted = false;
     do{
         try {
-            console.debug(new Date().toLocaleString(), `wait ${item.name || item.id} to be deleted`);
+            console.debug(`wait ${item.name || item.id} to be deleted`);
             itemBody = (await api.get(item.id))[bodyKey];
             await Utils.sleep(3);
         } catch (error) {

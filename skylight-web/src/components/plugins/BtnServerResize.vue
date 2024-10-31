@@ -78,7 +78,6 @@ async function resize() {
     try {
         await API.server.resize(server.id, selectedFlavor.value.id)
     } catch (error) {
-        // console.log('xxxx', error.response.data)
         notify.error(`变更失败: {error}`);
         return
     }

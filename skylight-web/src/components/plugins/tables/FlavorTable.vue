@@ -100,10 +100,6 @@ export default {
       this.selectedFlavor = data.item;
       this.$emit("select-flavor", data.item);
     },
-    itemSelected: function (a, item, value) {
-      console.log(item, value)
-
-    },
     openFlavorExtraDialog(item) {
       this.selectedFlavor = item;
       this.showFlavorExtraDialog = !this.showFlavorExtraDialog;
