@@ -27,8 +27,9 @@
                                     {{ server.status }}</v-chip>
                                 <v-chip density="compact" v-else-if="server.status == 'ERROR'" color="red">
                                     {{ $t(server.status) }}</v-chip>
-                                <v-chip density="compact" color="warning" v-else>{{ server.status && $t(server.status)
-                                    }}</v-chip>
+                                <v-chip density="compact" color="warning" v-else>
+                                    {{ server.status && $t(server.status) }}</v-chip>
+                                <ServerFaultCard v-if="server.fault" :server-fault="server.fault"></ServerFaultCard>
                             </td>
                         </tr>
                         <tr>
@@ -64,9 +65,6 @@
                             </td>
                         </tr>
                     </table>
-                    <template v-if="server['OS-EXT-STS:task_state']">
-
-                    </template>
                 </v-col>
             </v-row>
         </v-card-text>
@@ -75,8 +73,8 @@
 
 <script setup>
 
-import { Utils } from '@/assets/app/lib.js';
 import BtnServerRename from '@/components/plugins/BtnServerRename.vue';
+import ServerFaultCard from '@/components/plugins/ServerFaultCard.vue';
 
 const progs = defineProps({
     server: { type: Object, required: true, },
