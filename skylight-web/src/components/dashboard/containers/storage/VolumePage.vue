@@ -1,6 +1,6 @@
 <template>
     <v-row>
-        <v-col sm="12" lg="6">
+        <v-col sm="6" lg="4" class="px-1">
             <v-text-field label="查找..." single-line variant="solo" hide-details v-model="table.customQueryValue"
                 @keyup.enter.native="refresh()">
                 <template v-slot:prepend>
@@ -22,7 +22,7 @@
                 </template>
             </v-text-field>
         </v-col>
-        <v-col cols="2">
+        <v-col sm="6" cols="3" lg="4" md="6" class="px-1">
             <v-card>
                 <v-card-actions class="py-1">
                     <v-tooltip location="top">
@@ -35,12 +35,6 @@
                         查询全部租户
                     </v-tooltip>
                     <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-col>
-        <v-col cols="3">
-            <v-card>
-                <v-card-actions class="py-1">
                     <new-volume-dialog @create="(item) => { table.addItem(item) }" />
                     <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
                     </VolumeExtendVue>
@@ -51,11 +45,26 @@
                 </v-card-actions>
             </v-card>
         </v-col>
-        <v-col>
-            <v-data-table-server show-expand single-expand show-select hover density='compact' :loading="table.loading"
+        <v-col sm="6" lg="2" class="px-1">
+            <v-text-field label="过滤..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+                v-model="table.search">
+            </v-text-field>
+        </v-col>
+        <v-col class="px-1">
+            <v-toolbar density="compact">
+                <v-spacer></v-spacer>
+                <v-btn color="info"  @click="() => table.prePage()"
+                    :disabled="table.page <= 1" icon="mdi-chevron-double-left"></v-btn>
+                <v-chip density="compact">{{ table.page }}</v-chip>
+                <v-btn color="info"  @click="() => table.nextPage()"
+                    :disabled="!table.hasNext" icon="mdi-chevron-double-right"></v-btn>
+                <v-spacer></v-spacer>
+            </v-toolbar>
+        </v-col>
+        <v-col cols='12'>
+            <v-data-table show-expand single-expand show-select density='compact' :loading="table.loading"
                 :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
-                :search="table.search" v-model="table.selected" :items-length="table.totalItems.length"
-                @update:options="pageRefresh">
+                :search="table.search" v-model="table.selected" hover>
 
                 <template v-slot:[`item.status`]="{ item }">
                     <span>
@@ -109,7 +118,7 @@
                         </v-table>
                     </td>
                 </template>
-            </v-data-table-server>
+            </v-data-table>
         </v-col>
         <v-col cols="12">
             <ResourceActionsDialog :show.sync="showResourceActionsDialog" :resource="selectedVolume">
@@ -167,6 +176,7 @@ export default {
     },
     created() {
         this.context = GetLocalContext()
+        this.table.nextPage()
     }
 };
 </script>

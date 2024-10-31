@@ -3,6 +3,7 @@ import notify from '@/assets/app/notify';
 import i18n from '@/assets/app/i18n.js'
 import API from '@/assets/app/api.js'
 import { Utils } from '@/assets/app/lib.js'
+import SETTINGS from './settings.js';
 
 
 class DataTable {
@@ -196,7 +197,7 @@ class OpenstackPageTable extends DataTable {
         this.totalItems = items
     }
     getMarker(page, itemsPerPage) {
-        let markerIndex = Math.min(itemsPerPage * (page - 1) -1, this.totalItems.length)
+        let markerIndex = Math.min(itemsPerPage * (page - 1) - 1, this.totalItems.length)
         markerIndex = Math.max(0, markerIndex)
 
         console.log("markerIndex", markerIndex, this.totalItems.length)
@@ -235,19 +236,21 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
         this.customQueryParams = []
         this.selectedCustomQuery = this.customQueryParams[0];
         this.customQueryValue = null
+        this.limit = 50
+        this.hasPre = false
+        this.hasNext = false
     }
     async refreshPage() {
         let queryParams = this.getDefaultQueryParams()
         // 添加分页查询参数
-        queryParams.limit = this.itemsPerPage
-        let marker = this.markers[this.markers.length - 1]
+        let marker = this.markers[this.page]
         if (this.page > 1 && marker) {
             queryParams.marker = marker
         }
         await this.refresh(queryParams)
     }
     getDefaultQueryParams() {
-        let queryParams = { deleted: false }
+        let queryParams = { deleted: false, limit: this.limit }
         if (this.all_tenants) {
             queryParams.all_tenants = 1
         }
@@ -259,26 +262,27 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
     async prePage() {
         let queryParams = this.getDefaultQueryParams()
         // 添加分页查询参数
-        queryParams.limit = this.itemsPerPage
-        let preMarker = this.markers[this.markers.length - 2]
-        if (this.page > 1 && preMarker) {
-            queryParams.marker = preMarker
+        this.page -= 1
+        let marker = this.markers[this.page]
+        if (marker) {
+            queryParams.marker = marker
         }
         await this.refresh(queryParams)
-        this.page -= 1
-        this.markers.pop()
+        this.hasNext = this.items.length >= this.limit
     }
     async nextPage() {
         let queryParams = this.getDefaultQueryParams()
-        // 添加分页查询参数
-        queryParams.limit = this.itemsPerPage
-        let lastItem = this.items[this.items.length - 1]
-        if (lastItem) {
-            queryParams.marker = lastItem.id
+        this.page += 1
+        let marker = null
+        if (this.items.length > 0) {
+            marker = this.items[this.items.length - 1].id
+        }
+        this.markers[this.page] = marker
+        if (marker) {
+            queryParams.marker = marker
         }
         await this.refresh(queryParams)
-        this.page += 1
-        this.markers.push(lastItem.id)
+        this.hasNext = this.items.length >= this.limit
     }
 }
 export class FlavorDataTable extends OpenstackLimitMarkerTable {
@@ -304,31 +308,9 @@ export class FlavorDataTable extends OpenstackLimitMarkerTable {
         ]
         this.selectedCustomQuery = this.customQueryParams[0];
     }
-    updateMarker(body) {
-        let links = body.flavors_links
-        for (let i in links) {
-            let params = new URLSearchParams(links[i])
-            if (links[i].rel = 'next') {
-                this.nextMarker = params.get('marker')
-            } else if (links[i].rel = 'next') {
-
-            }
-        }
-    }
-    getDefaultQueryParams() {
-        let queryParams = {}
-        if (this.all_tenants) {
-            queryParams.all_tenants = 1
-        }
-        queryParams.is_public = this.isPublic
-        if (this.customQueryValue) {
-            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
-        }
-        return queryParams
-    }
 }
 
-export class VolumeDataTable extends OpenstackPageTable {
+export class VolumeDataTable extends OpenstackLimitMarkerTable {
     constructor() {
         super([
             { title: 'ID', key: 'id', minWidth: 300 },
@@ -475,5 +457,95 @@ export class SnapshotDataTable extends OpenstackPageTable {
             }
         }
         return snapshot
+    }
+}
+export class ImageDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([
+            { title: 'ID', key: 'id', minWidth: 300 },
+            { title: '名字', key: 'name', maxWidth: 320 },
+            { title: '发行版', key: 'os_distro' },
+            { title: '架构', key: 'architecture' },
+            { title: '状态', key: 'status' },
+            { title: '大小', key: 'size', align: 'end' },
+            { title: '可见性', key: 'visibility' },
+            { title: '操作', key: 'actions', align: 'center' },
+        ], API.image, 'images')
+        this.extendItems = [
+            { title: 'checksum', key: 'checksum' },
+            { title: 'progress_info', key: 'progress_info' },
+            { title: 'protected', key: 'protected' },
+            { title: 'os_version', key: 'os_version' },
+            { title: 'direct_url', key: 'direct_url' },
+            { title: 'container_format', key: 'container_format' },
+            { title: 'disk_format', key: 'disk_format' },
+            { title: 'created_at', key: 'created_at' },
+        ]
+        this.KB = 1024;
+        this.MB = this.KB * 1024;
+        this.GB = this.MB * 1024;
+        this.visibility = 'public';
+        this.MiniHeaders = [
+            { title: 'ID', key: 'id', maxWidth: 300 },
+            { title: '名字', key: 'name' },
+            { title: '大小', key: 'size', align: 'end' },
+        ]
+        this.searchName = null
+        this.supportFuzzyNameSearch = SETTINGS.openstack.getItem('supportFuzzyNameSearch').value
+    }
+    getDefaultQueryParams(){
+        let queryParams = super.getDefaultQueryParams()
+        queryParams.visibility = this.visibility
+        if (this.searchName) {
+            if (this.supportFuzzyNameSearch) {
+                queryParams.fuzzy_name = encodeURIComponent(`${this.searchName}%`)
+            } else {
+                queryParams.name = encodeURIComponent(`${this.searchName}`)
+            }
+        }
+        return queryParams
+    }
+    async searchByName() {
+        this.markers = []
+        let queryParams = super.getDefaultQueryParams()
+        this.loading = true;
+        try {
+            let data = (await this.api.list(queryParams))
+            this.items = data.images
+            this.hasNext = data.next ? true : false
+        } catch (e) {
+            notify.error("查询失败")
+        } finally {
+            this.loading = false;
+        }
+    }
+
+    humanSize(image) {
+        if (!image.size) {
+            return '';
+        }
+        else if (image.size >= this.GB) {
+            return `${(image.size / this.GB).toFixed(2)} GB`;
+        } else if (image.size >= this.MB) {
+            return `${(image.size / this.MB).toFixed(2)} MB`;
+        } else if (image.size >= this.KB) {
+            return `${(image.size / this.KB).toFixed(2)} KB`;
+        } else {
+            return `${image.size} B`
+        }
+    }
+    async waitImageUploaed(imageId) {
+        while (true) {
+            let image = (await this.api.show(imageId))
+            this.updateItem(image)
+            console.log(image.status)
+            if (image.status == 'error') {
+                break
+            }
+            if (image.status != "saving" && image.progress_info == 1) {
+                break
+            }
+            await Utils.sleep(5)
+        }
     }
 }

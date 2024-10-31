@@ -16,7 +16,7 @@ import {
 } from './data_tables.js';
 
 import {
-    imageTable,
+    // imageTable,
     snapshotTable,
     qosPolicyTable, portTable, sgTable,
 } from './objects.js'
@@ -2374,8 +2374,6 @@ export class ImageDeleteSmartDialog extends Dialog {
             let resetSuccess = (await this.resetBackupState(backupId))
             if (resetSuccess) {
                 await API.image.delete(image.id);
-                await imageTable.waitDeleted(image.id);
-                imageTable.refresh();
             } else {
                 notify.error(`删除镜像 ${image.id} 失败 `)
             }
@@ -2401,17 +2399,14 @@ export class ImageDeleteSmartDialog extends Dialog {
             let image = (await API.image.show(imageId));
             if (!image.image_type) {
                 await API.image.delete(imageId);
-                // await imageTable.waitDeleted(imageId);
                 continue;
             }
             if (image.image_type == 'instance_backup') {
                 await this.deleteInstanceBackup(imageId);
-                // await imageTable.waitDeleted(imageId);
                 continue;
             }
             if (image.image_type == 'snapshot') {
                 await this.deleteSnapshot(image);
-                // await imageTable.waitDeleted(image.id);
                 continue;
             }
             notify.warning(`image type ${image.image_type} is unkown.`)
@@ -2461,7 +2456,7 @@ export class ImagePropertiesDialog extends Dialog {
             await API.image.addProperties(this.image.id, properties);
             notify.success(`属性 ${key} 添加成功`);
             this.properties[key] = properties[key]
-        } catch(e) {
+        } catch (e) {
             notify.error(`属性 ${key} 添加失败`);
             throw e
         }
