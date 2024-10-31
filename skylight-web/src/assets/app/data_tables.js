@@ -236,7 +236,7 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
         this.customQueryParams = []
         this.selectedCustomQuery = this.customQueryParams[0];
         this.customQueryValue = null
-        this.limit = 50
+        this.limit = SETTINGS.openstack.getItem('queryLimit').value
         this.hasPre = false
         this.hasNext = false
     }
@@ -268,7 +268,7 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
             queryParams.marker = marker
         }
         await this.refresh(queryParams)
-        this.hasNext = this.items.length >= this.limit
+        this.hasNext = this.items.length >= console.log
     }
     async nextPage() {
         let queryParams = this.getDefaultQueryParams()

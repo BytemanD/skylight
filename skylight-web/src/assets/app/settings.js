@@ -108,7 +108,6 @@ export class SettingGroup {
         }
         let endIndex = itemNumPerCol * col
         let startIndex = Math.max(0, endIndex - itemNumPerCol)
-        console.log(startIndex, endIndex)
         let itemKeys = totalItems.slice(startIndex, endIndex)
         let items = {}
         for (let i in itemKeys) {
@@ -139,6 +138,7 @@ export class AppSettings {
                 dataVolumeSizeDefault: new NumberSetting(50),
                 volumeSizeMin: new NumberSetting(40, { 'choises': [1, 10, 20, 30, 40, 50] }),
                 imageUploadBlockSize: new NumberSetting(8, { 'choises': [1, 2, 3, 4, 5, 6, 7, 8] }),
+                queryLimit: new NumberSetting(500, { 'choises': [100, 500, 1000, 1500, 2000] }),
                 bootWithVolume: new BooleanSetting(true),
                 // supportResourceAction: new BooleanSetting(false),
                 supportFuzzyNameSearch: new BooleanSetting(false),
