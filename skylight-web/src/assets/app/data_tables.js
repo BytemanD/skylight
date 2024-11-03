@@ -492,7 +492,7 @@ export class ImageDataTable extends OpenstackLimitMarkerTable {
         this.searchName = null
         this.supportFuzzyNameSearch = SETTINGS.openstack.getItem('supportFuzzyNameSearch').value
     }
-    getDefaultQueryParams(){
+    getDefaultQueryParams() {
         let queryParams = super.getDefaultQueryParams()
         if (this.visibility) {
             queryParams.visibility = this.visibility
@@ -548,5 +548,145 @@ export class ImageDataTable extends OpenstackLimitMarkerTable {
             }
             await Utils.sleep(5)
         }
+    }
+}
+
+export class RouterDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([
+            { title: 'id', key: 'id' },
+            { title: 'name', key: 'name' },
+            { title: 'status', key: 'status' },
+            { title: 'revision_number', key: 'revision_number' },
+            { title: 'routes', key: 'routes' },
+            { title: 'admin_state_up', key: 'admin_state_up' },
+        ], API.router, 'routers');
+        this.extendItems = [
+            { title: 'description', key: 'description' },
+            { title: 'created_at', key: 'created_at' },
+            { title: 'project_id', key: 'project_id' },
+            { title: 'tags', key: 'tags' },
+            { title: 'external_gateway_info', key: 'external_gateway_info' },
+        ];
+    }
+    adminStateDown(item) {
+        API.router.put(item.id, { router: { admin_state_up: item.admin_state_up } }).then(() => {
+            if (item.admin_state_up) {
+                Notify.success(`路由 ${item.name} 已设置为 UP`)
+            } else {
+                Notify.success(`路由 ${item.name} 已设置为 DOWN`)
+            }
+        })
+    }
+}
+export class NetDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([
+            { title: 'ID', key: 'id' },
+            { title: '名字', key: 'name' },
+            { title: '状态', key: 'status' },
+            { title: '网络类型', key: 'provider:network_type' },
+            { title: 'MTU', key: 'mtu' },
+            { title: '子网', key: 'subnets' },
+            { title: '共享', key: 'shared' },
+            { title: '启用', key: 'admin_state_up' },
+        ], API.network, 'networks', '网络');
+        this.extendItems = [
+            { title: 'description', key: 'description' },
+            { title: 'enable_dhcp', key: 'enable_dhcp' },
+            { title: 'created_at', key: 'created_at' },
+            { title: 'project_id', key: 'project_id' },
+            { title: 'qos_policy_id', key: 'qos_policy_id' },
+            { title: 'port_security_enabled', key: 'port_security_enabled' },
+            { title: 'ipv4_address_scope', key: 'ipv4_address_scope' },
+            { title: 'provider:physical_network', key: 'provider:physical_network' },
+            { title: 'provider:segmentation_id', key: 'provider:segmentation_id' },
+            { title: 'dns_domain', key: 'dns_domain' },
+            { title: 'vlan_transparent', key: 'vlan_transparent' },
+        ];
+        this.subnets = {};
+    }
+    async refresh(filters = {}) {
+        await super.refresh(filters)
+        this.refreshSubnets()
+    }
+    async refreshSubnets() {
+        // use network.subnets
+        let subnets = (await API.subnet.list()).subnets;
+        subnets.forEach(item => {
+            this.subnets[item.id] = item;
+        })
+    }
+    async deleteSubnet(subnet_id) {
+        let subnet = this.subnets[subnet_id];
+        try {
+            await API.subnet.delete(subnet_id)
+        } catch (error) {
+            notify.error(`子网 ${subnet.cidr} 删除失败， ${error.response.data.NeutronError.notify}`)
+            return;
+        }
+        notify.success(`子网 ${subnet.cidr} 删除成功`);
+        // netTable.refresh();
+    }
+    async adminStateDown(item) {
+        await API.network.put(item.id, { network: { admin_state_up: item.admin_state_up } })
+        if (item.admin_state_up) {
+            notify.success(`网络 ${item.name} 已设置为 UP`)
+        } else {
+            notify.success(`网络 ${item.name} 已设置为 down`)
+        }
+    }
+    async shared(item) {
+        try {
+            await API.network.put(item.id, { network: { shared: !item.shared } })
+            if (item.shared) {
+                notify.success(`网络 ${item.name} 已设置为共享`)
+            } else {
+                notify.success(`网络 ${item.name} 已取消共享`)
+            }
+        } catch (e) {
+            item.shared = !item.shared;
+            notify.error(`网络 ${item.name} 更新失败: ${e}`)
+        }
+    }
+}
+
+export class PortDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([
+            { title: 'ID', key: 'id' },
+            { title: 'Name', key: 'name' },
+            { title: 'vnic_type', key: 'binding:vnic_type' },
+            { title: 'vif_type', key: 'binding:vif_type' },
+            { title: 'status', key: 'status' },
+            { title: 'fixed_ips', key: 'fixed_ips' },
+            { title: '启用', key: 'admin_state_up' },
+        ], API.port, 'ports');
+
+        this.extendItems = [
+            { title: 'device_owner', key: 'device_owner' },
+            { title: 'binding:vif_details', key: 'binding:vif_details' },
+            { title: 'binding:profile', key: 'binding:profile' },
+            { title: 'binding:host_id', key: 'binding:host_id' },
+            { title: 'network_id', key: 'network_id' },
+            { title: 'device_id', key: 'device_id' },
+            { title: 'security_groups', key: 'security_groups' },
+            { title: 'mac_address', key: 'mac_address' },
+            { title: 'qos_policy_id', key: 'qos_policy_id' },
+            { title: 'description', key: 'description' },
+        ];
+    }
+    adminStateDown(item) {
+        API.port.put(item.id, { port: { admin_state_up: item.admin_state_up } }).then(() => {
+            if (item.admin_state_up) {
+                Notify.success(`端口 ${item.name || item.id} 已设置为 UP`)
+            } else {
+                Notify.success(`端口 ${item.name || item.id} 已设置为 DOWN`)
+            }
+        }).catch(error => {
+            console.error(error);
+            Notify.error(`端口 ${item.name} 更新失败`);
+            item.admin_state_up = !item.admin_state_up;
+        })
     }
 }

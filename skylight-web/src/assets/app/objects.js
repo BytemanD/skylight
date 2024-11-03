@@ -3,12 +3,13 @@ import {
     VolumeTypeTable, 
     FlavorDataTable,VolumeServiceTable ,KeypairDataTable, ServerDataTable, UsageTable, ComputeServiceTable,
     RegionTable, AZDataTable,
-    RouterDataTable, NetDataTable, PortDataTable, SecurityGroupDataTable, QosPolicyDataTable, 
+    SecurityGroupDataTable, QosPolicyDataTable, 
     ClusterTable,
     AggDataTable, MigrationDataTable, EndpointTable,
 } from './tables.jsx';
 import {
     VolumeDataTable, BackupDataTable, SnapshotDataTable,
+    RouterDataTable, NetDataTable, PortDataTable,
 } from './data_tables.js';
 
 export const userTable = new UserTable();
