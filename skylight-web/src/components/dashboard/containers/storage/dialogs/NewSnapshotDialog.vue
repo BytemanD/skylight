@@ -16,7 +16,7 @@
           </v-col>
           <v-col>
             <v-select hide-details :items="dialog.volumes" label="请选择卷" item-value="id" :item-props="Utils.itemProps"
-              outlined v-model="dialog.volume_id">
+              outlined v-model="dialog.volume_id" :rules="[dialog.checkNotNull]">
             </v-select>
             <v-switch color="warning" v-model="dialog.force" label="强制" hint="非强制模式下，只能对可用状态的卷创建快照。"
               persistent-hint></v-switch>
@@ -26,7 +26,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="commit()">创建</v-btn>
+        <v-btn color="primary" @click="commit()" :disabled="!dialog.volume_id || !dialog.name">创建</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -35,6 +35,7 @@
 import i18n from '@/assets/app/i18n';
 import { Utils } from '@/assets/app/lib';
 import { NewSnapshotDialog } from '@/assets/app/dialogs';
+import notify from '@/assets/app/notify';
 
 export default {
   props: {
@@ -47,7 +48,15 @@ export default {
   }),
   methods: {
     commit: async function () {
-      await this.dialog.commit();
+      if (!this.dialog.name) { notify.error('快照名不能为空'); return }
+      if (!this.dialog.volume_id) { notify.error('请选择一个卷'); return }
+
+      try {
+        await this.dialog.commit();
+      } catch (e) {
+        notify.error(`创建失败: ${e}`)
+        return
+      }
       this.display = false;
       this.$emit('completed');
     }

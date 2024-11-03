@@ -1353,8 +1353,8 @@ export class NewSnapshotDialog extends Dialog {
         return this.name = Utils.getRandomName('snapshot');
     }
     async commit() {
-        if (!this.name) { notify.error(`快照名不能为空`); return; }
-        if (!this.volume_id) { notify.error(`请选择一个卷`); return; }
+        if (!this.name) { throw Error(`快照名不能为空`) }
+        if (!this.volume_id) { throw Error(`请选择一个卷`) }
         let data = {
             name: this.name,
             volume_id: this.volume_id,

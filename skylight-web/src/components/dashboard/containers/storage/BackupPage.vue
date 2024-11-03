@@ -1,8 +1,8 @@
 <template>
     <v-row>
-        <v-col sm="12" lg="6">
+        <v-col sm="12" lg="4">
             <v-text-field label="查找..." single-line variant="solo" hide-details v-model="table.customQueryValue"
-                @keyup.enter.native="refresh()">
+                @keyup.enter.native="search()">
                 <template v-slot:prepend>
                     <v-menu>
                         <template v-slot:activator="{ props }">
@@ -25,14 +25,14 @@
         <v-col cols="1">
             <v-card>
                 <v-card-actions class="py-1">
-                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
+                    <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refreshPage()"></v-btn>
                 </v-card-actions>
             </v-card>
         </v-col>
         <v-col cols="3">
             <v-card>
                 <v-card-actions class="py-1">
-                    <NewBackupVue @completed="refresh()" />
+                    <NewBackupVue @completed="table.refreshPage()" />
                     <v-btn color="warning" @click="showBackupStateResetDialog = !showBackupStateResetDialog"
                         :disabled="table.selected.length == 0">状态重置</v-btn>
                     <v-spacer></v-spacer>
@@ -41,11 +41,27 @@
                 </v-card-actions>
             </v-card>
         </v-col>
+        <v-col sm="12" lg="2" md="6" class="px-1">
+            <v-text-field label="过滤" single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
+                v-model="table.search">
+            </v-text-field>
+        </v-col>
+        <v-col class="px-1">
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
+                    icon="mdi-chevron-double-left"></v-btn>
+                <v-chip density="compact">{{ table.page }}</v-chip>
+                <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
+                    icon="mdi-chevron-double-right"></v-btn>
+                <v-spacer></v-spacer>
+            </v-card-actions>
+        </v-col>
         <v-col cols="12">
-            <v-data-table-server show-expand single-expand show-select hover density='compact' class="elevation-1"
+            <v-data-table show-expand single-expand show-select hover density='compact' class="elevation-1"
                 :loading="table.loading" :headers="table.headers" :items="table.items"
-                :items-per-page="table.itemsPerPage" :items-length="table.totalItems.length" :search="table.search"
-                v-model="table.selected" @update:options="pageRefresh">
+                :items-per-page="table.itemsPerPage" :search="table.search"
+                v-model="table.selected">
 
                 <template v-slot:[`item.status`]="{ item }">
                     <v-icon v-if="item.status == 'available'" color="success">mdi-check</v-icon>
@@ -67,10 +83,10 @@
                         </table>
                     </td>
                 </template>
-            </v-data-table-server>
+            </v-data-table>
         </v-col>
         <BackupStatusResetDialog v-model="showBackupStateResetDialog" show.sync="showBackupStateResetDialog"
-            :backups="table.selected" @completed="table.refresh()" />
+            :backups="table.selected" @completed="table.refreshPage()" />
     </v-row>
 </template>
 
@@ -92,15 +108,13 @@ export default {
         showNewBackupDialog: false,
     }),
     methods: {
-        pageRefresh: function ({ page, itemsPerPage, sortBy }) {
-            this.table.pageUpdate(page, itemsPerPage, sortBy)
-        },
-        refresh() {
+        search() {
+            this.table.page = 1;
             this.table.refreshPage()
-        }
+        },
     },
     created() {
-        // this.refresh()
+        this.table.nextPage()
     }
 };
 </script>

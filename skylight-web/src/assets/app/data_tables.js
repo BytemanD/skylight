@@ -362,7 +362,7 @@ export class VolumeDataTable extends OpenstackLimitMarkerTable {
     }
 
 }
-export class BackupDataTable extends OpenstackPageTable {
+export class BackupDataTable extends OpenstackLimitMarkerTable {
     constructor() {
         super([{ title: '名字', key: 'name' },
         { title: '状态', key: 'status' },
@@ -422,7 +422,7 @@ export class BackupDataTable extends OpenstackPageTable {
         console.info(`TODO resetState ${backupId}`)
     }
 }
-export class SnapshotDataTable extends OpenstackPageTable {
+export class SnapshotDataTable extends OpenstackLimitMarkerTable {
     constructor() {
         super([{ title: '名字', key: 'name' },
         { title: '状态', key: 'status' },

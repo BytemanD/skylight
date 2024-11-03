@@ -26,7 +26,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="commit()">创建</v-btn>
+        <v-btn color="primary" @click="commit()" :disabled="!dialog.volume_id || !dialog.name">创建</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

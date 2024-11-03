@@ -137,6 +137,7 @@ import NewVolumeDialog from './dialogs/NewVolume.vue';
 import VolumeStatusResetDialog from './dialogs/VolumeStatusResetDialog.vue';
 import VolumeExtendVue from './dialogs/VolumeExtend.vue';
 import ResourceActionsDialog from './dialogs/ResourceActionsDialog.vue';
+import API from '@/assets/app/api';
 
 
 export default {
@@ -174,9 +175,17 @@ export default {
             this.table.refreshPage()
         }
     },
-    created() {
+    async created() {
         this.context = GetLocalContext()
-        this.table.nextPage()
+        await this.table.nextPage()
+        if (this.table.items.length > 0) {
+            try {
+                await API.volume.actionList(this.table.items[0].id)
+                this.iSupportResourceAction = true
+            } catch {
+                this.iSupportResourceAction = false
+            }
+        }
     }
 };
 </script>
