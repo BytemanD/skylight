@@ -17,10 +17,14 @@ func (s publishService) RegisterPublisher(req *ghttp.Request) *ghttp.WebSocket {
 	LOG := glog.Expose().Clone()
 	LOG.SetPrefix(fmt.Sprintf("[%s]", req.GetSessionId()))
 	ws, err := req.WebSocket()
-	LOG.Infof(req.GetCtx(), "get websocket %s -> %s", ws.RemoteAddr(), ws.LocalAddr())
 	if err != nil {
 		LOG.Errorf(req.GetCtx(), "get websocket of session '%s' failed", req.GetSessionId())
 		req.Exit()
+		return nil
+	}
+	if ws != nil {
+		LOG.Infof(req.GetCtx(), "get websocket %s -> %s", ws.RemoteAddr(), ws.LocalAddr())
+	} else {
 		return nil
 	}
 	LOG.Infof(req.GetCtx(), "register websocket")
@@ -29,10 +33,15 @@ func (s publishService) RegisterPublisher(req *ghttp.Request) *ghttp.WebSocket {
 }
 
 func (s publishService) Publish(req *ghttp.Request, message entity.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			glog.Errorf(req.GetCtx(), "got panic: %v", r)
+		}
+	}()
 	sessionId := req.GetSessionId()
 	ws, ok := s.websockets[sessionId]
 	if !ok || ws == nil {
-		glog.Warningf(req.GetCtx(), "websocket not found register new")
+		glog.Warningf(req.GetCtx(), "websocket not exists")
 		// ws = s.RegisterPublisher(req)
 	}
 	if ws == nil {
