@@ -39,7 +39,7 @@ export class SkylightWS {
         };
         this.ws.onmessage = function (resp) {
             let msg = JSON.parse(resp.data)
-            console.debug('receive message', `<${msg.topic}, description=${msg.description}>`)
+            console.debug('receive message', `<${msg.topic}, description="${msg.description}">`)
             let found = false
             for (let topic in self.subscription) {
                 if (topic == msg.topic) {
@@ -51,16 +51,16 @@ export class SkylightWS {
                 // 无订阅者，显示提示或者警告
                 switch (msg.level) {
                     case "success":
-                        notify.success(msg.description);
+                        notify.success(`服务端通知: ${ msg.description}`);
                         break;
                     case "info":
-                        notify.info(msg.description)
+                        notify.info(`服务端通知: ${ msg.description}`)
                         break;
                     case "warning":
-                        notify.warn(msg.description)
+                        notify.warn(`服务端通知: ${ msg.description}`)
                         break;
                     case "error":
-                        notify.error(msg.description)
+                        notify.error(`服务端通知: ${ msg.description}`)
                         break;
                 }
             }

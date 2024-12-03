@@ -1,7 +1,7 @@
 import {
     DomainTable, ProjectTable, RoleTable, UserTable, HypervisortTable,
     VolumeTypeTable, 
-    FlavorDataTable,VolumeServiceTable ,KeypairDataTable, ServerDataTable, UsageTable, ComputeServiceTable,
+    FlavorDataTable,VolumeServiceTable ,KeypairDataTable, UsageTable, ComputeServiceTable,
     RegionTable, AZDataTable,
     SecurityGroupDataTable, QosPolicyDataTable, 
     ClusterTable,
@@ -10,6 +10,7 @@ import {
 import {
     VolumeDataTable, BackupDataTable, SnapshotDataTable,
     RouterDataTable, NetDataTable, PortDataTable,
+    ServerDataTable,
 } from './data_tables.js';
 
 export const userTable = new UserTable();

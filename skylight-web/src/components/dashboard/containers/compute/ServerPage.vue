@@ -1,8 +1,8 @@
 <template>
   <v-row>
-    <v-col lg=4 md="8" sm="12">
+    <v-col lg=3 md="8" sm="12" class="px-1">
       <v-text-field clearable variant="solo" hide-details v-model="table.customQueryValue" placeholder="搜索..."
-        class="ma-0 pa-0" @keyup.enter.native="refresh()">
+        class="ma-0 pa-0" @keyup.enter.native="search()">
         <template v-slot:prepend-inner>
           <v-chip size="small">{{ table.selectedCustomQuery.title }}</v-chip>
         </template>
@@ -22,13 +22,15 @@
         </template>
       </v-text-field>
     </v-col>
-    <v-col lg=2 md="4" sm="12">
+    <v-col lg=7 md="12" sm="12" class="px-1">
       <v-card>
         <v-card-actions class="py-1">
+          <v-btn variant="text" icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
+          <v-divider vertical class="my-3"></v-divider>
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
               <v-btn icon variant="text" v-bind="props" v-on:click="changeListAll">
-                <v-icon :color="table.defautlQuaryParams.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
+                <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
               </v-btn>
             </template>
             查询全部租户
@@ -36,20 +38,14 @@
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
               <v-btn icon variant="text" v-on:click="changeDeleted" v-bind="props">
-                <v-icon :color="table.defautlQuaryParams.deleted ? 'red' : 'grey'">mdi-delete-off</v-icon>
+                <v-icon :color="table.deleted ? 'red' : 'grey'">mdi-delete-off</v-icon>
               </v-btn>
             </template>
             查询未删除/已删除
           </v-tooltip>
-          <v-spacer></v-spacer>
-          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="refresh" />
-        </v-card-actions>
-      </v-card>
-    </v-col>
-    <v-col lg=6 md="12" sm="12">
-      <v-card>
-        <v-card-actions class="py-1">
-          <v-btn variant="text" icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
+          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
+          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="table.refreshPage()" />
+          <v-divider vertical class="my-3"></v-divider>
           <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
             {{ $t('start') }}</v-btn>
           <v-btn variant="text" color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
@@ -63,19 +59,28 @@
             v-if="context && context.isAdmin()" />
           <btn-server-reset-state :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
             v-if="context && context.isAdmin()" />
+          <v-spacer></v-spacer>
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
             @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
-          <v-spacer></v-spacer>
-          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
         </v-card-actions>
       </v-card>
     </v-col>
+    <v-col class="px-1">
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
+          icon="mdi-chevron-double-left"></v-btn>
+        <v-chip density="compact">{{ table.page }}</v-chip>
+        <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
+          icon="mdi-chevron-double-right"></v-btn>
+        <v-spacer></v-spacer>
+      </v-card-actions>
+    </v-col>
     <v-divider></v-divider>
     <v-col cols='12'>
-      <v-data-table-server hover density='compact' show-select show-expand single-expand :loading="table.loading"
-        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage"
-        v-model="table.selected" :items-length="table.totalItems.length" @update:options="pageUpdate" show-current-page
-        v-bind:page="table.page">
+      <v-data-table hover density='compact' show-select show-expand single-expand :loading="table.loading"
+        :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" v-model="table.selected"
+        show-current-page v-bind:page="table.page">
         <template v-slot:[`item.name`]="{ item }">
           <!-- 状态 -->
           <chip-link v-if="item.status" hide-link-icon color="default" density="compact"
@@ -158,9 +163,8 @@
             </v-table>
           </td>
         </template>
-      </v-data-table-server>
+      </v-data-table>
     </v-col>
-
     <ServerTopology :show="openServerTopology" />
     <ChangeServerNameDialog :show="showChangeNameDialog" :server="selectedServer"
       @update:show="(e) => showChangeNameDialog = e" />
@@ -177,7 +181,7 @@ import BtnIcon from '@/components/plugins/BtnIcon'
 import API from '@/assets/app/api';
 import { Utils } from '@/assets/app/lib';
 
-import { ServerDataTable } from '@/assets/app/tables.jsx';
+import { ServerDataTable } from '@/assets/app/data_tables.js';
 
 import ServerTopology from './dialogs/ServerTopology.vue';
 import ChipLink from '@/components/plugins/ChipLink.vue';
@@ -221,17 +225,16 @@ export default {
   }),
   methods: {
     changeDeleted: function () {
-      this.table.page = 1;
-      this.table.defautlQuaryParams.deleted = !this.table.defautlQuaryParams.deleted;
-      this.refresh()
+      this.table.deleted = !this.table.deleted;
+      this.search()
     },
     changeListAll: function () {
-      this.table.page = 1;
-      this.table.defautlQuaryParams.all_tenants = !this.table.defautlQuaryParams.all_tenants;
-      this.refresh()
+      this.table.all_tenants = !this.table.all_tenants;
+      this.search()
     },
-    refresh: function () {
-      this.table.pageUpdate(this.table.page, this.table.itemsPerPage, this.sortBy);
+    search() {
+      this.table.page = 1
+      this.table.refreshPage()
     },
     pageUpdate: function ({ page, itemsPerPage, sortBy }) {
       this.table.pageUpdate(page, itemsPerPage, sortBy)
@@ -295,12 +298,19 @@ export default {
             break
         }
       })
-    }
+    },
+    prePage: function () {
+      this.table.previsousPage()
+    },
+    nextPage: function () {
+      this.table.nextPage()
+    },
   },
   created() {
     this.context = GetLocalContext()
     this.subscribeCreateServer()
     this.subscribeDeleteServer()
+    this.nextPage()
   }
 };
 </script>

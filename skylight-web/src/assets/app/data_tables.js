@@ -21,6 +21,7 @@ class DataTable {
         this.items = [];
         this.totalItems = [];
         this.selected = []
+        // 支持服务端通知
         this.subscribe = false;
     }
     getItemById(id) {
@@ -64,11 +65,12 @@ class DataTable {
                 let item = await (this.api.show(itemId))
                 this.updateItem(item);
             } catch (e) {
-                console.error(e)
                 if (e.response.status == 404) {
+                    console.log("11111111111111111111111")
                     this.removeItem(itemId)
                     break;
                 }
+                console.error(e)
             }
             await Utils.sleep(2)
         } while (true)
@@ -153,6 +155,7 @@ class OpenstackPageTable extends DataTable {
 
         this.page = 1
         this.sortBy = []
+        // 查询参数
         this.all_tenants = false
         this.deleted = false
 
@@ -190,12 +193,6 @@ class OpenstackPageTable extends DataTable {
         super.addItem(item)
         this.totalItems.unshift({ id: item.id })
     }
-    async refreshTotal() {
-        let result = await this.api.list(this.getDefaultQueryParams())
-        let items = this.bodyKey ? result[this.bodyKey] : result;
-
-        this.totalItems = items
-    }
     getMarker(page, itemsPerPage) {
         let markerIndex = Math.min(itemsPerPage * (page - 1) - 1, this.totalItems.length)
         markerIndex = Math.max(0, markerIndex)
@@ -210,7 +207,6 @@ class OpenstackPageTable extends DataTable {
             queryParams.marker = this.getMarker(this.page, this.itemsPerPage)
         }
         await this.refresh(queryParams)
-        this.refreshTotal()
     }
     async pageUpdate(page, itemsPerPage, sortBy) {
         if (this.page == page && this.itemsPerPage == itemsPerPage && this.items.length > 0 && sortBy) {
@@ -249,7 +245,7 @@ class OpenstackLimitMarkerTable extends OpenstackPageTable {
         this.hasNext = this.items.length >= this.limit
     }
     getDefaultQueryParams() {
-        let queryParams = { deleted: false, limit: this.limit }
+        let queryParams = { deleted: this.deleted, limit: this.limit }
         if (this.all_tenants) {
             queryParams.all_tenants = 1
         }
@@ -458,6 +454,346 @@ export class SnapshotDataTable extends OpenstackLimitMarkerTable {
         return snapshot
     }
 }
+export class ServerDataTable extends OpenstackLimitMarkerTable {
+    constructor() {
+        super([{ title: '实例名字', key: 'name', maxWidth: 500, },
+        { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
+        { title: '规格', key: 'flavor', maxWidth: 250 },
+        { title: '镜像', key: 'image', maxWidth: 250 },
+        { title: 'IP地址', key: 'addresses', maxWidth: 250 },
+        { title: '电源', key: 'power_state' },
+        { title: '操作', key: 'action' },
+        ], API.server, 'servers', '实例');
+        this.extendItems = [
+            { title: 'UUID', key: 'id' },
+            { title: '实例名', key: 'OS-EXT-SRV-ATTR:instance_name' },
+            { title: '创建时间', key: 'created' },
+            { title: '更新时间', key: 'updated' },
+            // { title: '规格', key: 'flavor' },
+            { title: '租户ID', key: 'tenant_id' },
+            { title: '用户ID', key: 'iduser_id' },
+            { title: 'diskConfig', key: 'OS-DCF:diskConfig' },
+            { title: '错误信息', key: 'fault' },
+            { title: '节点', key: 'OS-EXT-SRV-ATTR:host' },
+        ];
+        this.subscribe = true;
+        this.defautlQuaryParams = {
+            all_tenants: false,
+            deleted: false,
+        }
+        this.customQueryParams = [
+            { title: i18n.global.t("name"), value: "name" },
+            { title: i18n.global.t("ID"), value: "id" },
+            { title: i18n.global.t("hostName"), value: "host" },
+            { title: i18n.global.t("flavor"), value: "flavor" },
+            { title: i18n.global.t("status"), value: "status" },
+        ]
+        this.selectedCustomQuery = this.customQueryParams[0];
+        this.customQueryValue = null
+        this.imageName = {};
+        this.imageMap = {};
+        this.rootBdmMap = {};
+        this.errorNotify = {};
+    }
+    getDefaultQueryParams() {
+        let queryParams = super.getDefaultQueryParams()
+        
+        if (this.all_tenants) {
+            queryParams.all_tenants = 1
+        }
+        if (this.customQueryValue) {
+            queryParams[this.selectedCustomQuery.value] = this.customQueryValue
+        }
+        return queryParams
+    }
+    async recheckSavedTasks() {
+        let serverTasks = new ServerTasks();
+        for (let serverId in serverTasks.getAll()) {
+            let servers = (await API.server.list({ uuid: serverId })).servers;
+            if (!servers || servers.length == 0) {
+                serverTasks.delete(serverId)
+                continue;
+            }
+            console.log('waitServerStatus', serverId)
+            this.waitServerStatus(serverId).then(() => {
+                serverTasks.delete(serverId);
+            });
+        }
+    }
+    async waitServerMoved(server) {
+        let srcHost = server['OS-EXT-SRV-ATTR:host'];
+        let serverUpdated = {};
+        do {
+            let body = await API.server.get(server.id);
+            serverUpdated = body.server;
+            this.updateItem(serverUpdated);
+
+            if (serverUpdated['OS-EXT-STS:task_state']) {
+                await Utils.sleep(5)
+            } else if (serverUpdated['OS-EXT-SRV-ATTR:host'] == srcHost) {
+                throw Error(`疏散失败`);
+            }
+        } while (!serverUpdated['OS-EXT-STS:task_state'] && serverUpdated['OS-EXT-SRV-ATTR:host'] != srcHost)
+    }
+    async waitServerStatus(server_id, expectStatus = ['ACTIVE', 'ERROR']) {
+        let expectStatusList = []
+        if (typeof expectStatus == 'string') {
+            expectStatusList.push(expectStatus.toUpperCase())
+        } else {
+            expectStatus.forEach(item => {
+                expectStatusList.push(item.toUpperCase())
+            })
+        }
+        let currentServer = {};
+        let oldTaskState = ''
+        do {
+            if (currentServer.status) {
+                await Utils.sleep(5)
+            }
+            currentServer = await API.server.show(server_id);
+            if (currentServer['OS-EXT-STS:task_state'] != oldTaskState) {
+                this.updateItem(currentServer);
+                oldTaskState = currentServer['OS-EXT-STS:task_state'];
+            }
+            LOG.debug(`wait server ${server_id} to be ${expectStatusList}, now: ${currentServer.status.toUpperCase()}`)
+        } while (expectStatusList.indexOf(currentServer.status.toUpperCase()) < 0)
+        this.updateItem(currentServer);
+        return currentServer
+    }
+    async waitServerTaskCompleted(server_id, taskState) {
+        let expectStateList = typeof taskState == 'string' ? [taskState] : taskState
+        let currentServer = {};
+        let oldTaskState = ''
+        do {
+            if (currentServer['OS-EXT-STS:task_state']) {
+                await Utils.sleep(5)
+            }
+            let body = await API.server.get(server_id);
+            currentServer = body.server;
+            if (currentServer['OS-EXT-STS:task_state'] != oldTaskState) {
+                this.updateItem(currentServer);
+            }
+            LOG.debug(`wait server ${server_id} task state to be ${expectStateList}, now: ${currentServer['OS-EXT-STS:task_state']}`);
+        } while (expectStateList.indexOf(currentServer['OS-EXT-STS:task_state']) >= 0);
+        return currentServer
+    }
+    async stopServers(servers) {
+        for (let i in servers) {
+            let server = servers[i];
+            await API.server.stop(server.id);
+            this.waitServerStopped(server)
+        }
+    }
+    async stopSelected() {
+        let statusMap = { inactive: [], active: [] };
+        for (let i in this.selected) {
+            let serverId = this.selected[i]
+            let item = (await API.server.show(serverId))
+            if (item.status.toUpperCase() != 'ACTIVE') {
+                statusMap.inactive.push(item);
+                continue;
+            }
+            statusMap.active.push(item);
+        }
+        if (statusMap.active.length != 0) {
+            Notify.info(`开始关机: ${statusMap.active.map((item) => { return item.name })} `);
+            this.stopServers(statusMap.active)
+        }
+        if (statusMap.inactive.length != 0) {
+            Notify.warning(`虚拟机不是运行状态: ${statusMap.inactive.map((item) => { return item.name })}`);
+        }
+    }
+    async startServers(servers) {
+        for (let i in servers) {
+            let item = servers[i];
+            await this.api.start(item.id)
+            this.waitServerStarted(item, 'start')
+        }
+    }
+    async startSelected() {
+        let statusMap = { notShutoff: [], shutoff: [] };
+        for (let i in this.selected) {
+            let serverId = this.selected[i]
+            let item = (await API.server.show(serverId))
+            if (item.status.toUpperCase() != 'SHUTOFF') {
+                statusMap.notShutoff.push(item);
+                continue;
+            }
+            statusMap.shutoff.push(item);
+        }
+        if (statusMap.shutoff.length != 0) {
+            Notify.info(`开始开机: ${statusMap.shutoff.map((item) => { return item.name })} `);
+            await this.startServers(statusMap.shutoff);
+        }
+        if (statusMap.notShutoff.length != 0) {
+            Notify.warning(`虚拟机不是关机状态: ${statusMap.notShutoff.map((item) => { return item.name })}`);
+        }
+        this.resetSelected();
+    }
+    async pauseSelected() {
+        let self = this;
+        for (let i in this.selected) {
+            let serverId = this.selected[i]
+            let item = (await API.server.show(serverId))
+            if (item.status.toUpperCase() != 'ACTIVE') {
+                Notify.warning(`虚拟机 ${item.name} 不是运行状态`)
+                continue;
+            }
+            await self.api.pause(item.id);
+            this.waitServerPaused(item)
+        }
+        this.resetSelected();
+    }
+    async unpauseSelected() {
+        let self = this;
+        for (let i in this.selected) {
+            let serverId = this.selected[i]
+            let item = (await API.server.show(serverId))
+            if (item.status.toUpperCase() != 'PAUSED') {
+                Notify.warning(`虚拟机 ${item.name} 不是暂停状态`)
+                continue;
+            }
+            await self.api.unpause(item.id);
+            this.waitServerUnpaused(item)
+        }
+        this.resetSelected();
+    }
+    async rebootSelected(type = 'SOFT') {
+        for (let i in this.selected) {
+            let serverId = this.selected[i]
+            let item = (await API.server.show(serverId))
+            if (type == 'SOFT' && item.status.toUpperCase() != 'ACTIVE') {
+                Notify.warning(`虚拟机 ${item.name} 不是运行状态`, 1)
+                continue;
+            }
+            API.server.reboot(item.id)
+            this.waitServerStarted(item, "reboot")
+        }
+        this.resetSelected();
+    }
+
+    async updateImageName(server) {
+        let imageId = server.image && server.image.id;
+        if (!imageId) {
+            return
+        }
+        if (Object.keys(this.imageName).indexOf(imageId) >= 0) {
+            return
+        }
+        this.imageName[imageId] = imageId
+        let image = await API.image.get(imageId)
+        this.imageName[imageId] = image.name
+    }
+
+    getRootBdm(server) {
+        let self = this;
+        if (!server['os-extended-volumes:volumes_attached']) {
+            return null;
+        }
+        let serverObj = new Server(server);
+        if (Object.keys(this.rootBdmMap).indexOf(serverObj.getId()) < 0) {
+            Vue.set(this.rootBdmMap, serverObj.getId(), {});
+            serverObj.getRootBdm().then(bdm => {
+                self.rootBdmMap[serverObj.getId()] = bdm;
+            });
+        }
+        return this.rootBdmMap[serverObj.getId()];
+    }
+    parseAddresses(server) {
+        let addressMap = {};
+        for (let netName in server.addresses) {
+            for (let i in server.addresses[netName]) {
+                let address = server.addresses[netName][i]
+                if (Object.keys(addressMap).indexOf(address['OS-EXT-IPS-MAC:mac_addr']) < 0) {
+                    addressMap[address['OS-EXT-IPS-MAC:mac_addr']] = []
+                }
+                addressMap[address['OS-EXT-IPS-MAC:mac_addr']].push(address.addr)
+            }
+        }
+        return Object.values(addressMap);
+    }
+    parseFirstAddresses(server) {
+        let addressMap = {};
+        for (let netName in server.addresses) {
+            for (let i in server.addresses[netName]) {
+                let address = server.addresses[netName][i]
+                if (Object.keys(addressMap).indexOf(address['OS-EXT-IPS-MAC:mac_addr']) < 0) {
+                    addressMap[address['OS-EXT-IPS-MAC:mac_addr']] = []
+                }
+                addressMap[address['OS-EXT-IPS-MAC:mac_addr']].push(address.addr)
+            }
+            break
+        }
+        if (Object.values(addressMap).length > 0) {
+            return Object.values(addressMap)[0]
+        } else {
+            return []
+        }
+    }
+    async waitServerStarted(server, action) {
+        let refreshServer = await this.waitServerStatus(server.id, ['ACTIVE', 'ERROR'])
+        if (refreshServer.status.toUpperCase() == 'ACTIVE') {
+            Notify.success(`${server.name || server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${server.name || server.id} ${action} 失败`)
+        }
+    }
+    async waitServerStopped(server) {
+        let action = 'stop'
+        let refreshServer = await this.waitServerStatus(server.id, ['SHUTOFF', 'ERROR'])
+        if (refreshServer.status.toUpperCase() == 'SHUTOFF') {
+            Notify.success(`${server.name || server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${server.name || server.id} ${action} 失败`)
+        }
+    }
+    async waitServerPaused(server) {
+        let action = 'pause'
+        let refreshServer = await this.waitServerStatus(server.id, ['PAUSED', 'ERROR'])
+        if (refreshServer.status.toUpperCase() == 'PAUSED') {
+            Notify.success(`${server.name || server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${server.name || server.id} ${action} 失败`)
+        }
+    }
+    async waitServerUnpaused(server) {
+        let action = 'unpause'
+        let refreshServer = await this.waitServerStatus(server.id, ['ACTIVE', 'ERROR'])
+        if (refreshServer.status.toUpperCase() == 'ACTIVE') {
+            Notify.success(`${server.name || server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${server.name || server.id} ${action} 失败`)
+        }
+    }
+    async waitServerMigrated(server) {
+        let action = "migrate"
+        // TODO: show server first
+        let srcHost = server['OS-EXT-SRV-ATTR:host'];
+        let refreshServer = await this.waitServerStatus(server.id, [server.status, 'ERROR'])
+        if (refreshServer['OS-EXT-SRV-ATTR:host'] != srcHost) {
+            Notify.success(`${server.name || server.id} ${action} 成功`)
+        } else {
+            Notify.error(`${server.name || server.id} ${action} 失败`)
+        }
+    }
+    async waitServerDeleted(serverId) {
+        do {
+            try {
+                let server = await (API.server.show(serverId))
+                this.updateItem(server);
+                Utils.sleep(2)
+            } catch (e) {
+                if (e.response.status == 404) {
+                    console.error(e)
+                    Notify.success(`实例 ${serverId} 已删除`)
+                    this.removeItem(serverId)
+                    break;
+                }
+            }
+        } while (true)
+    }
+}
+
 export class ImageDataTable extends OpenstackLimitMarkerTable {
     constructor() {
         super([
