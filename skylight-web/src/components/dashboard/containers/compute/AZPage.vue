@@ -3,7 +3,7 @@
         <alert-require-admin :context="context">
             <template v-slot:content>
                 <v-col cols="12" class="py-0">
-                    <v-btn-toggle mandatory v-model="displayType" variant="outlined" color="info">
+                    <v-btn-toggle mandatory v-model="displayType" variant="outlined" color="info"  class="ml-2" density="compact" >
                         <v-btn icon="mdi-table"></v-btn>
                         <v-btn icon="mdi-chart-tree" @click="drawAz()"></v-btn>
                     </v-btn-toggle>

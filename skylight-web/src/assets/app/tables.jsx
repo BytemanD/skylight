@@ -959,6 +959,7 @@ export class Overview {
         this.user = {}
         this.userRoles = []
         this.refreshing = false;
+        this.statisticsRefreshing = false
     }
     percentAvaliableHypervisor() {
         if (!this.statistics.count || this.hypervisors.length <= 0) {
@@ -976,10 +977,24 @@ export class Overview {
         this.hypervisors = (await API.hypervisor.list()).hypervisors
     }
     async refreshStatics() {
+        this.statisticsRefreshing = true
         this.statistics = (await API.hypervisor.statistics()).hypervisor_statistics;
-        this._memUsedPercent = (this.statistics.memory_mb_used * 100 / this.statistics.memory_mb).toFixed(2);
-        this._vcpuUsedPercent = (this.statistics.vcpus_used * 100 / this.statistics.vcpus).toFixed(2);
-        this._diskUsedPercent = (this.statistics.local_gb_used * 100 / this.statistics.local_gb).toFixed(2);
+        if (this.statistics.memory_mb == 0) {
+            this._memUsedPercent = 100
+        } else {
+            this._memUsedPercent = (this.statistics.memory_mb_used * 100 / this.statistics.memory_mb).toFixed(2);
+        }
+        if (this.statistics.vcpus ==0) {
+            this._vcpuUsedPercent = 100
+        } else {
+            this._vcpuUsedPercent = (this.statistics.vcpus_used * 100 / this.statistics.vcpus).toFixed(2);
+        }
+        if (this.statistics.local_gb == 0){
+            this._diskUsedPercent = 100
+        } else {
+            this._diskUsedPercent = (this.statistics.local_gb_used * 100 / this.statistics.local_gb).toFixed(2);
+        }
+        this.statisticsRefreshing = false
     }
     async refresh() {
         this.refreshProjects()
