@@ -1,41 +1,35 @@
-import { LOG } from "./lib";
+import { util } from "echarts";
 import notify from "./notify";
+import { Utils } from "./lib";
 
 export class SkylightWS {
     constructor(url) {
         this.url = url
         this.ws = null
         this.subscription = {}
-        this.failedCount = 0
     }
     connect(url) {
         this.url = !url ? "" : url
         this.initWebsocket()
+        this.watch()
     }
     initWebsocket() {
-        if (this.failedCount >= 1000) {
-            notify.error("WebSocket 重连失败, 请刷新页面");
+        if (this.ws != null) {
             return
         }
         let self = this;
         console.info("WebSocket 连接...");
         this.ws = new WebSocket(`${this.url}/ws`);
-        this.ws.onerror = function (e) {
-            console.error("WebSocket Server error");
-            self.ws.close();
-            self.ws = null;
-            this.failedCount += 1
-            console.info("WebSocket 重连", this.failedCount);
-            setTimeout(() => { self.initWebsocket() }, 1000);
-        };
         this.ws.onopen = function () {
             console.info(`WebSocket Server ${self.url} 连接成功！`);
-            this.failedCount = 0
         };
+        // this.ws.onerror = function (e) {
+        //     console.error("WebSocket Server error");
+        //     self.ws = null;
+        // };
         this.ws.onclose = function (e) {
             console.error("WebSocket 关闭", e.code, e.reason, e.wasClean);
-            this.failedCount += 1
-            setTimeout(() => { self.initWebsocket() }, 1000);
+            self.ws = null;
         };
         this.ws.onmessage = function (resp) {
             let msg = JSON.parse(resp.data)
@@ -71,6 +65,16 @@ export class SkylightWS {
     }
     removeSubscribe(topic) {
         delete this.subscription[topic]
+    }
+    async watch() {
+        while (true) {
+            await Utils.sleep(5);
+            console.debug("check websocket")
+            if (this.ws != null) {
+                continue
+            }
+            this.initWebsocket()
+        }
     }
 }
 const WS = new SkylightWS();
