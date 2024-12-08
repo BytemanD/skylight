@@ -35,13 +35,10 @@
                         <tr>
                             <th style="min-width: 50px">任务</th>
                             <td>
-                                <v-alert type="warning" variant="text" density="compact"
-                                    v-if="server['OS-EXT-STS:task_state']">
+                                <v-chip density="compact" color="warning" v-if="server['OS-EXT-STS:task_state']">
                                     {{ $t(server['OS-EXT-STS:task_state']) }}
-                                    <template v-slot:prepend>
-                                        <v-icon class="mdi-spin" size="small">mdi-loading</v-icon>
-                                    </template>
-                                </v-alert>
+                                </v-chip>
+                                <v-icon class="mdi-spin" size="small" v-if="server['OS-EXT-STS:task_state']">mdi-loading</v-icon>
                             </td>
                         </tr>
                     </table>

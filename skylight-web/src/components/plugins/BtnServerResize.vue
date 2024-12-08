@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="display" width="800" scrollable>
+    <v-dialog v-model="display" width="900" scrollable>
         <template v-slot:activator="{ props }">
             <v-btn variant="tonal" v-bind="props" density="compact" color="warning" class="ml-1"
                 :disabled="!server.name">变更</v-btn>
@@ -12,7 +12,7 @@
                     :rules="[validFlavor]">
                     <template v-slot:prepend>规格</template>
                 </v-text-field>
-                <flavor-table @select-flavor="(flavor) => { selectFlavor(flavor) }" />
+                <flavor-table @select-flavor="(flavor) => { selectFlavor(flavor) }" simple />
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>

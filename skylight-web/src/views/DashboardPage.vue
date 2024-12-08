@@ -22,7 +22,8 @@
     </v-navigation-drawer>
 
     <v-app-bar density="compact">
-      <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"
+        :icon="navigation.mini ? 'mdi-dots-vertical' : 'mdi-menu'"></v-app-bar-nav-icon>
       <v-toolbar-title>
         <v-text-field hide-details class="rounded-0" :value="context && context.cluster">
           <template v-slot:prepend>{{ $t('cluster') }} </template>
