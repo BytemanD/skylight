@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	v1 "skylight/internal/controller/v1"
 	"skylight/internal/model"
 	"skylight/internal/service"
 	"skylight/internal/service/openstack"
@@ -49,6 +50,11 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 			req.Response.WriteStatusExit(400, HttpError{Message: "get regions failed"})
 		} else {
 			glog.Infof(req.GetCtx(), "login success")
+			v1.AddAuthSession(
+				req.GetSessionId(), cluster.AuthUrl,
+				reqBody.Auth.User, reqBody.Auth.Project,
+				reqBody.Auth.Password, "RegionOne",
+			)
 			req.Response.WriteStatusExit(
 				200, map[string]interface{}{"regions": regions},
 			)
@@ -87,6 +93,9 @@ func (c *LoginController) Put(req *ghttp.Request) {
 		req.Response.WriteStatusExit(500, HttpError{Error: "set region failed", Message: err.Error()})
 		return
 	}
+
+	session := v1.GetAuthSession(req)
+	session.SetRegion(reqBody.Auth.Region)
 
 	req.Response.WriteStatusExit(200, HttpError{Message: "update success"})
 }

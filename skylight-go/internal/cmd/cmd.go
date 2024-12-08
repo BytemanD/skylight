@@ -10,6 +10,7 @@ import (
 
 	"skylight/internal/consts"
 	"skylight/internal/controller"
+	v1 "skylight/internal/controller/v1"
 	_ "skylight/internal/packed"
 	"skylight/internal/service"
 
@@ -65,11 +66,10 @@ var (
 			level := logging.INFO
 			if debug {
 				level = logging.DEBUG
-			} else {
-				glog.SetDebug(true)
 			}
 			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
-			glog.SetStack(false)
+			glog.SetDebug(debug)
+			glog.SetStack(debug)
 
 			s := g.Server()
 			// 初始化静态资源
@@ -127,6 +127,9 @@ var (
 			s.BindObjectRest("/clusters/:id", controller.ClusterController{})
 			s.BindObjectRest("/image_upload_tasks", controller.ImageUploadTasksController{})
 			s.BindObjectRest("/image_upload_tasks/:id", controller.ImageUploadTaskController{})
+
+			v1.RegiterRouters(s)
+
 			s.Group("", func(group *ghttp.RouterGroup) {
 				group.Middleware(controller.MiddlewareAuth)
 

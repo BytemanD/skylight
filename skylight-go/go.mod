@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/BytemanD/skyman v0.0.0-20241203121605-9adaa2f45b5e // indirect
+	github.com/BytemanD/skyman v0.0.0-20241204121823-d0d6855b7376 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
