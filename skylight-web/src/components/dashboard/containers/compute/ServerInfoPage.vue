@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col lg=5 md="8" sm="12">
+    <v-col lg="5" md="8" sm="12" class="px-1">
       <v-card>
         <v-card-actions>
           <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
@@ -9,24 +9,18 @@
         </v-card-actions>
       </v-card>
     </v-col>
-    <v-col lg="1" md="4">
+    <v-col lg="1" md="4" class="px-1">
       <v-card>
         <v-card-actions>
           <v-btn color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
-    <v-col cols="12" md="12" lg="6" class="pb-0">
+    <v-col cols="12" md="12" lg="6" class="pb-0 px-1">
       <v-card>
         <v-card-actions>
-          <btn-server-reset-state :servers="[server]" @update-server="updateServer"
-            v-if="context && context.isAdmin()" />
           <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
           <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
-          <v-btn variant="text" color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
-            {{ $t('stop') }}</v-btn>
-          <v-btn variant="text" color="success" v-if="server.status == 'SHUTOFF'" @click="start()">
-            {{ $t('start') }}</v-btn>
           <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
             {{ $t('pause') }}</v-btn>
           <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
@@ -44,7 +38,8 @@
     <v-col cols="12">
       <server-base-info-card :server="server"></server-base-info-card>
     </v-col>
-    <v-col cols="12">
+    <v-divider></v-divider>
+    <v-col cols="12" class="px-1">
       <tab-windows :tabs="tabs" @switch-tab="handleSwitchTab">
         <template v-slot:window-items>
           <v-window-item>
@@ -60,6 +55,10 @@
                       <tr>
                         <th>创建时间</th>
                         <td>{{ Utils.parseUTCToLocal(server.created) }}</td>
+                      </tr>
+                      <tr>
+                        <th>启动时间</th>
+                        <td>{{ Utils.parseUTCToLocal(server['OS-SRV-USG:launched_at']) }}</td>
                       </tr>
                       <tr>
                         <th>系统盘类型</th>
@@ -79,6 +78,14 @@
                           <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">
                             {{ sg.name }}</v-chip>
                         </td>
+                      </tr>
+                      <tr>
+                        <th>项目ID</th>
+                        <td>{{ server.tenant_id || server.project_id }}</td>
+                      </tr>
+                      <tr>
+                        <th>标签</th>
+                        <td>{{ server.tags }}</td>
                       </tr>
                     </table>
                     <dialog-live-migrate-abort v-if="server.status == 'MIGRATING'" :items="[server]" />
@@ -223,7 +230,7 @@ import { ServerTaskWaiter, MigrationDataTable } from '@/assets/app/tables.jsx';
 
 import ServerInterfaceCard from '../../../plugins/ServerInterfaceCard.vue';
 import ServerVolumeCard from '@/components/plugins/ServerVolumeCard.vue';
-import BtnServerResetState from '@/components/plugins/button/BtnServerResetState.vue';
+
 import BtnServerRebuild from '@/components/plugins/button/BtnServerRebuild.vue';
 
 import ChangeServerNameDialog from './dialogs/ChangeServerNameDialog.vue';
@@ -254,7 +261,7 @@ import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 export default {
   components: {
     BtnIcon, ServerInterfaceCard, ServerVolumeCard,
-    BtnServerReboot, BtnServerMigrate, BtnServerResetState, BtnServerRebuild,
+    BtnServerReboot, BtnServerMigrate, BtnServerRebuild,
     ServerResetStateDialog,
     ChangeServerNameDialog,
 
@@ -362,19 +369,8 @@ export default {
           break;
       }
     },
-    stop: async function () {
-      // TODO: use BtnServerStop
-      if (!this.server.id) { return }
-      await API.server.stop(this.serverId)
-      let waiter = new ServerTaskWaiter(this.server)
-      waiter.waitStopped()
-    },
-    start: async function () {
-      if (!this.server.id) { return }
-      await API.server.start(this.serverId)
-      let waiter = new ServerTaskWaiter(this.server)
-      waiter.waitStarted()
-    },
+
+
     hardReboot: async function () {
       if (!this.server.id) {
         return
@@ -414,6 +410,9 @@ export default {
           continue
         }
         this.server[key] = server[key]
+      }
+      if (!server.fault) {
+        this.server.fault = ''
       }
       if (this.server.image.id != this.image.id) {
         this.refreshImage()

@@ -57,7 +57,7 @@
             v-if="context && context.isAdmin()" />
           <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
             v-if="context && context.isAdmin()" />
-          <btn-server-reset-state :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
+          <btn-server-reset-state variant="text" :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
             v-if="context && context.isAdmin()" />
           <v-spacer></v-spacer>
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"

@@ -1096,7 +1096,7 @@ export class ServerTaskWaiter {
                 oldTaskState = this.server['OS-EXT-STS:task_state'];
             }
             LOG.debug(`[${this.server.id}] waiting server to be ${expectStatusList}, now: ${this.server.status.toUpperCase()}`)
-            if (expectStatusList.indexOf(this.server.status.toUpperCase()) >= 0) {
+            if (expectStatusList.indexOf(this.server.status.toUpperCase()) >= 0 && !this.server['OS-EXT-STS:task_state']) {
                 break
             }
             await Utils.sleep(5)

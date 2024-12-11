@@ -96,7 +96,8 @@ const MESSAGES = {
         start: 'start',
         shelve: 'shelve',
         unshelve: 'unshelve',
-        
+        shutoff: 'shutoff',
+        SHUTOFF: 'SHUTOFF',
         about: 'about',
         version: 'version',
         copy: 'copy',
@@ -226,6 +227,8 @@ const MESSAGES = {
         start: '开机',
         shelve: '搁置',
         unshelve: '取消搁置',
+        shutoff: '关机',
+        SHUTOFF: '关机',
 
         about: '关于',
         version: '版本',

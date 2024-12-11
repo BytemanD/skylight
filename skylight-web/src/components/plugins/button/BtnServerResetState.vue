@@ -1,7 +1,8 @@
 <template>
     <v-dialog v-model="dialog.show" width="500">
         <template v-slot:activator="{ props }">
-            <v-btn :variant='variant' :size="size" color="warning" :disabled="servers.length == 0" v-bind="props">重置状态</v-btn>
+            <v-btn :variant='variant' :size="size" color="warning" :density="density" :disabled="servers.length == 0"
+                v-bind="props">重置</v-btn>
         </template>
         <v-card>
             <v-card-title primary-title>重置状态</v-card-title>
@@ -29,8 +30,10 @@ import notify from '@/assets/app/notify.js';
 import { ServerResetStateDialog } from '@/assets/app/dialogs';
 
 const progs = defineProps({
-    variant: { type: String, default: 'text' },
-    size: { type: String, default: 'default' },    servers: { type: Array, default: [], required: true, },
+    variant: { type: String, default: 'tonal' },
+    size: { type: String, default: 'default' },
+    density: { type: String, default: 'default' },
+    servers: { type: Array, default: [], required: true, },
 })
 const emits = defineEmits(['updateServer'])
 
