@@ -12,7 +12,7 @@
             <v-text-field label="*名字" placeholder="请输入路由名" v-model="dialog.name" hide-details></v-text-field>
           </v-col>
           <v-col cols="2" class="my-auto">
-            <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+            <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
           </v-col>
         </v-row>
         <v-row>

@@ -11,7 +11,7 @@
             <v-text-field label="名字" placeholder="请输入备份名" v-model="dialog.name"
               :rules="[dialog.checkNotNull]">
               <template v-slot:append>
-                <v-btn variant="text" color="primary" @click="dialog.randomName()">随机名字</v-btn>
+                <v-btn variant="text" color="primary" @click="dialog.randomName()" icon="mdi-dice-multiple"></v-btn>
               </template>
             </v-text-field>
           </v-col>

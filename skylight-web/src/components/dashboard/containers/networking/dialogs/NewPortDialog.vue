@@ -13,7 +13,7 @@
                             :error="!dialog.name"></v-text-field>
                     </v-col>
                     <v-col cols="2" class="my-auto">
-                        <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                        <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
                     </v-col>
                     <v-col cols="6">
                         <v-select :items="dialog.networks" label="网络" :item-props="dialog.itemProps" item-value="id" density='compact'

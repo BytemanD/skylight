@@ -8,7 +8,7 @@
             <v-card-text>
                 <v-text-field density="compact" label="*名字" placeholder="请输入安全组名" v-model="dialog.name">
                     <template v-slot:append>
-                        <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                        <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
                     </template>
                 </v-text-field>
                 <v-text-field hide-details label="描述" outlined density='compact' placeholder="请输入描述信息"

@@ -12,7 +12,7 @@
                             v-model="dialog.newKeypair.name"></v-text-field>
                     </v-col>
                     <v-col cols="2" class="my-auto">
-                        <v-btn text color="primary" @click="dialog.randomName(); dialog.privateKey = ''">随机名字</v-btn>
+                        <v-btn variant="text" color="primary" @click="dialog.randomName(); dialog.privateKey = ''" icon="mdi-dice-multiple"></v-btn>
                     </v-col>
                     <v-col cols="4">
                         <v-select density='compact' outlined hide-details :items="dialog.keyTypes" label="类型"

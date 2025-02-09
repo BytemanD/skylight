@@ -23,8 +23,8 @@
                                     :messages="dialog.validName()" density="compact" hide-details>
                                     <template v-slot:prepend>名字</template>
                                     <template v-slot:append>
-                                        <v-btn class="my-auto" color="info" variant="text"
-                                            @click="dialog.name = Utils.getRandomName('server')">随机名字</v-btn>
+                                        <v-btn class="my-auto" color="info" variant="text" icon="mdi-dice-multiple"
+                                            @click="dialog.name = Utils.getRandomName('server')"></v-btn>
                                     </template>
                                 </v-text-field>
 

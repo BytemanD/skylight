@@ -7,7 +7,7 @@
                 <v-text-field label="子网名" placeholder="请输入子网名" v-model="dialog.name" :error="!dialog.name"
                     :rules="[dialog.checkNameNotNull]">
                     <template v-slot:append>
-                        <v-btn variant='text' color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                        <v-btn variant='text' color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
                     </template>
                 </v-text-field>
                 <v-text-field density='compact' outlined label="CIDR" placeholder="请输入cidr" v-model="dialog.cidr"

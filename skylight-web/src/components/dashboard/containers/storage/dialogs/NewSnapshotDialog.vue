@@ -12,7 +12,7 @@
               :rules="[dialog.checkNotNull]"></v-text-field>
           </v-col>
           <v-col cols="2" class="my-auto">
-            <v-btn variant="text" color="primary" @click="dialog.randomName()">随机名字</v-btn>
+            <v-btn variant="text" color="primary" @click="dialog.randomName()" icon="mdi-dice-multiple"></v-btn>
           </v-col>
           <v-col>
             <v-select hide-details :items="dialog.volumes" label="请选择卷" item-value="id" :item-props="Utils.itemProps"

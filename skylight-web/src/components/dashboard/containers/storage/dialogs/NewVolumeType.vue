@@ -13,7 +13,7 @@
                             :rules="[dialog.checkNotNull]"></v-text-field>
                     </v-col>
                     <v-col cols="2" class="my-auto">
-                        <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                        <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
                     </v-col>
                     <v-col>
                         <v-text-field label="后端名" placeholder="请输入卷类型对应的后端名" v-model="dialog.backendName"></v-text-field>

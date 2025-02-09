@@ -8,7 +8,7 @@
       <v-card-text>
         <v-text-field label="*名字" placeholder="请输入Domain名" v-model="dialog.name">
           <template v-slot:append>
-            <v-btn variant="text" color="primary" @click="dialog.randomName()">随机名字</v-btn>
+            <v-btn variant="text" color="primary" @click="dialog.randomName()" icon="mdi-dice-multiple"></v-btn>
           </template>
         </v-text-field>
         <v-text-field label="描述" hide-details placeholder="请输入描述信息" v-model="dialog.description"></v-text-field>

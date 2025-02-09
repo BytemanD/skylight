@@ -13,7 +13,7 @@
               :rules="[checkNotNull]"></v-text-field>
           </v-col>
           <v-col cols="2" class="my-auto">
-            <v-btn variant="text" color="primary" @click="refreshName()">随机生成</v-btn>
+            <v-btn variant="text" color="primary" @click="refreshName()" icon="mdi-dice-multiple"></v-btn>
           </v-col>
           <v-col cols="6">
             <v-select outlined clearable label="卷类型" v-model="volume.type" hide-details :items="volumeTypes"

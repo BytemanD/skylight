@@ -10,7 +10,7 @@
                     <v-col>
                         <v-text-field label="*名字" placeholder="请输入网络名" v-model="dialog.name">
                             <template v-slot:append>
-                                <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
+                                <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
                             </template>
                         </v-text-field>
                     </v-col>

@@ -8,10 +8,10 @@
             <v-card-text>
                 <v-text-field label="*名字" placeholder="请输入项目名" v-model="dialog.name"
                     :rules="[dialog.checkNotNull]">
+                    <template v-slot:append>
+                        <v-btn variant="text" color="primary" @click="dialog.refreshName()" icon="mdi-dice-multiple"></v-btn>
+                    </template>
                 </v-text-field>
-                <template v-slot:append>
-                    <v-btn variant="text" color="primary" @click="dialog.refreshName()">随机名字</v-btn>
-                </template>
                 <v-select density='compact' outlined :items="dialog.domains" label="Domain"
                     :item-props="dialog.itemProps"
                     item-text="name" item-value="id" v-model="dialog.domainId">

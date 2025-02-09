@@ -6,21 +6,21 @@
       </v-text-field>
     </v-col>
     <v-col lg="2" md="3" class="px-1 py-auto">
-      <v-card-actions class="py-auto">
-        <v-btn-toggle variant="outlined" color="info" @click="changeVisibility()" v-model="table.visibility"
-          class="mx-auto">
-          <v-btn value="public">{{ $t('public') }}</v-btn>
-          <v-btn value="shared">{{ $t('shared') }}</v-btn>
-          <v-btn value="private">{{ $t('private') }}</v-btn>
-        </v-btn-toggle>
-      </v-card-actions>
+      <v-card>
+        <v-card-actions class="pa-1">
+          <v-select density="compact" hide-details :items="visibility" v-model="table.visibility"
+            @update:model-value="changeVisibility">
+          </v-select>
+          <v-spacer></v-spacer>
+          <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="table.refreshPage()"></v-btn>
+        </v-card-actions>
+      </v-card>
     </v-col>
     <v-col lg="2" v-if='!simple' class="px-1">
       <v-card>
         <v-card-actions class="pa-1">
           <NewImageVue :images="table.selected" @created="table.refreshPage()"
             @uploaded="(id) => { table.waitImageUploaed(id) }" />
-          <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="table.refreshPage()"></v-btn>
           <v-spacer></v-spacer>
           <ImageDeleteSmartDialog :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
           <TasksDialog :show.sync="showTasksDialog" />
@@ -117,6 +117,8 @@
 </template>
 
 <script>
+import i18n from '@/assets/app/i18n.js'
+
 import { ImageDataTable } from '@/assets/app/data_tables';
 import NewImageVue from '@/components/dashboard/containers/image/dialogs/NewImage.vue';
 
@@ -141,6 +143,11 @@ export default {
     openImageDeleteSmartDialog: false,
     showImagePropertiesDialog: false,
     showTasksDialog: false,
+    visibility: [
+      { title: i18n.global.t('public'), value: 'public' },
+      { title: i18n.global.t('shared'), value: 'shared' },
+      { title: i18n.global.t('private'), value: 'private' },
+    ],
   }),
   methods: {
     selectImage: function (event, data) {

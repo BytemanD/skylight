@@ -4,12 +4,13 @@
             <v-card-title class="headline primary lighten-2" primary-title>添加用户</v-card-title>
             <v-card-text>
                 <v-row>
-                    <v-col cols="10">
+                    <v-col cols="12">
                         <v-text-field label="名字" placeholder="请输入用户名" v-model="dialog.name"
-                            :rules="[dialog.checkNotNull]"></v-text-field>
-                    </v-col>
-                    <v-col cols="2" class="my-auto">
-                        <v-btn text color="primary" @click="dialog.randomName()">随机名字</v-btn>
+                            :rules="[dialog.checkNotNull]">
+                            <template v-slot:append>
+                                <v-btn variant="text" color="primary" @click="dialog.randomName()" icon="mdi-dice-multiple"></v-btn>
+                            </template>
+                        </v-text-field>
                     </v-col>
                 </v-row>
                 <v-text-field label="密码" placeholder="请输入密码" v-model="dialog.password"></v-text-field>

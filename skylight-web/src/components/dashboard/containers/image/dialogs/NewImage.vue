@@ -13,7 +13,7 @@
                             <template v-slot:prepend>镜像名</template>
                             <template v-slot:append>
                                 <v-btn hide-details variant="text" color="primary"
-                                    @click="dialog.name = dialog.randomName()">随机名字</v-btn>
+                                    @click="dialog.name = dialog.randomName()" icon="mdi-dice-multiple"></v-btn>
                             </template>
                         </v-text-field>
                     </v-col>

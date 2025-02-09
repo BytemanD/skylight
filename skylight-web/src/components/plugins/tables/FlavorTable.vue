@@ -10,13 +10,13 @@
         <v-card-actions class="py-1">
           <v-checkbox hide-details color="info" v-model="table.isPublic" label="公共" density="compact"
             class="my-1 mx-auto" @update:model-value="table.refreshPage()"></v-checkbox>
+          <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refreshPage()"></v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
     <v-col cols="3" v-if="!simple" class="px-1">
       <v-card>
         <v-card-actions class="py-1">
-          <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refreshPage()"></v-btn>
           <NewFlavorDialog @completed="table.refreshPage()" />
           <v-spacer></v-spacer>
           <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除规格?"
