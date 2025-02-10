@@ -23,15 +23,13 @@
 
     <v-app-bar density="compact">
       <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"
-        :icon="navigation.mini ? 'mdi-dots-vertical' : 'mdi-menu'"></v-app-bar-nav-icon>
+        :icon="navigation.mini ? 'mdi-dots-vertical' : 'mdi-menu'">
+      </v-app-bar-nav-icon>
+      <!-- <v-toolbar-title>
+      </v-toolbar-title> -->
+      <v-chip color="indigo" prepend-icon="mdi-map">{{ $t('cluster') }}: {{ context.cluster }}</v-chip>
+      <v-chip class="ml-4" prepend-icon="mdi-map-marker" color="info">地区： {{ context.region }}</v-chip>
       <v-toolbar-title>
-        <v-text-field hide-details class="rounded-0" :value="context && context.cluster">
-          <template v-slot:prepend>{{ $t('cluster') }} </template>
-        </v-text-field>
-      </v-toolbar-title>
-      <v-toolbar-title class="ml-1">
-        <v-text-field hide-details prepend-icon="mdi-map-marker" class="rounded-0" :value="context && context.region">
-        </v-text-field>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-chip prepend-icon="mdi-account-star" class="mr-1" color="info">

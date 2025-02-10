@@ -1,42 +1,37 @@
 <template>
-  <v-row>
-    <v-col sm="12" lg="4" class="px-1">
-      <v-text-field label="查找..." single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-        v-model="table.search">
-      </v-text-field>
+  <v-row class="pt-1">
+    <v-col sm="12" lg="4" class="ml-2">
+      <v-sheet-toolbar class="pa-2 px-2">
+        <v-text-field label="查找..." single-line clearable variant="underlined" density="compact" hide-details
+          prepend-icon="mdi-magnify" v-model="table.search">
+        </v-text-field>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col cols="2" class="px-1">
-      <v-card>
-        <v-card-actions class="py-1">
-          <v-checkbox hide-details color="info" v-model="table.isPublic" label="公共" density="compact"
-            class="my-1 mx-auto" @update:model-value="table.refreshPage()"></v-checkbox>
-          <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="table.refreshPage()"></v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-col cols="2">
+      <v-sheet-toolbar>
+        <v-checkbox hide-details color="info" v-model="table.isPublic" label="公共" density="compact" class="my-1 mx-auto"
+          @update:model-value="table.refreshPage()"></v-checkbox>
+        <v-btn variant="text" icon="mdi-refresh" color="info" v-on:click="table.refreshPage()"></v-btn>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col cols="3" v-if="!simple" class="px-1">
-      <v-card>
-        <v-card-actions class="py-1">
-          <NewFlavorDialog @completed="table.refreshPage()" />
-          <v-spacer></v-spacer>
-          <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除规格?"
-            @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
-        </v-card-actions>
-      </v-card>
+    <v-col cols="3" v-if="!simple">
+      <v-sheet-toolbar>
+        <NewFlavorDialog @completed="table.refreshPage()" />
+        <v-spacer></v-spacer>
+        <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除规格?"
+          @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
+      </v-sheet-toolbar>
     </v-col>
-    <v-col class="px-1">
-      <!-- <v-toolbar density="compact"> -->
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
-            icon="mdi-chevron-double-left"></v-btn>
-          <v-chip density="compact">{{ table.page }}</v-chip>
-          <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
-            icon="mdi-chevron-double-right"></v-btn>
-          <v-spacer></v-spacer>
-
-        </v-card-actions>
-      <!-- </v-toolbar> -->
+    <v-col>
+      <v-sheet-toolbar>
+        <v-spacer></v-spacer>
+        <v-btn color="info" variant="text" @click="() => table.prePage()" :disabled="table.page <= 1"
+          icon="mdi-chevron-double-left"></v-btn>
+        <v-chip density="compact">{{ table.page }}</v-chip>
+        <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
+          icon="mdi-chevron-double-right"></v-btn>
+        <v-spacer></v-spacer>
+      </v-sheet-toolbar>
     </v-col>
     <!-- 简单的表格 -->
     <v-col cols="10" v-if="simple">
@@ -53,7 +48,6 @@
         <template v-slot:[`item.ram`]="{ item }">{{ Utils.humanRam(item.ram) }}</template>
       </v-data-table>
     </v-col>
-
     <!-- 详细的表格 -->
     <v-col v-else cols="12">
       <v-data-table density='compact' show-select :loading="table.loading" :headers="table.headers" :items="table.items"

@@ -1,83 +1,83 @@
 <template>
   <v-row>
-    <v-col lg=3 md="8" sm="12" class="px-1">
-      <v-text-field clearable variant="solo" hide-details v-model="table.customQueryValue" placeholder="搜索..."
-        class="ma-0 pa-0" @keyup.enter.native="search()">
-        <template v-slot:prepend-inner>
-          <v-chip size="small">{{ table.selectedCustomQuery.title }}</v-chip>
-        </template>
-        <template v-slot:prepend>
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn variant="text" v-bind="props" color="grey" icon="mdi-filter-menu"></v-btn>
-            </template>
-            <v-list density="compact">
-              <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
-                :class="table.selectedCustomQuery.value == item.value ? 'bg-info' : ''"
-                @click="table.selectedCustomQuery = item">
-                <v-list-item-title>{{ item.title }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </template>
-      </v-text-field>
+    <v-col lg=3 md="8" sm="12">
+      <v-sheet-toolbar>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn variant="text" class="my-auto" v-bind="props" color="grey" icon="mdi-filter-menu"></v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item v-for="(item, index) in table.customQueryParams" :key="index" :value="index"
+              :class="table.selectedCustomQuery.value == item.value ? 'bg-info' : ''"
+              @click="table.selectedCustomQuery = item">
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-text-field clearable variant="underlined" density="compact" hide-details v-model="table.customQueryValue"
+          :placeholder="'搜索' + table.selectedCustomQuery.title + ' ...'" @keyup.enter.native="search()">
+        </v-text-field>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col lg=7 md="12" sm="12" class="px-1">
-      <v-card>
-        <v-card-actions class="py-1">
-          <v-btn variant="text" icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
-          <v-divider vertical class="my-3"></v-divider>
-          <v-tooltip location="top">
-            <template v-slot:activator="{ props }">
-              <v-btn icon variant="text" v-bind="props" v-on:click="changeListAll">
-                <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
-              </v-btn>
-            </template>
-            查询全部租户
-          </v-tooltip>
-          <v-tooltip location="top">
-            <template v-slot:activator="{ props }">
-              <v-btn icon variant="text" v-on:click="changeDeleted" v-bind="props">
-                <v-icon :color="table.deleted ? 'red' : 'grey'">mdi-delete-off</v-icon>
-              </v-btn>
-            </template>
-            查询未删除/已删除
-          </v-tooltip>
-          <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
-          <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="table.refreshPage()" />
-          <v-divider vertical class="my-3"></v-divider>
-          <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
-            {{ $t('start') }}</v-btn>
-          <v-btn variant="text" color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
-            class="pa-0">
-            {{ $t('stop') }}
-          </v-btn>
-          <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
-          <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
-            v-if="context && context.isAdmin()" />
-          <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
-            v-if="context && context.isAdmin()" />
-          <btn-server-reset-state variant="text" :servers="table.selected" @updateServer="(server) => { table.updateItem(server) }"
-            v-if="context && context.isAdmin()" />
-          <v-spacer></v-spacer>
-          <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?"
-            @click:comfirm="deleteSelected()" :items="table.getSelectedItems()" />
-        </v-card-actions>
-      </v-card>
-    </v-col>
-    <v-col class="px-1">
-      <v-card-actions>
+    <v-col lg="6" md="11" sm="11">
+      <v-sheet-toolbar>
+        <v-btn variant="text" icon="mdi-plus" color="primary" @click="() => { newServer() }"></v-btn>
         <v-spacer></v-spacer>
+        <v-divider vertical class="my-3"></v-divider>
+        <v-spacer></v-spacer>
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props }">
+            <v-btn icon variant="text" v-bind="props" v-on:click="changeListAll">
+              <v-icon :color="table.all_tenants ? 'info' : 'grey'">mdi-select-all</v-icon>
+            </v-btn>
+          </template>
+          查询全部租户
+        </v-tooltip>
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props }">
+            <v-btn icon variant="text" v-on:click="changeDeleted" v-bind="props">
+              <v-icon :color="table.deleted ? 'red' : 'grey'">mdi-delete-off</v-icon>
+            </v-btn>
+          </template>
+          查询未删除/已删除
+        </v-tooltip>
+        <BtnIcon variant="text" icon="mdi-family-tree" tool-tip="显示拓扑图" @click="openServerTopology = true" />
+        <BtnIcon variant="text" icon="mdi-refresh" color="info" tool-tip="刷新" @click="table.refreshPage()" />
+        <v-spacer></v-spacer>
+        <v-divider vertical class="my-3"></v-divider>
+        <v-spacer></v-spacer>
+
+        <v-btn variant="text" color="success" @click="table.startSelected()" :disabled="table.selected.length == 0">
+          {{ $t('start') }}</v-btn>
+        <v-btn variant="text" color="warning" v-on:click="table.stopSelected()" :disabled="table.selected.length == 0"
+          class="pa-0">
+          {{ $t('stop') }}
+        </v-btn>
+        <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
+        <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
+          v-if="context && context.isAdmin()" />
+        <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
+          v-if="context && context.isAdmin()" />
+        <btn-server-reset-state variant="text" :servers="table.selected"
+          @updateServer="(server) => { table.updateItem(server) }" v-if="context && context.isAdmin()" />
+      </v-sheet-toolbar>
+    </v-col>
+    <v-col cols="1">
+      <v-sheet-toolbar>
+        <delete-comfirm-dialog :disabled="table.selected.length == 0" title="确定删除实例?" @click:comfirm="deleteSelected()"
+          :items="table.getSelectedItems()" />
+      </v-sheet-toolbar>
+    </v-col>
+    <v-col>
+      <v-sheet-toolbar>
         <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
           icon="mdi-chevron-double-left"></v-btn>
         <v-chip density="compact">{{ table.page }}</v-chip>
         <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
           icon="mdi-chevron-double-right"></v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+      </v-sheet-toolbar>
     </v-col>
-    <v-divider></v-divider>
-    <v-col cols='12'>
+    <v-col cols='12' class="mt-2">
       <v-data-table hover density='compact' show-select show-expand single-expand :loading="table.loading"
         :headers="table.headers" :items="table.items" :items-per-page="table.itemsPerPage" v-model="table.selected"
         show-current-page v-bind:page="table.page">

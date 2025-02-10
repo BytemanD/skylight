@@ -1,11 +1,12 @@
 <template>
   <v-dialog v-model="display" width="900" scrollable>
     <template v-slot:activator="{ props }">
-      <v-btn v-bind="props"  icon="mdi-plus" color="primary" class="mr-1"></v-btn>
+      <v-btn v-bind="props" variant="text" icon="mdi-plus" color="primary" class="mr-1"></v-btn>
     </template>
 
     <v-card>
       <v-card-title>新建规格</v-card-title>
+      <v-divider></v-divider>
       <v-card-text>
         <v-row>
           <v-col cols="6">

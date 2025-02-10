@@ -1,5 +1,5 @@
 <template>
-    <v-col class="ma-0 pa-0">
+    <v-col>
         <v-tabs v-model="tabIndex" show-arrows :selected-class="'bg-' + color" :slider-color="color" density="compact">
             <v-tab v-for="(tab, i) in tabItems" v-bind:key="i">
                 <v-icon v-if="tab.icon">{{ tab.icon }}</v-icon>{{ tab.text }}
@@ -8,7 +8,7 @@
         </v-tabs>
         <div :class="'bg-' + color" style="height: 2px;"></div>
         <v-window v-model="tabIndex" class="mt-2">
-            <v-col >
+            <v-col>
                 <slot name="window-items"></slot>
             </v-col>
         </v-window>
