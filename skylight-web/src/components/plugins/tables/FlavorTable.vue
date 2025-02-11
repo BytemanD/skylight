@@ -1,20 +1,17 @@
 <template>
   <v-row class="pt-1">
-    <v-col sm="12" lg="4" class="ml-2">
-      <v-sheet-toolbar class="pa-2 px-2">
-        <v-text-field label="查找..." single-line clearable variant="underlined" density="compact" hide-details
-          prepend-icon="mdi-magnify" v-model="table.search">
-        </v-text-field>
-      </v-sheet-toolbar>
+    <v-col sm="12" lg="4" class="mx-1">
+      <v-text-field-search label="查找..." v-model="table.search"> </v-text-field-search>
     </v-col>
     <v-col cols="2">
       <v-sheet-toolbar>
         <v-checkbox hide-details color="info" v-model="table.isPublic" label="公共" density="compact" class="my-1 mx-auto"
           @update:model-value="table.refreshPage()"></v-checkbox>
+        <v-spacer></v-spacer>
         <v-btn variant="text" icon="mdi-refresh" color="info" v-on:click="table.refreshPage()"></v-btn>
       </v-sheet-toolbar>
     </v-col>
-    <v-col cols="3" v-if="!simple">
+    <v-col v-if="!simple">
       <v-sheet-toolbar>
         <NewFlavorDialog @completed="table.refreshPage()" />
         <v-spacer></v-spacer>
@@ -22,7 +19,7 @@
           @click:comfirm="table.deleteSelected()" :items="table.getSelectedItems()" />
       </v-sheet-toolbar>
     </v-col>
-    <v-col>
+    <v-col cols="2" class="mr-1">
       <v-sheet-toolbar>
         <v-spacer></v-spacer>
         <v-btn color="info" variant="text" @click="() => table.prePage()" :disabled="table.page <= 1"

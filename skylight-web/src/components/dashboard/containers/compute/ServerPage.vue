@@ -54,12 +54,28 @@
           {{ $t('stop') }}
         </v-btn>
         <btn-server-reboot :servers="table.selected" @updateServer="updateServer" />
-        <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
-          v-if="context && context.isAdmin()" />
-        <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
-          v-if="context && context.isAdmin()" />
         <btn-server-reset-state variant="text" :servers="table.selected"
           @updateServer="(server) => { table.updateItem(server) }" v-if="context && context.isAdmin()" />
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn color="warning" class="ml-1" v-bind="props">
+              <template v-slot:append>
+                <v-icon>mdi-menu-down</v-icon>
+              </template>
+              {{ $t('more') }}
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item>
+              <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
+                v-if="context && context.isAdmin()" />
+            </v-list-item>
+            <v-list-item>
+              <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
+                v-if="context && context.isAdmin()" />
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-sheet-toolbar>
     </v-col>
     <v-col cols="1">

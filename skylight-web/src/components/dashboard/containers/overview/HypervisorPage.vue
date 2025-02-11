@@ -2,28 +2,26 @@
   <alert-require-admin :context="context">
     <template v-slot:content>
       <v-row>
-        <v-col cols='4'>
-          <v-text-field variant="solo" hide-details v-model="table.search" placeholder="输入主机名、IP地址等"
-            prepend-inner-icon="mdi-magnify">
-          </v-text-field>
+        <v-col lg="4" md="4" sm="12" cols='12'>
+          <v-text-field-search v-model="table.search" placeholder="输入主机名、IP地址等">
+          </v-text-field-search>
         </v-col>
-        <v-col cols='8'>
-          <v-card>
-            <v-card-actions class="mt-1">
-              <v-spacer></v-spacer>
-              <h4>类型</h4>
-              <v-btn-toggle class="ml-2" variant="outlined" density="compact" color="info" @click="table.refresh()"
-                v-model="table.hypervisorType">
-                <v-btn value="QEMU">QEMU</v-btn>
-                <v-btn value="ironic">Ironic</v-btn>
-              </v-btn-toggle>
-              <v-spacer></v-spacer>
-              <v-btn icon="mdi-refresh" density="compact" color="info" v-on:click="table.refresh()"></v-btn>
-            </v-card-actions>
-          </v-card>
+        <v-col lg="7" md="4" sm="6" cols="10">
+          <v-sheet class="d-flex" max-height="48">
+            <v-btn-toggle density="compact" class="ml-2" variant="outlined" color="info" @click="table.refresh()"
+              v-model="table.hypervisorType">
+              <v-btn value="QEMU">QEMU</v-btn>
+              <v-btn value="ironic">Ironic</v-btn>
+            </v-btn-toggle>
+            <v-spacer></v-spacer>
+          </v-sheet>
         </v-col>
-        <v-divider></v-divider>
-        <v-col>
+        <v-col lg="1" md="2" sm="6" cols="2">
+          <v-sheet-toolbar>
+            <v-btn icon="mdi-refresh" color="info" v-on:click="table.refresh()"></v-btn>
+          </v-sheet-toolbar>
+        </v-col>
+        <v-col cols="12">
           <v-data-table density='compact' show-expand single-expand :headers="table.headers" :items="table.items"
             :items-per-page="table.itemsPerPage" :search="table.search" v-model="table.selected"
             :loading="table.loading">

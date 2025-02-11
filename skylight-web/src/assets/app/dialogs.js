@@ -56,11 +56,17 @@ class Dialog {
         }
         return true;
     }
+    checkNumberLargeThanZero(value) {
+        if (value <= 0) {
+            return '该选项必须大于0';
+        }
+        return true
+    }
     checkNameNotNull(value) {
         if (!value) {
             return '名字不能为空';
         }
-        return true;
+        return true
     }
     checkNotEmpty(value, notify) {
         if (value == null || (value instanceof Array && value.length == 0) || Object.keys(value).length == 0) {

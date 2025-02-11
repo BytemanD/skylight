@@ -1,41 +1,36 @@
 <template>
   <v-row>
-    <v-col lg="5" md="8" sm="12" class="px-1">
-      <v-card>
-        <v-card-actions>
-          <v-breadcrumbs class="pl-0" :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" color="info" @click="refresh()">刷新</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-col lg="4" md="12" sm="12" cols="12">
+      <v-sheet-toolbar min-height="48">
+        <v-breadcrumbs :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
+        <v-spacer></v-spacer>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col lg="1" md="4" class="px-1">
-      <v-card>
-        <v-card-actions>
-          <v-btn color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-col>
+      <v-sheet-toolbar min-height="48">
+        <v-btn color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
+        <v-divider vertical class="my-3"></v-divider>
+        <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
+        <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
+        <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
+          {{ $t('pause') }}</v-btn>
+        <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
+          {{ $t('unpause') }}</v-btn>
+        <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="shelve()">
+          {{ $t('shelve') }}</v-btn>
+        <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
+          @click="unshelve()">{{ $t('unshelve') }}</v-btn>
+        <btn-server-migrate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
+        <btn-server-evacuate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
+        <v-spacer></v-spacer>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col cols="12" md="12" lg="6" class="pb-0 px-1">
-      <v-card>
-        <v-card-actions>
-          <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
-          <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
-          <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
-            {{ $t('pause') }}</v-btn>
-          <v-btn variant="text" color="success" v-if="server.status == 'PAUSED'" @click="unpause()">
-            {{ $t('unpause') }}</v-btn>
-          <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="shelve()">
-            {{ $t('shelve') }}</v-btn>
-          <v-btn variant="text" color="warning" v-if='["SHELVED", "SHELVED_OFFLOADED"].indexOf(server.status) > 0'
-            @click="unshelve()">{{ $t('unshelve') }}</v-btn>
-          <btn-server-migrate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
-          <btn-server-evacuate :servers="[server]" @updateServer="updateServer" v-if="context && context.isAdmin()" />
-        </v-card-actions>
-      </v-card>
+    <v-col lg="1" md="2" sm="2" cols="12">
+      <v-sheet-toolbar>
+        <v-btn variant="text" color="info" @click="refresh()" icon="mdi-refresh"></v-btn>
+      </v-sheet-toolbar>
     </v-col>
-    <v-divider></v-divider>
-    <v-col cols="12">
+    <v-col cols="12" class="ma-2 pr-4">
       <server-base-info-card :server="server"></server-base-info-card>
     </v-col>
     <v-divider></v-divider>

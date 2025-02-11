@@ -1,39 +1,38 @@
 <template>
   <v-row>
     <v-col sm="12" lg="3" md="6" class="px-1">
-      <v-text-field :label="'查询镜像' + (table.supportFuzzyNameSearch ? '(模糊查询)' : '') + '...'" single-line variant="solo"
-        hide-details prepend-inner-icon="mdi-magnify" v-model="table.searchName" @keyup.enter.native="search()">
-      </v-text-field>
+      <v-text-field-search :placeholder="'查询镜像' + (table.supportFuzzyNameSearch ? '(模糊查询)' : '') + '...'"
+        v-model="table.searchName" @keyup.enter.native="search()">
+      </v-text-field-search>
     </v-col>
     <v-col lg="2" md="3" class="px-1 py-auto">
-      <v-card>
-        <v-card-actions class="pa-1">
-          <v-select density="compact" hide-details :items="visibility" v-model="table.visibility"
-            @update:model-value="changeVisibility">
-          </v-select>
-          <v-spacer></v-spacer>
-          <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="table.refreshPage()"></v-btn>
-        </v-card-actions>
-      </v-card>
+      <v-sheet-toolbar>
+
+        <v-select density="compact" hide-details :items="visibility" v-model="table.visibility"
+          @update:model-value="changeVisibility">
+        </v-select>
+        <v-spacer></v-spacer>
+        <v-btn color="info" icon="mdi-refresh" variant="text" v-on:click="table.refreshPage()"></v-btn>
+      </v-sheet-toolbar>
     </v-col>
     <v-col lg="2" v-if='!simple' class="px-1">
-      <v-card>
-        <v-card-actions class="pa-1">
-          <NewImageVue :images="table.selected" @created="table.refreshPage()"
-            @uploaded="(id) => { table.waitImageUploaed(id) }" />
-          <v-spacer></v-spacer>
-          <ImageDeleteSmartDialog :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
-          <TasksDialog :show.sync="showTasksDialog" />
-        </v-card-actions>
-      </v-card>
+      <v-sheet-toolbar>
+        <NewImageVue :images="table.selected" @created="table.refreshPage()"
+          @uploaded="(id) => { table.waitImageUploaed(id) }" />
+        <v-spacer></v-spacer>
+        <ImageDeleteSmartDialog :images="table.selected" @completed="table.resetSelected(); table.refresh()" />
+        <TasksDialog :show.sync="showTasksDialog" />
+      </v-sheet-toolbar>
     </v-col>
     <v-col sm="12" lg="3" md="6" class="px-1">
-      <v-text-field label="过滤" single-line variant="solo" hide-details prepend-inner-icon="mdi-magnify"
-        v-model="table.search" @keyup.enter.native="search()">
-      </v-text-field>
+      <v-sheet-toolbar class="pa-2 px-2">
+        <v-text-field label="过滤" single-line variant="underlined" density="compact" hide-details
+          prepend-icon="mdi-magnify" v-model="table.search" @keyup.enter.native="search()">
+        </v-text-field>
+      </v-sheet-toolbar>
     </v-col>
-    <v-col class="px-1">
-      <v-card-actions>
+    <v-col>
+      <v-sheet-toolbar>
         <v-spacer></v-spacer>
         <v-btn color="info" @click="() => table.prePage()" :disabled="table.page <= 1"
           icon="mdi-chevron-double-left"></v-btn>
@@ -41,7 +40,7 @@
         <v-btn color="info" @click="() => table.nextPage()" :disabled="!table.hasNext"
           icon="mdi-chevron-double-right"></v-btn>
         <v-spacer></v-spacer>
-      </v-card-actions>
+      </v-sheet-toolbar>
     </v-col>
     <!-- 简单的表格 -->
     <v-col cols="10" v-if="simple">

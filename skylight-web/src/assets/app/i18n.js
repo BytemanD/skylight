@@ -131,6 +131,8 @@ const MESSAGES = {
         serverName: 'server name',
         flavor: '规格',
         ID: "ID",
+
+        more: "more"
     },
     'zh-CN': {
         language: '语言',
@@ -268,6 +270,8 @@ const MESSAGES = {
         serverName: '实例名',
         flavor: '规格',
         ID: "ID",
+
+        more: "更多"
     },
 };
 
