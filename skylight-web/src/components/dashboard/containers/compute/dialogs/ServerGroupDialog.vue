@@ -4,28 +4,31 @@
             <v-card-title primary-title class="headline primary">虚拟机群组</v-card-title>
             <v-card-text>
                 <table>
-                    <tr>
-                        <td class="text-info">ID:</td>
-                        <td>{{ dialog.serverGroup.id }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-info">名字:</td>
-                        <td>{{ dialog.serverGroup.name }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-info">策略:</td>
-                        <td>
-                            <v-chip label small class="mr-1 info" v-for="policy in dialog.serverGroup.policies"
-                                v-bind:key="policy">{{ policy }}</v-chip>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-info">成员:</td>
-                        <td>
-                            <v-chip label small class="mr-1" v-for="member in dialog.serverGroup.members"
-                                v-bind:key="member">{{ member }}</v-chip>
-                        </td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td class="text-info">ID:</td>
+                            <td>{{ dialog.serverGroup.id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-info">名字:</td>
+                            <td>{{ dialog.serverGroup.name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-info">策略:</td>
+                            <td>
+                                <v-chip label small class="mr-1 info" v-for="policy in dialog.serverGroup.policies"
+                                    v-bind:key="policy">{{ policy }}</v-chip>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-info">成员:</td>
+                            <td>
+                                <v-chip label small class="mr-1" v-for="member in dialog.serverGroup.members"
+                                    v-bind:key="member">{{ member }}</v-chip>
+                            </td>
+                        </tr>
+
+                    </tbody>
                 </table>
             </v-card-text>
         </v-card>

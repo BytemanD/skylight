@@ -7,7 +7,6 @@
     </v-col>
     <v-col lg="2" md="3" class="px-1 py-auto">
       <v-sheet-toolbar>
-
         <v-select density="compact" hide-details :items="visibility" v-model="table.visibility"
           @update:model-value="changeVisibility">
         </v-select>
@@ -92,19 +91,21 @@
           <td></td>
           <td :colspan="columns.length - 1">
             <table>
-              <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.key">
-                <td class="text-info">{{ extendItem.title }}:</td>
-                <td>{{ item[extendItem.key] }}</td>
-              </tr>
-              <tr>
-                <td class="text-info">Properties</td>
-                <td>
-                  <template v-for="(value, key) in item">
-                    <v-chip size="x-small" label v-bind:key="key" v-if="key.startsWith('hw')" class="mr-2">
-                      {{ key }}={{ value }}</v-chip>
-                  </template>
-                </td>
-              </tr>
+              <tbody>
+                <tr v-for="extendItem in table.extendItems" v-bind:key="extendItem.key">
+                  <td class="text-info">{{ extendItem.title }}:</td>
+                  <td>{{ item[extendItem.key] }}</td>
+                </tr>
+                <tr>
+                  <td class="text-info">Properties</td>
+                  <td>
+                    <template v-for="(value, key) in item">
+                      <v-chip size="x-small" label v-bind:key="key" v-if="key.startsWith('hw')" class="mr-2">
+                        {{ key }}={{ value }}</v-chip>
+                    </template>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </td>
         </template>

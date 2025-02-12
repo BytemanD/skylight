@@ -65,12 +65,12 @@
               {{ $t('more') }}
             </v-btn>
           </template>
-          <v-list>
-            <v-list-item>
+          <v-list density="compact">
+            <v-list-item class="px-1">
               <btn-server-migrate :servers="table.selected" @updateServer="updateServer"
                 v-if="context && context.isAdmin()" />
             </v-list-item>
-            <v-list-item>
+            <v-list-item class="pa-1">
               <btn-server-evacuate :servers="table.selected" @updateServer="updateServer"
                 v-if="context && context.isAdmin()" />
             </v-list-item>

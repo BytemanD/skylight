@@ -63,6 +63,13 @@ const MESSAGES = {
         supportFuzzyNameSearch: 'Support Search image by fuzzy name',
         queryLimit: 'Query limit',
         // 实例任务状态
+        RESIZE: 'RESIZE',
+        resize: 'resize',
+        VERIFY_RESIZE: "rerify resize",
+        MIGRATING: 'MIGRATING',
+        migrating: 'migrating',
+        REBUILD: 'REBUILD',
+
         'scheduling': 'scheduling',
         'block_device_mapping': 'block device mapping',
         'spawning': 'spawing',
@@ -196,6 +203,13 @@ const MESSAGES = {
         supportFuzzyNameSearch: '支持镜像名模糊查询',
         queryLimit: '资源查询限制',
         // 实例任务状态
+        RESIZE: '变更中',
+        resize: '变更中',
+        VERIFY_RESIZE: "变更确认",
+        MIGRATING: '迁移中',
+        migrating: '迁移中',
+        REBUILD: '重装中',
+
         'scheduling': '调度中',
         'block_device_mapping': '创建系统盘',
         'networking': '创建网络',

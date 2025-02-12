@@ -1,13 +1,14 @@
 <template>
     <v-dialog v-model="display" width="900" scrollable>
         <template v-slot:activator="{ props }">
-            <v-btn variant="tonal" v-bind="props" density="compact" color="warning" class="ml-1"
-                :disabled="!server.name">变更</v-btn>
+            <v-btn :variant="variant" v-bind="props" density="compact" color="warning" class="ml-1"
+                :disabled="disabled">变更</v-btn>
         </template>
         <v-card>
             <v-card-title class="headline warning">规格变更</v-card-title>
             <v-card-subtitle>当前规格: {{ server.flavor.original_name }} </v-card-subtitle>
             <v-card-text>
+                {{ server.task_state }} xx {{ !!server.task_state }} xx
                 <v-text-field class="mb-1" density="compact" readonly v-model="selectedFlavor.name"
                     :rules="[validFlavor]">
                     <template v-slot:prepend>规格</template>
@@ -35,6 +36,7 @@ import FlavorTable from '@/components/plugins/tables/FlavorTable.vue';
 const progs = defineProps({
     variant: { type: String, default: 'text' },
     server: { type: Object, required: true },
+    disabled: { type: Boolean, default: false },
 })
 const emits = defineEmits(['updateServer'])
 

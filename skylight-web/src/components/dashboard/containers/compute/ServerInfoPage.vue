@@ -37,134 +37,28 @@
     <v-col cols="12" class="px-1">
       <tab-windows :tabs="tabs" @switch-tab="handleSwitchTab">
         <template v-slot:window-items>
-          <v-window-item>
+          <v-window-item class="px-1 py-2">
             <v-row>
+              <v-col cols="4">
+                <!-- 显示详情 -->
+                <server-detail-card :server="server"></server-detail-card>
+              </v-col>
+              <v-col cols="4">
+                <!-- 显示规格 -->
+                <server-flavor-card :server="server" :disabled="!!server['OS-EXT-STS:task_state']"></server-flavor-card>
+              </v-col>
+              <v-col cols="4">
+                <!-- 显示镜像 -->
+                <server-image-card :server="server" :disabled="!!server['OS-EXT-STS:task_state']"></server-image-card>
+              </v-col>
               <v-col cols="6">
                 <v-card density="compact">
                   <v-card-text>
-                    <table density="compact" class="text-left">
-                      <tr>
-                        <th style="min-width: 100px">实例名</th>
-                        <td>{{ server['OS-EXT-SRV-ATTR:instance_name'] }}</td>
-                      </tr>
-                      <tr>
-                        <th>创建时间</th>
-                        <td>{{ Utils.parseUTCToLocal(server.created) }}</td>
-                      </tr>
-                      <tr>
-                        <th>启动时间</th>
-                        <td>{{ Utils.parseUTCToLocal(server['OS-SRV-USG:launched_at']) }}</td>
-                      </tr>
-                      <tr>
-                        <th>系统盘类型</th>
-                        <td><span class="text-info">{{ server.root_bdm_type }}</span></td>
-                      </tr>
-                      <tr>
-                        <th>AZ</th>
-                        <td>{{ server['OS-EXT-AZ:availability_zone'] }}</td>
-                      </tr>
-                      <tr>
-                        <th>更新时间</th>
-                        <td>{{ server.updated }}</td>
-                      </tr>
-                      <tr>
-                        <th>安全组</th>
-                        <td>
-                          <v-chip v-for="sg in server.security_groups" label density="compact" class="mr-1">
-                            {{ sg.name }}</v-chip>
-                        </td>
-                      </tr>
-                      <tr>
-                        <th>项目ID</th>
-                        <td>{{ server.tenant_id || server.project_id }}</td>
-                      </tr>
-                      <tr>
-                        <th>标签</th>
-                        <td>{{ server.tags }}</td>
-                      </tr>
-                    </table>
                     <dialog-live-migrate-abort v-if="server.status == 'MIGRATING'" :items="[server]" />
                     <v-progress-linear height="12" v-if="server.status == 'MIGRATING'" color="green-lighten-2"
                       :model-value="server.progress">
                       <template v-slot:default="{ value }">{{ value }}%</template>
                     </v-progress-linear>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="6">
-                <v-card density="compact" title="镜像">
-                  <template v-slot:append>
-                    <btn-server-rebuild :servers="[server]" @update-server="updateServer" />
-                  </template>
-                  <v-divider></v-divider>
-                  <v-card-text>
-                    <table density="compact" class="text-left">
-                      <tr>
-                        <td style="min-width: 70px">ID</td>
-                        <td>
-                          {{ server.image && server.image.id }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>镜像名</td>
-                        <td>{{ image.name }}</td>
-                      </tr>
-                      <tr>
-                        <td>状态</td>
-                        <td>{{ image.status }}</td>
-                      </tr>
-                      <tr>
-                        <td>大小</td>
-                        <td>{{ image.size }}</td>
-                      </tr>
-                      <!-- <tr v-if="image">
-                        <td>属性</td>
-                        <td>
-                          <template v-for="(value, key) in image">
-                            <v-chip label density="compact" class="mr-1 mt-1" v-if="key.startsWith('hw')"
-                              v-bind:key="key">
-                              {{ key }}={{ value }}</v-chip>
-                          </template>
-                        </td>
-                      </tr> -->
-                    </table>
-                  </v-card-text>
-                </v-card>
-                <v-card density="compact" class="mt-1" title="规格">
-                  <template v-slot:append>
-                    <btn-server-resize :server="server" @update-server="updateServer" />
-                  </template>
-                  <v-divider></v-divider>
-                  <v-card-text>
-                    <table density="compact" class="text-left">
-                      <tr>
-                        <td style="min-width: 100px">名称</td>
-                        <td>
-                          {{ server.flavor && server.flavor.original_name }}
-                          <!-- <v-btn variant="text" color="warning" density="compact" disabled>变更</v-btn> -->
-                        </td>
-                      </tr>
-                      <tr>
-                        <!-- <td>{{ server.flavor && server.flavor.original_name }}</td> -->
-                        <td>CPU & 内存</td>
-                        <td>{{ server.flavor && server.flavor.vcpus || 0 }}核 {{ server.flavor && server.flavor.ram || 0
-                          }}
-                          MB
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>磁盘大小</td>
-                        <td>{{ server.flavor && server.flavor.diskx || 0 }} GB</td>
-                      </tr>
-                      <tr v-if="server.flavor">
-                        <td>属性</td>
-                        <td>
-                          <v-chip label density="compact" class="mr-1 mt-1" size="small"
-                            v-for="(value, key) in server.flavor.extra_specs" v-bind:key="key">
-                            {{ key }}={{ value }}</v-chip>
-                        </td>
-                      </tr>
-                    </table>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -226,7 +120,7 @@ import { ServerTaskWaiter, MigrationDataTable } from '@/assets/app/tables.jsx';
 import ServerInterfaceCard from '../../../plugins/ServerInterfaceCard.vue';
 import ServerVolumeCard from '@/components/plugins/ServerVolumeCard.vue';
 
-import BtnServerRebuild from '@/components/plugins/button/BtnServerRebuild.vue';
+import BtnServerRename from '@/components/plugins/BtnServerRename.vue';
 
 import ChangeServerNameDialog from './dialogs/ChangeServerNameDialog.vue';
 import ServerResetStateDialog from './dialogs/ServerResetStateDialog.vue';
@@ -243,29 +137,34 @@ import DialogLiveMigrateAbort from '@/components/plugins/dialogs/DialogLiveMigra
 
 import ServerUpdateSG from './dialogs/ServerUpdateSG.vue';
 import ServerRebuild from './dialogs/ServerRebuild.vue';
-import ServerGroupDialog from './dialogs/ServerGroupDialog.vue';
 import BtnServerReboot from '@/components/plugins/BtnServerReboot.vue';
 import BtnServerMigrate from '@/components/plugins/BtnServerMigrate.vue';
 import BtnServerChangePwd from '@/components/plugins/BtnServerChangePwd.vue';
-import BtnServerResize from '@/components/plugins/BtnServerResize.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
+
 import ServerBaseInfoCard from '@/components/plugins/ServerBaseInfoCard.vue';
+import ServerDetailCard from '@/components/plugins/ServerDetailCard.vue';
+import ServerFlavorCard from '@/components/plugins/ServerFlavorCard.vue';
+import ServerImageCard from '@/components/plugins/ServerImageCard.vue';
+
 import { GetLocalContext } from '@/assets/app/context';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 export default {
   components: {
     BtnIcon, ServerInterfaceCard, ServerVolumeCard,
-    BtnServerReboot, BtnServerMigrate, BtnServerRebuild,
+    BtnServerReboot, BtnServerMigrate,
     ServerResetStateDialog,
     ChangeServerNameDialog,
+    BtnServerRename,
 
     ServerVolumes, BtnAttachInterfaces, BtnAttachVolumes,
     CardServerConsoleLog, CardServerConsole, CardServerActions, TabWindows, ServerUpdateSG,
-    ServerRebuild, ServerGroupDialog, MigrationTable,
-    DialogLiveMigrateAbort, BtnServerChangePwd, BtnServerResize,
+    ServerRebuild, MigrationTable,
+    DialogLiveMigrateAbort, BtnServerChangePwd,
     BtnServerEvacuate,
-    ServerBaseInfoCard, AlertRequireAdmin,
+    ServerBaseInfoCard, ServerDetailCard, ServerFlavorCard, ServerImageCard,
+    AlertRequireAdmin,
   },
 
   data: () => ({

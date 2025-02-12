@@ -30,6 +30,9 @@ export default createVuetify({
     VCol: {
       class: 'px-1 py-1'
     },
+    VList: {
+      density: 'compact',
+    },
     VSheet: {
       class: "px-4 py-2 rounded align-center",
       elevation: "2",

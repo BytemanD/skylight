@@ -1,7 +1,7 @@
 <template>
-    <v-dialog v-model="dialog.show" width="900" scrollable>
+    <v-dialog v-model="dialog.show" width="1400" scrollable>
         <template v-slot:activator="{ props }">
-            <v-btn variant='tonal' color="warning" class="ml-1" density="compact" :disabled="servers.length == 0"
+            <v-btn :variant='variant' color="warning" class="ml-1" density="compact" :disabled="servers.length == 0 || disabled"
                 v-bind="props">重装</v-btn>
         </template>
         <v-card title="重装系统">
@@ -13,7 +13,7 @@
                     :value="dialog.imageRef && (selectedImage.name || selectedImage.id)">
                     <template v-slot:prepend>镜像</template>
                 </v-text-field>
-                <image-table class="ml-4" @select-image="(image) => { selectImage(image) }"/>
+                <image-table class="ml-4 mt-4" simple @select-image="(image) => { selectImage(image) }"/>
                 <v-text-field density="compact" label="密码" clearable placeholder="请输入密码" v-model="dialog.password"
                     :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
                     @click:append="showPassword = !showPassword">
@@ -35,7 +35,8 @@ import ImageTable from '@/components/plugins/tables/ImageTable.vue';
 
 const progs = defineProps({
     variant: { type: String, default: 'text' },
-    servers: { type: Array, default: [], required: true, },
+    servers: { type: Array, default: [], required: true },
+    disabled: { type: Boolean, default: false },
 })
 const emits = defineEmits(['updateServer'])
 

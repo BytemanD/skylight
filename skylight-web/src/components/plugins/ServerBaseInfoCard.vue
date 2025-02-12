@@ -2,24 +2,26 @@
     <v-row>
         <v-col ld="4" md="4" sm="12" cols="12">
             <v-sheet min-height="70">
-                <strong class="mr-4">名称</strong>
-                <span>{{ server.name }}</span>
-                <span class="ml-4"></span>
-                <btn-server-rename variant="tonal" v-if="server.name" :server="server"
-                    @update-server="updateServer" />
-                <br>
-                <strong class="mr-4">描述</strong>
-                <span>{{ server.description || '无' }}</span>
+                <table class="density">
+                    <tbody>
+                        <tr>
+                            <th style="text-align: left">ID</th><td>{{ server.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>创建时间</th><td>{{ Utils.parseUTCToLocal(server.created) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </v-sheet>
         </v-col>
-        <v-col ld="4" md="4" sm="12" cols="12">
+        <v-col ld="3" md="3" sm="12" cols="12">
             <v-sheet min-height="70">
                 <strong class="mr-4">状态</strong>
                 <span v-if="server.status == 'ACTIVE'" class="text-success">{{ server.status }}</span>
                 <span v-else-if="server.status == 'ERROR'" class="text-red">{{ $t(server.status) }}</span>
                 <span v-else class="text-warning">{{ server.status && $t(server.status) }}</span>
                 <span class="ml-4"></span>
-                <btn-server-reset-state :servers="[server]" density="compact" @update-server="updateServer"
+                <btn-server-reset-state :servers="[server]" density="compact" variant="outlined" @update-server="updateServer"
                     v-if="context && context.isAdmin()" />
                 <ServerFaultCard v-if="server.fault" :server-fault="server.fault"></ServerFaultCard>
                 <br>
@@ -40,9 +42,9 @@
                 <v-icon v-else-if="server['OS-EXT-STS:power_state'] == 4" color="red">mdi-power</v-icon>
                 <span v-else>UNKOWN</span>
                 <span class="ml-4"></span>
-                <v-btn variant="tonal" density="compact" color="error" v-if="server.status == 'ACTIVE'"
+                <v-btn variant="outlined" density="compact" color="error" v-if="server.status == 'ACTIVE'"
                     @click="stop()">{{ $t('stop') }}</v-btn>
-                <v-btn variant="tonal" density="compact" color="success" v-if="server.status == 'SHUTOFF'"
+                <v-btn variant="outlined" density="compact" color="success" v-if="server.status == 'SHUTOFF'"
                     @click="start()">{{ $t('start') }}</v-btn>
                 <br>
                 <strong class="mr-4">节点</strong>
@@ -54,6 +56,8 @@
 
 <script setup>
 import API from '@/assets/app/api';
+import { Utils } from '@/assets/app/lib';
+
 import { GetLocalContext } from '@/assets/app/context';
 import { ServerTaskWaiter } from '@/assets/app/tables.jsx';
 

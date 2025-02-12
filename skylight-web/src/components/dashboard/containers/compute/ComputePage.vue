@@ -1,7 +1,7 @@
 <template>
     <tab-windows :tabs="tabs">
       <template v-slot:window-items>
-        <v-window-item><FlavorPage /></v-window-item>
+        <v-window-item class="pa-2"><FlavorPage /></v-window-item>
         <v-window-item><KeypairPage /></v-window-item>
         <v-window-item><ServerGroupPage /></v-window-item>
         <v-window-item><ServicePage /></v-window-item>
