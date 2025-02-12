@@ -13,6 +13,7 @@ class Setting {
         this.value = defaultValue;
         this.onChangeCallback = kwargs.onChangeCallback;
         this.message = kwargs.message;
+        this.editable = kwargs.editable == false ? false : true;
     }
     onChange(value) {
         if (!this.onChangeCallback) {
@@ -142,6 +143,12 @@ export class AppSettings {
                 bootWithVolume: new BooleanSetting(true),
                 // supportResourceAction: new BooleanSetting(false),
                 supportFuzzyNameSearch: new BooleanSetting(false),
+            }
+        )
+        this.about = new SettingGroup(
+            'about',
+            {
+                version: new Setting('dev', {editable: false}),
             }
         )
     }

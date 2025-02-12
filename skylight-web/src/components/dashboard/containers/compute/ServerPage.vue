@@ -135,7 +135,15 @@
           <span v-if="Object.keys(item.addresses).length > 1">...</span>
         </template>
         <template v-slot:[`item.flavor`]="{ item }">
-          <span class="text-cyan"> {{ item.flavor && item.flavor.original_name }}</span>
+
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <span class="text-cyan" v-bind="props">{{ item.flavor.vcpus }} 核 {{ Utils.humanRam(item.flavor.ram) }}
+              </span>
+            </template>
+            {{ item.flavor && item.flavor.original_name }}
+          </v-tooltip>
+
         </template>
         <template v-slot:[`item.image`]="{ item }">
           <span class="text-info">{{ table.imageName[item.image.id] }}</span>

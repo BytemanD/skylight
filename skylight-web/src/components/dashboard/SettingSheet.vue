@@ -23,7 +23,7 @@
                         <v-card-text>
                             <v-tabs-window-item v-for="group in SETTINGS" :value="group.name" :key="group.name">
                                 <v-row>
-                                    <v-col cols="12" lg="4" v-for="col in [1, 2, 3]" class="ml-1">
+                                    <v-col cols="12" lg="4" v-for="col in [1, 2, 3]" class="ml-1" >
                                         <template v-for="(item, key) in group.getColItems(3, col)" v-bind:key="key">
                                             <v-select :min-width="240" v-if="item.choises" density='compact' outlined
                                                 v-bind:key="key" :label="$t(key)" :items="item.choises"
@@ -32,8 +32,9 @@
                                             <v-switch :min-width="400" v-else-if="item.type == Boolean" color="info"
                                                 density='compact' class="ml-2" :label="$t(key)"
                                                 v-model="item.value"></v-switch>
-                                            <v-text-field :min-width="240" outlined density='compact' :type="item.type.name" v-else
-                                                :label="$t(key)" v-model="item.value">
+                                            <v-text-field :min-width="240" outlined density='compact'
+                                                :type="item.type.name" v-else :label="$t(key)" v-model="item.value"
+                                                :readonly="!item.editable">
                                             </v-text-field>
                                         </template>
                                     </v-col>
