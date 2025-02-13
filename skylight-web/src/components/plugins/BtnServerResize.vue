@@ -8,7 +8,7 @@
             <v-card-title class="headline warning">规格变更</v-card-title>
             <v-card-subtitle>当前规格: {{ server.flavor.original_name }} </v-card-subtitle>
             <v-card-text>
-                {{ server.task_state }} xx {{ !!server.task_state }} xx
+
                 <v-text-field class="mb-1" density="compact" readonly v-model="selectedFlavor.name"
                     :rules="[validFlavor]">
                     <template v-slot:prepend>规格</template>
