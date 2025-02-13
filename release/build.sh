@@ -3,6 +3,9 @@ VERSION=""
 function logInfo() {
     echo $(date "+%F %T") "INFO:" $@ 1>&2
 }
+function logError() {
+    echo $(date "+%F %T") "ERROR:" $@ 1>&2
+}
 
 function getVersion() {
     latest_tag=$(git describe --tags --abbrev=0)
@@ -71,6 +74,11 @@ function buildBackend() {
 }
 
 function main() {
+    docker ps >> /dev/null
+    if [[ $? -ne 0 ]]; then
+        logError "docker is required" 
+        exit 1
+    fi
     logInfo ">>>>>> make semver"
     VERSION=$(getVersion)
     logInfo "version: ${VERSION}"
@@ -86,14 +94,18 @@ function main() {
         logInfo ">>>>>> install nodejs"
         mkdir -p /usr/local/src/
         cd /usr/local/src/
-        wget https://mirrors.aliyun.com/nodejs-release/v22.5.0/node-v22.5.0-linux-x64.tar.xz || exit
-        # wget https://nodejs.org/dist/v22.5.0/node-v22.5.0-linux-x64.tar.xz  || exit 1
-        tar xf node-v22.5.0-linux-x64.tar.xz || exit 1
-        cd -
-        ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/node /usr/bin/node
-        ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/npm /usr/bin/npm
-        ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/npx /usr/bin/npx
-        ln -s /usr/local/src/node-v22.5.0-linux-x64/bin/corepack /usr/bin/corepack
+
+        NODE_VERSION=v23.7.0
+        rm -rf node-${NODE_VERSION}.tar.xz
+        wget https://mirrors.aliyun.com/nodejs-release/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz || exit
+        # wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz  || exit 1
+        tar xf node-${NODE_VERSION}.tar.xz || exit 1
+        cd - 
+        rm -rf  /usr/bin/node /usr/bin/npm  /usr/bin/npx /usr/bin/corepack
+        ln -s /usr/local/src/node-${NODE_VERSION}-linux-x64/bin/node /usr/bin/node
+        ln -s /usr/local/src/node-${NODE_VERSION}-linux-x64/bin/npm /usr/bin/npm
+        ln -s /usr/local/src/node-${NODE_VERSION}-linux-x64/bin/npx /usr/bin/npx
+        ln -s /usr/local/src/node-${NODE_VERSION}-linux-x64/bin/corepack /usr/bin/corepack
     fi
 
     go env -w GO111MODULE="on"
@@ -129,12 +141,11 @@ function main() {
     VERSION="${PACKAGE##skylight-}"
     docker build --network=host --no-cache --build-arg PACKAGE=${PACKAGE} --build-arg DATE="$(date)" -t skylight:${VERSION} ./ || exit 1
 
-    logInfo "========= 推送镜像 ========= "
+    logInfo "========= 推送镜像 ========="
     docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}   || exit 1
     docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight              || exit 1
     docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}      || exit 1
     docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight                 || exit 1
-
     cd -
 }
 
