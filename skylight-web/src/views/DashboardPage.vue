@@ -25,8 +25,6 @@
       <v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"
         :icon="navigation.mini ? 'mdi-dots-vertical' : 'mdi-menu'">
       </v-app-bar-nav-icon>
-      <!-- <v-toolbar-title>
-      </v-toolbar-title> -->
       <v-chip color="indigo" prepend-icon="mdi-map">{{ $t('cluster') }}: {{ context.cluster }}</v-chip>
       <v-chip class="ml-4" prepend-icon="mdi-map-marker" color="info">地区： {{ context.region }}</v-chip>
       <v-toolbar-title>
@@ -141,9 +139,6 @@ export default {
       }
       let selectedItem = this.getItem();
       this.navigation.itemIndex = selectedItem.index;
-      // if (this.$route.path == '/dashboard' || this.$route.path != '/dashboard' + item.router) {
-      //   this.$router.replace({ path: '/dashboard' + item.router });
-      // }
     },
     getItem() {
       let localItem = Utils.getNavigationSelectedItem();
@@ -162,17 +157,31 @@ export default {
           }
         }
       }
+      if (this.$route.path.startsWith('/dashboard/server')) {
+        return { index: 2, item: navigationGroup[1].items[0] };
+      }
       return { index: 0, item: navigationGroup[0].items[0] };
     },
     initItem() {
       let selectedItem = this.getItem();
-      this.navigation.itemIndex = selectedItem.index;
-      if (this.$route.path == '/dashboard/server/new') {
-        this.selectItem(selectedItem.item, '/dashboard/server/new');
-      } else if (this.$route.path == '/dashboard/hypervisor/tenantUsage') {
-        this.selectItem(selectedItem.item, '/dashboard/hypervisor');
-      } else {
-        this.selectItem(selectedItem.item,);
+      // this.navigation.itemIndex = selectedItem.index;
+      switch (this.$route.path) {
+        case '/dashboard':
+          console.log('11111111111', selectedItem, )
+          this.selectItem(selectedItem.item);
+          break;
+        case '/dashboard/server/new':
+          this.selectItem(selectedItem.item, '/dashboard/server/new');
+          break;
+        case '/dashboard/hypervisor/tenantUsage':
+          this.selectItem(selectedItem.item, '/dashboard/hypervisor');
+          break;
+        default:
+          this.selectItem(selectedItem.item, this.$route.path);
+          break;
+        // if (this.$route.path.startsWith('/dashboard/server')) {
+        // }
+        //   this.selectItem(selectedItem.item,);
       }
     },
     getItemIndexByRoutePath(routePath) {

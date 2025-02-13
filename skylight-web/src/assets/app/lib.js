@@ -146,7 +146,7 @@ export class Utils {
     }
     static setNavigationSelectedItem(item) {
         if (!item) {
-            console.warn('item is null when navigationSelectedItem')
+            console.warn('item is null when set navigationSelectedItem')
             return
         }
         localStorage.setItem('navigationSelectedItem', JSON.stringify(item));

@@ -2,8 +2,9 @@
   <v-row>
     <v-col lg="4" md="12" sm="12" cols="12">
       <v-sheet-toolbar min-height="48">
-        <v-breadcrumbs :items="breadcrumbItems" color="info" density="compact"></v-breadcrumbs>
+        <v-chip variant="text"  class="text--bold" color="cyan">实例：{{ server.name }}</v-chip>
         <v-spacer></v-spacer>
+        <chip-link size="small" color="grey" class="mr-1" label="全部实例" link="/dashboard/server"></chip-link>
       </v-sheet-toolbar>
     </v-col>
     <v-col>
@@ -146,9 +147,11 @@ import ServerBaseInfoCard from '@/components/plugins/ServerBaseInfoCard.vue';
 import ServerDetailCard from '@/components/plugins/ServerDetailCard.vue';
 import ServerFlavorCard from '@/components/plugins/ServerFlavorCard.vue';
 import ServerImageCard from '@/components/plugins/ServerImageCard.vue';
+import ChipLink from '@/components/plugins/ChipLink.vue';
 
 import { GetLocalContext } from '@/assets/app/context';
 import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
+
 
 export default {
   components: {
@@ -164,6 +167,7 @@ export default {
     DialogLiveMigrateAbort, BtnServerChangePwd,
     BtnServerEvacuate,
     ServerBaseInfoCard, ServerDetailCard, ServerFlavorCard, ServerImageCard,
+    ChipLink,
     AlertRequireAdmin,
   },
 
@@ -213,7 +217,12 @@ export default {
       }
     },
     refreshServer: async function () {
-      this.server = await API.server.show(this.serverId);
+      try {
+        this.server = await API.server.show(this.serverId);
+      } catch (e) {
+        notify.error(`实例 ${this.serverId} 查询失败: ${e}`)
+        throw e
+      }
       // this.breadcrumbItems[this.breadcrumbItems.length - 1] = this.server.name;
     },
     refreshImage: async function () {
@@ -263,8 +272,6 @@ export default {
           break;
       }
     },
-
-
     hardReboot: async function () {
       if (!this.server.id) {
         return
@@ -349,13 +356,18 @@ export default {
     handleSwitchTab: function (index) {
       this.tabIndex = index
       this.refreshWindownItem()
+    },
+    initServer: async function() {
+      await this.refreshServer()
+      this.migrationTable = new MigrationDataTable(this.serverId);
+      this.breadcrumbItems.push({ title: this.serverId })
+      this.refresh()
     }
   },
   created() {
     this.serverId = this.$route.params.id
-    this.migrationTable = new MigrationDataTable(this.serverId);
-    this.breadcrumbItems.push({ title: this.serverId })
-    this.refresh()
+    this.initServer()
+
   }
 };
 </script>
