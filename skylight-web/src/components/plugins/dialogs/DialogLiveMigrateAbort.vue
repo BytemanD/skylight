@@ -1,7 +1,6 @@
 <template>
   <v-dialog v-model="display" width="500" scrollable persistent>
     <template v-slot:activator="{ props }">
-      <!-- <btn-live-migrate-abort v-bind="props"/> -->
       <v-btn v-bind="props" color="red" :variant="variant" :size="size" density="compact">终止</v-btn>
     </template>
     <v-card color="blue-grey-darken-2">

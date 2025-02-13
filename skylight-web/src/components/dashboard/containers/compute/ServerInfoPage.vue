@@ -2,8 +2,9 @@
   <v-row>
     <v-col lg="4" md="12" sm="12" cols="12">
       <v-sheet-toolbar min-height="48">
-        <v-chip variant="text"  class="text--bold" color="cyan">实例：{{ server.name }}</v-chip>
+        <v-chip variant="text" class="text--bold" color="cyan">实例：{{ server.name }}</v-chip>
         <v-spacer></v-spacer>
+        <btn-server-rename v-if="server.name" :server="server" @update-server="updateServer" />
         <chip-link size="small" color="grey" class="mr-1" label="全部实例" link="/dashboard/server"></chip-link>
       </v-sheet-toolbar>
     </v-col>
@@ -11,6 +12,10 @@
       <v-sheet-toolbar min-height="48">
         <v-btn color="info" @click="loginVnc()" prepend-icon="mdi-console">登录</v-btn>
         <v-divider vertical class="my-3"></v-divider>
+        <v-btn color="error" v-if="server.status == 'ACTIVE'" @click="stop()">
+          {{ $t('stop') }}</v-btn>
+        <v-btn density="compact" color="success" v-if="server.status == 'SHUTOFF'" @click="start()">
+          {{ $t('start') }}</v-btn>
         <btn-server-reboot :servers="[server]" @updateServer="updateServer" />
         <btn-server-change-pwd :disabled="server.status != 'ACTIVE'" :server="server" />
         <v-btn variant="text" color="warning" v-if="server.status == 'ACTIVE'" @click="pause()">
@@ -51,17 +56,6 @@
               <v-col cols="4">
                 <!-- 显示镜像 -->
                 <server-image-card :server="server" :disabled="!!server['OS-EXT-STS:task_state']"></server-image-card>
-              </v-col>
-              <v-col cols="6">
-                <v-card density="compact">
-                  <v-card-text>
-                    <dialog-live-migrate-abort v-if="server.status == 'MIGRATING'" :items="[server]" />
-                    <v-progress-linear height="12" v-if="server.status == 'MIGRATING'" color="green-lighten-2"
-                      :model-value="server.progress">
-                      <template v-slot:default="{ value }">{{ value }}%</template>
-                    </v-progress-linear>
-                  </v-card-text>
-                </v-card>
               </v-col>
             </v-row>
           </v-window-item>
@@ -134,7 +128,6 @@ import CardServerConsole from '@/components/plugins/CardServerConsole.vue';
 import CardServerActions from '@/components/plugins/CardServerActions.vue';
 import TabWindows from '@/components/plugins/TabWindows.vue';
 import MigrationTable from '@/components/plugins/tables/MigrationTable.vue';
-import DialogLiveMigrateAbort from '@/components/plugins/dialogs/DialogLiveMigrateAbort.vue';
 
 import ServerUpdateSG from './dialogs/ServerUpdateSG.vue';
 import ServerRebuild from './dialogs/ServerRebuild.vue';
@@ -164,7 +157,7 @@ export default {
     ServerVolumes, BtnAttachInterfaces, BtnAttachVolumes,
     CardServerConsoleLog, CardServerConsole, CardServerActions, TabWindows, ServerUpdateSG,
     ServerRebuild, MigrationTable,
-    DialogLiveMigrateAbort, BtnServerChangePwd,
+    BtnServerChangePwd,
     BtnServerEvacuate,
     ServerBaseInfoCard, ServerDetailCard, ServerFlavorCard, ServerImageCard,
     ChipLink,
@@ -280,6 +273,20 @@ export default {
       let waiter = new ServerTaskWaiter(this.server)
       waiter.waitStarted()
     },
+    stop: async function () {
+      // TODO: use BtnServerStop
+      if (!this.server.id) { return }
+      await API.server.stop(this.server.id)
+      let waiter = new ServerTaskWaiter(this.server)
+      waiter.waitStopped()
+    },
+
+    start: async function () {
+      if (!this.server.id) { return }
+      await API.server.start(this.server.id)
+      let waiter = new ServerTaskWaiter(this.server)
+      waiter.waitStarted()
+    },
     pause: async function () {
       // TODO: use BtnServerStop
       if (!this.server.id) { return }
@@ -357,7 +364,7 @@ export default {
       this.tabIndex = index
       this.refreshWindownItem()
     },
-    initServer: async function() {
+    initServer: async function () {
       await this.refreshServer()
       this.migrationTable = new MigrationDataTable(this.serverId);
       this.breadcrumbItems.push({ title: this.serverId })

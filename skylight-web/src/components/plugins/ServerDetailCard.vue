@@ -1,12 +1,6 @@
 <template>
     <v-sheet>
         <v-list class="pl-0">
-            <v-list-item title="名称" :subtitle="server.name">
-                <template v-slot:append>
-                    <btn-server-rename variant="outlined" v-if="server.name" :server="server"
-                        @update-server="updateServer" />
-                </template>
-            </v-list-item>
             <v-list-item title="描述" :subtitle="server.describtion || '无'">
             </v-list-item>
             <v-list-item title="实例名" :subtitle="server['OS-EXT-SRV-ATTR:instance_name']"></v-list-item>
@@ -21,6 +15,7 @@
             <v-list-item title="项目ID" :subtitle="server.tenant_id || server.project_id" />
             <v-list-item title="标签">{{ server.tags || '无' }}</v-list-item>
             <v-divider></v-divider>
+            <v-list-item title="创建时间" class="pa-0">{{ Utils.parseUTCToLocal(server.created) }}</v-list-item>
             <v-list-item title="启动时间" :subtitle="Utils.parseUTCToLocal(server['OS-SRV-USG:launched_at'])"></v-list-item>
             <v-list-item title="更新时间" :subtitle="server.updated"></v-list-item>
         </v-list>
@@ -29,7 +24,6 @@
 
 <script setup>
 import { Utils } from '@/assets/app/lib';
-import BtnServerRename from '@/components/plugins/BtnServerRename.vue';
 
 const progs = defineProps({
     server: { type: Object, required: true, },

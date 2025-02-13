@@ -167,7 +167,6 @@ export default {
       // this.navigation.itemIndex = selectedItem.index;
       switch (this.$route.path) {
         case '/dashboard':
-          console.log('11111111111', selectedItem, )
           this.selectItem(selectedItem.item);
           break;
         case '/dashboard/server/new':

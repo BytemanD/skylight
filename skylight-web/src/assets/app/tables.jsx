@@ -1131,7 +1131,7 @@ export class ServerTaskWaiter {
     }
     async waitShelved() {
         let action = 'shelve'
-        await this.waitServerStatus(['SHELVED', 'SHELVED_OFFLOAD', 'ERROR'])
+        await this.waitServerStatus(['SHELVED', 'SHELVED_OFFLOADED', 'ERROR'])
         if (this.server.status.toUpperCase() == 'ERROR') {
             Notify.error(`${this.server.name || this.server.id} ${action} 失败`)
         } else {
