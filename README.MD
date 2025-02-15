@@ -2,9 +2,8 @@
 
 Openstack Dashboard with Vuetify
 
-预览
-
-![](./doc/preview.png) 
+简介:
+https://glaze-kangaroo-2e1.notion.site/Skylight-19bed41c7cfc80d2af89e69504f596af
 
 
 ## 1 环境要求
