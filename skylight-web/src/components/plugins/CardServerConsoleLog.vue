@@ -31,7 +31,7 @@
 import { ref } from 'vue';
 import API from '@/assets/app/api';
 
-const progs = defineProps({
+const props = defineProps({
     serverId: { type: String, required: true, },
 })
 
@@ -43,7 +43,7 @@ var interval = null
 async function refreshConsoleLog(length) {
     refreshing.value = true;
     try {
-        content.value = (await API.server.getConsoleLog(progs.serverId, length));
+        content.value = (await API.server.getConsoleLog(props.serverId, length));
     } catch (e) {
         console.error(e)
     } finally {

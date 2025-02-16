@@ -29,7 +29,7 @@ import notify from '@/assets/app/notify.js';
 
 import { ServerResetStateDialog } from '@/assets/app/dialogs';
 
-const progs = defineProps({
+const props = defineProps({
     variant: { type: String, default: 'tonal' },
     size: { type: String, default: 'default' },
     density: { type: String, default: 'default' },
@@ -48,8 +48,8 @@ function onUpdatedServer(server) {
 
 async function commit() {
     dialog.show = false;
-    for (let i in progs.servers) {
-        let serverId = getServerId(progs.servers[i])
+    for (let i in props.servers) {
+        let serverId = getServerId(props.servers[i])
         try {
             await API.server.resetState(serverId, dialog.active)
             notify.success(`虚拟机${serverId}状态重置成功`);

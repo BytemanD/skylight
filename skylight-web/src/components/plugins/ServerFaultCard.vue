@@ -13,7 +13,7 @@
 
 <script setup>
 
-const progs = defineProps({
+const props = defineProps({
     serverFault: { type: Object, required: true, },
 })
 const emits = defineEmits(['updateServer'])

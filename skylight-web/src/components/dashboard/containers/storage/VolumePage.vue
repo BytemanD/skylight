@@ -33,7 +33,7 @@
                     查询全部租户
                 </v-tooltip>
                 <v-btn icon="mdi-refresh" class="mx-auto" color="info" v-on:click="refresh()"></v-btn>
-                <new-volume-dialog @create="(item) => { table.addItem(item) }" />
+                <new-volume-dialog @create="(item) => { createVolume(item) }" />
                 <VolumeExtendVue :volumes="table.getSelectedItems()" @volume-extended="updateVolume">
                 </VolumeExtendVue>
                 <VolumeStatusResetDialog :volumes="table.selected" @completed="refresh()" />
@@ -68,14 +68,14 @@
                         <v-icon v-else-if="item.status == 'error'" color="red">mdi-close-circle</v-icon>
                         <v-icon v-else-if="item.status == 'error_deleting'" color="red">mdi-delete-alert</v-icon>
                         <v-tooltip top v-else-if="table.isDoing(item)">
-                            <template v-slot:activator="{ progs }">
-                                <v-icon color="warning" class="mdi-spin" v-bind="progs">mdi-rotate-right</v-icon>
+                            <template v-slot:activator="{ props }">
+                                <v-icon color="warning" class="mdi-spin" v-bind="props">mdi-rotate-right</v-icon>
                             </template>
                             {{ item.status }}
                         </v-tooltip>
                         <v-tooltip top v-else>
-                            <template v-slot:activator="{ progs }">
-                                <v-icon color="warning" v-bind="progs">mdi-alert-circle</v-icon>
+                            <template v-slot:activator="{ props }">
+                                <v-icon color="warning" v-bind="props">mdi-alert-circle</v-icon>
                             </template>
                             {{ item.status }}
                         </v-tooltip>
@@ -165,6 +165,10 @@ export default {
         },
         updateVolume: async function (item) {
             this.table.updateItem(item)
+        },
+        createVolume: function(volume) {
+            this.table.addItem(volume)
+            this.table.waitVolumeCreated(volume.id)
         },
         refresh() {
             this.table.refreshPage()

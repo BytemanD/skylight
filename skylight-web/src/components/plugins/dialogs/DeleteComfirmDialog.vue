@@ -27,7 +27,7 @@ import { ref } from 'vue'
 const display = ref(false);
 
 const emits = defineEmits(['click:comfirm'])
-const progs = defineProps({
+const props = defineProps({
   title: { type: String, default: '确认删除?' },
   disabled: { type: Boolean, default: false },
   itemValueFunc: { type: Function, },
@@ -37,8 +37,8 @@ const progs = defineProps({
 })
 
 function getItemValue(item) {
-  if (progs.itemValueFunc) {
-    return progs.itemValueFunc(item)
+  if (props.itemValueFunc) {
+    return props.itemValueFunc(item)
   }
   if (typeof item == 'object') {
     return item.name || item.id

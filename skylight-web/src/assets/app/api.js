@@ -156,7 +156,7 @@ class System extends Restfulclient {
     }
     async logout(){
         await this.delete('login')
-        notify.success('成功退出')
+        // notify.success('成功退出')
     }
     async changeRegion(region){
         await this.put('login', {auth: {region: region}})

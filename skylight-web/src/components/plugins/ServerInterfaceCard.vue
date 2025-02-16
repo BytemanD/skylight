@@ -49,23 +49,23 @@ import { Utils } from '@/assets/app/lib.js';
 var port = ref({}), detaching = ref(false);
 const emits = defineEmits(['detaching', 'detached'])
 
-const progs = defineProps({
+const props = defineProps({
     serverId: { type: String, required: true, },
     vif: { type: Object, default: {}, required: true }
 })
 
 async function showPort() {
-    port.value = (await API.port.show(progs.vif.port_id)).port
+    port.value = (await API.port.show(props.vif.port_id)).port
 }
 async function detach() {
-    await API.server.interfaceDetach(progs.serverId, progs.vif.port_id);
+    await API.server.interfaceDetach(props.serverId, props.vif.port_id);
     detaching.value = true;
-    emits('detaching', progs.vif.port_id)
+    emits('detaching', props.vif.port_id)
     while (true) {
         let detached = true;
-        let interfaces = await API.server.interfaceList(progs.serverId);
+        let interfaces = await API.server.interfaceList(props.serverId);
         for (var i in interfaces) {
-            if (interfaces[i].port_id == progs.vif.port_id) {
+            if (interfaces[i].port_id == props.vif.port_id) {
                 detached = false
                 break
             }
@@ -77,7 +77,7 @@ async function detach() {
         }
     }
     detaching.value = false;
-    emits('detached', progs.vif.port_id)
+    emits('detached', props.vif.port_id)
 }
 showPort()
 

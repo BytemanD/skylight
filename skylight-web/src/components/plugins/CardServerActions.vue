@@ -21,7 +21,7 @@ import API from '@/assets/app/api';
 import ServerActionEventsDialog from '@/components/dashboard/containers/compute/dialogs/ServerActionEventsDialog.vue';
 
 
-const progs = defineProps({
+const props = defineProps({
     serverId: { type: String, required: true, default: '' },
     actions: { type: Array, required: true, },
 })
@@ -46,7 +46,7 @@ function isActionError(action) {
 }
 async function openServerActionEventsDialog(event, data) {
     actionRequestId.value = data.item.request_id;
-    server.value = await API.server.show(progs.serverId)
+    server.value = await API.server.show(props.serverId)
     showServerActionEventsDialog.value = !showServerActionEventsDialog.value;
 }
 

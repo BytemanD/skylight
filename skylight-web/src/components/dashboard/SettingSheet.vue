@@ -1,13 +1,13 @@
 <template>
-    <v-bottom-sheet v-model="display" inset>
+    <v-bottom-sheet v-model="display" inset scrollable>
         <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon="mdi-cog"></v-btn>
         </template>
-        <v-card :title="$t('setting')" density="compact" scrollable>
+        <v-card :title="$t('setting')" density="compact">
             <template v-slot:append>
                 <v-btn color="success" variant="text" @click="save()">{{ $t('save') }}</v-btn>
                 <v-btn color="warning" variant="text" @click="reset()">{{ $t('reset') }}</v-btn>
-                <v-btn icon="mdi-close" density="compact" variant="text" color="warning"
+                <v-btn icon="mdi-close" density="comfortable" variant="text" color="warning"
                     @click="display = false"></v-btn>
             </template>
             <v-divider></v-divider>
@@ -22,8 +22,26 @@
                     <v-tabs-window v-model="tab">
                         <v-card-text>
                             <v-tabs-window-item v-for="group in SETTINGS" :value="group.name" :key="group.name">
+                                <!-- <v-row>
+                                    <v-col cols="12" lg="12">
+                                        <v-list>
+                                            <v-list-item title="语言" subtitle="sdfsfsf lskj flk sfjls jfs fjaljf alkjf lakj ljsjlfkj">
+                                                <v-list-item-action>
+                                                    <v-text-field min-width="80" hide-details density="compact"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
+                                            <v-list-item title="语言" subtitle="sdfsfsf lskj flksjlfkj">
+                                                <v-list-item-action>
+                                                    <v-text-field min-width="80" hide-details density="compact"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-col>
+                                    <v-col cols="12" lg="4">sdfs</v-col>
+                                    <v-col cols="12" lg="4">xxx</v-col>
+                                </v-row> -->
                                 <v-row>
-                                    <v-col cols="12" lg="4" v-for="col in [1, 2, 3]" class="ml-1" >
+                                    <v-col cols="12" lg="4" v-for="col in [1, 2, 3]" class="ml-1">
                                         <template v-for="(item, key) in group.getColItems(3, col)" v-bind:key="key">
                                             <v-select :min-width="240" v-if="item.choises" density='compact' outlined
                                                 v-bind:key="key" :label="$t(key)" :items="item.choises"
@@ -60,7 +78,7 @@ import notify from '@/assets/app/notify';
 import SETTINGS from '@/assets/app/settings';
 
 export default {
-    progs: {
+    props: {
         show: Boolean,
     },
     data: () => ({

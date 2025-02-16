@@ -30,7 +30,7 @@ import { ref, watch } from 'vue';
 import API from '@/assets/app/api';
 import BtnServerRebuild from '@/components/plugins/button/BtnServerRebuild.vue';
 
-const progs = defineProps({
+const props = defineProps({
     server: { type: Object, required: true, },
 })
 const emits = defineEmits(['updateServer'])
@@ -38,13 +38,13 @@ const emits = defineEmits(['updateServer'])
 var image = ref({})
 
 async function refreshImage() {
-    if (! progs.server.image || !progs.server.image.id) {
+    if (! props.server.image || !props.server.image.id) {
         return
     }
-    if (progs.server.image.id == image.id) {
+    if (props.server.image.id == image.id) {
         return
     }
-    let newImage = await API.image.show(progs.server.image.id)
+    let newImage = await API.image.show(props.server.image.id)
     for (let k in newImage) {
         image.value[k] = newImage[k]
     }
@@ -52,15 +52,15 @@ async function refreshImage() {
 
 function updateServer(server) {
     for (var key in server) {
-        if (progs.server[key] == server[key]) {
+        if (props.server[key] == server[key]) {
             continue
         }
-        progs.server[key] = server[key]
+        props.server[key] = server[key]
     }
-    emits('updateServer', progs.server)
+    emits('updateServer', props.server)
 }
 watch(
-    () => progs.server,
+    () => props.server,
     (newValue, oldValue) => {
         refreshImage()
     }

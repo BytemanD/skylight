@@ -33,7 +33,7 @@
         <v-spacer></v-spacer>
       </v-card-actions>
     </v-card>
-    <select-region-dialog :regions="regions" :display="showRegions" @selected="selectedRegion" @cancle="cancleRegion" />
+    <select-region-dialog :regions="regions" :display="showRegions" @selected="selectedRegion" @cancle="cancleRegion" @close="cancleRegion" />
   </v-container>
 </template>
 
@@ -103,7 +103,7 @@ async function login() {
     let resp = await API.system.login(
       auth.value.cluster, auth.value.project,
       auth.value.username, auth.value.password)
-    notify.success('登录成功')
+    // notify.success('登录成功')
     regions.value = resp.regions
   } catch (e) {
     notify.error('登录失败')

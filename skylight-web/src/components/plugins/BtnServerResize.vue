@@ -33,7 +33,7 @@ import notify from '@/assets/app/notify.js';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 import FlavorTable from '@/components/plugins/tables/FlavorTable.vue';
 
-const progs = defineProps({
+const props = defineProps({
     variant: { type: String, default: 'text' },
     server: { type: Object, required: true },
     disabled: { type: Boolean, default: false },
@@ -64,7 +64,7 @@ function validFlavor(value) {
     if (!value) {
         return '请选择规格'
     }
-    if (value == progs.server.flavor.original_name) {
+    if (value == props.server.flavor.original_name) {
         return '变更的规格不能与当前规格相同'
     }
     return true
@@ -76,7 +76,7 @@ watch(display, (newValue) => {
 })
 
 async function resize() {
-    let server = await getServer(progs.server)
+    let server = await getServer(props.server)
     try {
         await API.server.resize(server.id, selectedFlavor.value.id)
     } catch (error) {
@@ -87,7 +87,7 @@ async function resize() {
     display.value = false;
     selectedFlavor.value = {}
     let waiter = new ServerTaskWaiter(server, onUpdatedServer)
-    await waiter.waitResized(progs.server.flavor.original_name)
+    await waiter.waitResized(props.server.flavor.original_name)
 }
 
 </script>

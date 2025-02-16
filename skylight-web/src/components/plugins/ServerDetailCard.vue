@@ -25,19 +25,19 @@
 <script setup>
 import { Utils } from '@/assets/app/lib';
 
-const progs = defineProps({
+const props = defineProps({
     server: { type: Object, required: true, },
 })
 const emits = defineEmits(['updateServer'])
 
 function updateServer(server) {
     for (var key in server) {
-        if (progs.server[key] == server[key]) {
+        if (props.server[key] == server[key]) {
             continue
         }
-        progs.server[key] = server[key]
+        props.server[key] = server[key]
     }
-    emits('updateServer', progs.server)
+    emits('updateServer', props.server)
 }
 
 </script>

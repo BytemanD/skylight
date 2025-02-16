@@ -30,7 +30,7 @@ import notify from '@/assets/app/notify.js';
 import { EvacuateDialog } from '@/assets/app/dialogs';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 
-const progs = defineProps({
+const props = defineProps({
     variant: { type: String, default: 'text' },
     servers: { type: Array, default: [], required: true, },
 })
@@ -40,7 +40,7 @@ var dialog = reactive(new EvacuateDialog())
 var force = ref(false)
 var loadingNodes = ref(false)
 
-watch(() => progs.servers, (newValue, oldValue) => {
+watch(() => props.servers, (newValue, oldValue) => {
     dialog.servers = newValue;
     dialog.nodes = [];
 })

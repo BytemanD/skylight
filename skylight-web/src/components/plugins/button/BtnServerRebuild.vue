@@ -33,7 +33,7 @@ import { RebuildDialog } from '@/assets/app/dialogs';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 import ImageTable from '@/components/plugins/tables/ImageTable.vue';
 
-const progs = defineProps({
+const props = defineProps({
     variant: { type: String, default: 'text' },
     servers: { type: Array, default: [], required: true },
     disabled: { type: Boolean, default: false },
@@ -65,9 +65,9 @@ function selectImage(item) {
 
 async function commit() {
     dialog.show = false;
-    for (let i in progs.servers) {
-        let serverId = getServerId(progs.servers[i])
-        let server = await getServer(getServerId(progs.servers[i]))
+    for (let i in props.servers) {
+        let serverId = getServerId(props.servers[i])
+        let server = await getServer(getServerId(props.servers[i]))
         let data = { imageRef: dialog.imageRef, description: dialog.description }
         if (dialog.password) {
             data.adminPass = dialog.password

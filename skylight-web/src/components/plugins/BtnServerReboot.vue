@@ -24,7 +24,7 @@ import API from '@/assets/app/api';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 
 const emits = defineEmits(['updateServer'])
-const progs = defineProps({
+const props = defineProps({
     servers: { type: Array, default: [], required: true, },
     variant: {type: String, default: 'text'},
     size: { type: String, default: 'default'},
@@ -45,21 +45,21 @@ function onUpdatedServer(server) {
     emits('updateServer', server)
 }
 async function softReboot() {
-    for (let i in progs.servers) {
-        API.server.reboot(getServerId(progs.servers[i]))
+    for (let i in props.servers) {
+        API.server.reboot(getServerId(props.servers[i]))
     }
-    for (let i in progs.servers) {
-        let server = await getServer(getServerId(progs.servers[i]))
+    for (let i in props.servers) {
+        let server = await getServer(getServerId(props.servers[i]))
         let waiter = new ServerTaskWaiter(server, onUpdatedServer)
         await waiter.waitStarted()
     }
 }
 
 async function hardReboot() {
-    for (let s of progs.servers) {
+    for (let s of props.servers) {
         API.server.hardReboot(getServerId(s))
     }
-    for (let s of progs.servers) {
+    for (let s of props.servers) {
         let server = await getServer(getServerId(s))
         let waiter = new ServerTaskWaiter(server, onUpdatedServer)
         await waiter.waitStarted()

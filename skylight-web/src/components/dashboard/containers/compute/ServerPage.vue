@@ -221,6 +221,7 @@ import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
 import { Context, GetLocalContext } from '@/assets/app/context';
 import notify from '@/assets/app/notify';
 import WS from '@/assets/app/websocket';
+import {MESSAGES} from '@/assets/app/messages';
 
 
 export default {
@@ -299,10 +300,10 @@ export default {
         self.table.updateItem(data.server)
         switch (data.server.status) {
           case "ACTIVE":
-            notify.success(`实例 ${data.server.name} 创建成功`)
+            MESSAGES.success(`实例 ${data.server.name} 创建成功`)
             break
           case "ERROR":
-            notify.error(`实例 ${data.server.name} 创建失败`)
+            MESSAGES.error(`实例 ${data.server.name} 创建失败`)
             break
         }
       })
@@ -312,7 +313,7 @@ export default {
       WS.subscribe('delete server', function (msg) {
         switch (msg.level) {
           case "success":
-            notify.success(`实例 ${msg.data} 已删除`)
+            MESSAGES.success(`实例 ${msg.data} 已删除`)
             self.table.removeItem(msg.data)
             break
           case "info":

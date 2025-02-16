@@ -69,7 +69,7 @@ import ServerFaultCard from '@/components/plugins/ServerFaultCard.vue';
 import BtnServerResetState from '@/components/plugins/button/BtnServerResetState.vue';
 import DialogLiveMigrateAbort from '@/components/plugins/dialogs/DialogLiveMigrateAbort.vue';
 
-const progs = defineProps({
+const props = defineProps({
     server: { type: Object, required: true, },
 })
 const emits = defineEmits(['updateServer'])
@@ -78,12 +78,12 @@ var context = GetLocalContext()
 
 function updateServer(server) {
     for (var key in server) {
-        if (progs.server[key] == server[key]) {
+        if (props.server[key] == server[key]) {
             continue
         }
-        progs.server[key] = server[key]
+        props.server[key] = server[key]
     }
-    emits('updateServer', progs.server)
+    emits('updateServer', props.server)
 }
 
 </script>

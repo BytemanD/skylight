@@ -33,6 +33,9 @@ export default createVuetify({
     VList: {
       density: 'compact',
     },
+    VBtn: {
+      style: 'text-transform: none',
+    },
     VSheet: {
       class: "px-4 py-2 rounded align-center",
       elevation: "2",

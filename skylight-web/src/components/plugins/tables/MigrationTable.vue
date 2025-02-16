@@ -68,7 +68,7 @@ import AlertRequireAdmin from '@/components/plugins/AlertRequireAdmin.vue';
 
 var context = GetLocalContext()
 
-const progs = defineProps({
+const props = defineProps({
     table: { type: Object, required: true, },
     refreshBtn: { type: Boolean, default: false, },
 })

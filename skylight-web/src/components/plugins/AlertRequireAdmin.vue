@@ -10,7 +10,7 @@
 <script setup>
 // import { GetLocalContext } from '@/assets/app/context';
 
-const progs = defineProps({
+const props = defineProps({
     context: { type: Object, required: true, },
 })
 

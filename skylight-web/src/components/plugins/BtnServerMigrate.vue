@@ -34,7 +34,7 @@ import notify from '@/assets/app/notify.js';
 import { MigrateDialog } from '@/assets/app/dialogs';
 import { ServerTaskWaiter } from '@/assets/app/tables';
 
-const progs = defineProps({
+const props = defineProps({
     variant: { type: String, default: 'text' },
     servers: { type: Array, default: [], required: true, },
 })
@@ -43,7 +43,7 @@ const emits = defineEmits(['updateServer'])
 var dialog = reactive(new MigrateDialog())
 var loadingNodes = ref(false)
 
-watch(() => progs.servers, (newValue, oldValue) => {
+watch(() => props.servers, (newValue, oldValue) => {
     dialog.servers = newValue;
     dialog.nodes = [];
 })
@@ -73,8 +73,8 @@ async function migrate() {
         return
     }
     dialog.show = false;
-    for (let i in progs.servers) {
-        let server = await getServer(getServerId(progs.servers[i]))
+    for (let i in props.servers) {
+        let server = await getServer(getServerId(props.servers[i]))
         let waiter = new ServerTaskWaiter(server, onUpdatedServer)
         await waiter.waitMigrated()
     }

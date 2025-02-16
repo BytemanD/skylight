@@ -27,22 +27,22 @@ import API from '@/assets/app/api';
 
 var vol = ref({}), detaching = ref(false);
 const emits = defineEmits(['detaching', 'detached'])
-const progs = defineProps({
+const props = defineProps({
     serverId: { type: String, required: true, },
     volume: { type: Object, default: {}, required: true, },
     rootDeviceName: { type: String, default: '/dev/vda' },
 })
 
 async function showVolume() {
-    vol.value = await API.volume.show(progs.volume.volumeId)
+    vol.value = await API.volume.show(props.volume.volumeId)
 }
 async function detach() {
-    await API.server.volumeDetach(progs.serverId, progs.volume.volumeId);
+    await API.server.volumeDetach(props.serverId, props.volume.volumeId);
     detaching.value = true;
-    emits('detaching', progs.volume.volumeId)
-    await API.waitVolumeStatus(progs.volume.volumeId, ['available', 'error'])
+    emits('detaching', props.volume.volumeId)
+    await API.waitVolumeStatus(props.volume.volumeId, ['available', 'error'])
     detaching.value = false;
-    emits('detached', progs.volume.volumeId)
+    emits('detached', props.volume.volumeId)
 }
 
 showVolume()

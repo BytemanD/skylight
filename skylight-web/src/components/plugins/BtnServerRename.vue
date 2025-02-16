@@ -28,7 +28,7 @@ import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
 
 const emits = defineEmits(['updateServer'])
-const progs = defineProps({
+const props = defineProps({
     server: { type: Object, required: true, },
     variant: { type: String, default: 'text' },
     size: { type: String, default: 'default' },
@@ -38,9 +38,9 @@ var display = ref(false)
 var newName = ref('')
 
 async function rename() {
-    await API.server.update(progs.server.id, { name: newName.value });
+    await API.server.update(props.server.id, { name: newName.value });
     notify.success('实例名修改成功');
-    let newServer = await API.server.show(progs.server.id)
+    let newServer = await API.server.show(props.server.id)
     emits('updateServer', newServer)
     display.value = false;
 }

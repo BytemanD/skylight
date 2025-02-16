@@ -1,45 +1,35 @@
 <template>
-    <v-dialog v-model="progs.display" width="500" scrollable>
-        <v-card>
-            <v-card-title class="headline primary lighten-2">选择地区</v-card-title>
-            <v-card-text>
-                <v-col>
-                    <v-select v-model="selectedRegion" :items="regions"></v-select>
-                </v-col>
-            </v-card-text>
+    <v-dialog v-model="props.display" width="400" scrollable>
+        <v-card title="选择地区">
+            <template v-slot:append>
+                <v-btn icon="mdi-close" variant="text" @click="close" density="comfortable"></v-btn>
+            </template>
             <v-divider></v-divider>
-            <v-card-actions>
-                <v-btn color="error" @click="cancle()">取消</v-btn>
-                <v-spacer></v-spacer>
-                <v-btn color="primary" @click="commit()">确定</v-btn>
-            </v-card-actions>
+            <v-card-text>
+                <v-list >
+                    <v-list-item prepend-icon="mdi-map-marker" v-for="region in regions" :title="region"
+                        @click="selectRegion(region)">
+                        <v-divider></v-divider>
+                    </v-list-item>
+                </v-list>
+            </v-card-text>
         </v-card>
     </v-dialog>
 </template>
 <script setup>
-import { ref, watch } from 'vue';
 
-const emits = defineEmits(['cancle', 'selected'])
+const emits = defineEmits(['selected', 'close',])
 
-const progs = defineProps({
+const props = defineProps({
     display: { type: Boolean, required: true },
     regions: { type: Array, required: true },
 })
-var selectedRegion = ref(progs.regions[0])
 
-function cancle() {
-    emits('cancle', selectedRegion.value)
+function selectRegion(region) {
+    emits('selected', region)
 }
-function commit() {
-    emits('selected', selectedRegion.value)
+
+function close() {
+    emits('close')
 }
-watch(
-    ()=> progs.display, (newValue, oldValue) => {
-        if (newValue) {
-            if (progs.regions.length > 0) {
-                selectedRegion.value = progs.regions[0]
-            }
-        }
-    }
-)
 </script>

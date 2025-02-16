@@ -1,17 +1,27 @@
 <template>
-    <v-tooltip location="bottom" text="退出">
+    <v-menu>
         <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" color="warning" icon="mdi-logout" v-on:click="logout()"></v-btn>
+            <v-btn v-bind="props" variant="tonal" rounded="xl" color="info"
+                :prepend-icon="(context && context.roles && context.isAdmin()) ? 'mdi-account-star' : 'mdi-account'">
+                {{ context && context.user && context.user.name }}
+            </v-btn>
         </template>
-    </v-tooltip>
+        <v-list>
+            <v-list-item class="text-warning" append-icon="mdi-logout" v-on:click="logout()" title="退出">
+            </v-list-item>
+        </v-list>
+    </v-menu>
 </template>
 
 <script setup>
-import { getCurrentInstance} from 'vue';
+import { getCurrentInstance } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
+import { GetLocalContext } from '@/assets/app/context';
 
-const {proxy} = getCurrentInstance()
+const { proxy } = getCurrentInstance()
+
+var context = GetLocalContext()
 
 async function logout() {
     try {

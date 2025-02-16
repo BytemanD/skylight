@@ -7,6 +7,7 @@ export class SkylightWS {
         this.url = url
         this.ws = null
         this.subscription = {}
+        this.watched = false
     }
     connect(url) {
         this.url = !url ? "" : url
@@ -67,6 +68,10 @@ export class SkylightWS {
         delete this.subscription[topic]
     }
     async watch() {
+        if (this.watched) {
+            return
+        }
+        this.watched = true
         while (true) {
             await Utils.sleep(5);
             console.debug("check websocket")

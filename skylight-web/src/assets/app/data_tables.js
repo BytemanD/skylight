@@ -2,9 +2,9 @@ import notify from '@/assets/app/notify';
 
 import i18n from '@/assets/app/i18n.js'
 import API from '@/assets/app/api.js'
-import { Utils } from '@/assets/app/lib.js'
+import { LOG, Utils } from '@/assets/app/lib.js'
 import SETTINGS from './settings.js';
-
+import {MESSAGES} from './messages.js';
 
 class DataTable {
     constructor(headers, api, bodyKey = null, name = '') {
@@ -66,7 +66,7 @@ class DataTable {
                 this.updateItem(item);
             } catch (e) {
                 if (e.response.status == 404) {
-                    console.log("11111111111111111111111")
+                    MESSAGES.success(`${this.name} ${itemId} 已删除`)
                     this.removeItem(itemId)
                     break;
                 }
@@ -356,7 +356,23 @@ export class VolumeDataTable extends OpenstackLimitMarkerTable {
         }
         this.refresh();
     }
-
+    async waitVolumeCreated(volumeId) {
+        console.info(`wait volume ${volumeId} created`)
+        while (true) {
+            let volume = (await API.volume.get(volumeId)).volume;
+            console.debug(`volume ${volumeId} status=${volume.status}`)
+            this.updateItem(volume)
+            if (volume.status == 'error') {
+                MESSAGES.error(`卷 ${volumeId} 创建失败`)
+                break
+            }
+            if (volume.status == 'available') {
+                MESSAGES.success(`卷 ${volumeId} 创建成功`)
+                break
+            }
+            await Utils.sleep(3);
+        }
+    }
 }
 export class BackupDataTable extends OpenstackLimitMarkerTable {
     constructor() {
@@ -596,11 +612,11 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
             statusMap.active.push(item);
         }
         if (statusMap.active.length != 0) {
-            Notify.info(`开始关机: ${statusMap.active.map((item) => { return item.name })} `);
+            notify.info(`开始关机: ${statusMap.active.map((item) => { return item.name })} `);
             this.stopServers(statusMap.active)
         }
         if (statusMap.inactive.length != 0) {
-            Notify.warning(`虚拟机不是运行状态: ${statusMap.inactive.map((item) => { return item.name })}`);
+            notify.warning(`虚拟机不是运行状态: ${statusMap.inactive.map((item) => { return item.name })}`);
         }
     }
     async startServers(servers) {
@@ -622,11 +638,11 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
             statusMap.shutoff.push(item);
         }
         if (statusMap.shutoff.length != 0) {
-            Notify.info(`开始开机: ${statusMap.shutoff.map((item) => { return item.name })} `);
+            notify.info(`开始开机: ${statusMap.shutoff.map((item) => { return item.name })} `);
             await this.startServers(statusMap.shutoff);
         }
         if (statusMap.notShutoff.length != 0) {
-            Notify.warning(`虚拟机不是关机状态: ${statusMap.notShutoff.map((item) => { return item.name })}`);
+            notify.warning(`虚拟机不是关机状态: ${statusMap.notShutoff.map((item) => { return item.name })}`);
         }
         this.resetSelected();
     }
@@ -636,7 +652,7 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
             let serverId = this.selected[i]
             let item = (await API.server.show(serverId))
             if (item.status.toUpperCase() != 'ACTIVE') {
-                Notify.warning(`虚拟机 ${item.name} 不是运行状态`)
+                notify.warning(`虚拟机 ${item.name} 不是运行状态`)
                 continue;
             }
             await self.api.pause(item.id);
@@ -650,7 +666,7 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
             let serverId = this.selected[i]
             let item = (await API.server.show(serverId))
             if (item.status.toUpperCase() != 'PAUSED') {
-                Notify.warning(`虚拟机 ${item.name} 不是暂停状态`)
+                notify.warning(`虚拟机 ${item.name} 不是暂停状态`)
                 continue;
             }
             await self.api.unpause(item.id);
@@ -663,7 +679,7 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
             let serverId = this.selected[i]
             let item = (await API.server.show(serverId))
             if (type == 'SOFT' && item.status.toUpperCase() != 'ACTIVE') {
-                Notify.warning(`虚拟机 ${item.name} 不是运行状态`, 1)
+                notify.warning(`虚拟机 ${item.name} 不是运行状态`, 1)
                 continue;
             }
             API.server.reboot(item.id)
@@ -733,36 +749,36 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
     async waitServerStarted(server, action) {
         let refreshServer = await this.waitServerStatus(server.id, ['ACTIVE', 'ERROR'])
         if (refreshServer.status.toUpperCase() == 'ACTIVE') {
-            Notify.success(`${server.name || server.id} ${action} 成功`)
+            MESSAGES.success(`实例 ${server.name || server.id} ${action} 成功`)
         } else {
-            Notify.error(`${server.name || server.id} ${action} 失败`)
+            MESSAGES.error(`实例 ${server.name || server.id} ${action} 失败`)
         }
     }
     async waitServerStopped(server) {
         let action = 'stop'
         let refreshServer = await this.waitServerStatus(server.id, ['SHUTOFF', 'ERROR'])
         if (refreshServer.status.toUpperCase() == 'SHUTOFF') {
-            Notify.success(`${server.name || server.id} ${action} 成功`)
+            MESSAGES.success(`实例 ${server.name || server.id} ${action} 成功`)
         } else {
-            Notify.error(`${server.name || server.id} ${action} 失败`)
+            MESSAGES.error(`实例 ${server.name || server.id} ${action} 失败`)
         }
     }
     async waitServerPaused(server) {
         let action = 'pause'
         let refreshServer = await this.waitServerStatus(server.id, ['PAUSED', 'ERROR'])
         if (refreshServer.status.toUpperCase() == 'PAUSED') {
-            Notify.success(`${server.name || server.id} ${action} 成功`)
+            MESSAGES.success(`实例 ${server.name || server.id} ${action} 成功`)
         } else {
-            Notify.error(`${server.name || server.id} ${action} 失败`)
+            MESSAGES.error(`实例 ${server.name || server.id} ${action} 失败`)
         }
     }
     async waitServerUnpaused(server) {
         let action = 'unpause'
         let refreshServer = await this.waitServerStatus(server.id, ['ACTIVE', 'ERROR'])
         if (refreshServer.status.toUpperCase() == 'ACTIVE') {
-            Notify.success(`${server.name || server.id} ${action} 成功`)
+            MESSAGES.success(`实例 ${server.name || server.id} ${action} 成功`)
         } else {
-            Notify.error(`${server.name || server.id} ${action} 失败`)
+            MESSAGES.error(`实例 ${server.name || server.id} ${action} 失败`)
         }
     }
     async waitServerMigrated(server) {
@@ -771,9 +787,9 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
         let srcHost = server['OS-EXT-SRV-ATTR:host'];
         let refreshServer = await this.waitServerStatus(server.id, [server.status, 'ERROR'])
         if (refreshServer['OS-EXT-SRV-ATTR:host'] != srcHost) {
-            Notify.success(`${server.name || server.id} ${action} 成功`)
+            notify.success(`实例 ${server.name || server.id} ${action} 成功`)
         } else {
-            Notify.error(`${server.name || server.id} ${action} 失败`)
+            notify.error(`实例 ${server.name || server.id} ${action} 失败`)
         }
     }
     async waitServerDeleted(serverId) {
@@ -784,8 +800,7 @@ export class ServerDataTable extends OpenstackLimitMarkerTable {
                 Utils.sleep(2)
             } catch (e) {
                 if (e.response.status == 404) {
-                    console.error(e)
-                    Notify.success(`实例 ${serverId} 已删除`)
+                    MESSAGES.success(`实例 ${serverId} 已删除`)
                     this.removeItem(serverId)
                     break;
                 }
@@ -908,9 +923,9 @@ export class RouterDataTable extends OpenstackLimitMarkerTable {
     adminStateDown(item) {
         API.router.put(item.id, { router: { admin_state_up: item.admin_state_up } }).then(() => {
             if (item.admin_state_up) {
-                Notify.success(`路由 ${item.name} 已设置为 UP`)
+                notify.success(`路由 ${item.name} 已设置为 UP`)
             } else {
-                Notify.success(`路由 ${item.name} 已设置为 DOWN`)
+                notify.success(`路由 ${item.name} 已设置为 DOWN`)
             }
         })
     }
@@ -1015,13 +1030,13 @@ export class PortDataTable extends OpenstackLimitMarkerTable {
     adminStateDown(item) {
         API.port.put(item.id, { port: { admin_state_up: item.admin_state_up } }).then(() => {
             if (item.admin_state_up) {
-                Notify.success(`端口 ${item.name || item.id} 已设置为 UP`)
+                notify.success(`端口 ${item.name || item.id} 已设置为 UP`)
             } else {
-                Notify.success(`端口 ${item.name || item.id} 已设置为 DOWN`)
+                notify.success(`端口 ${item.name || item.id} 已设置为 DOWN`)
             }
         }).catch(error => {
             console.error(error);
-            Notify.error(`端口 ${item.name} 更新失败`);
+            notify.error(`端口 ${item.name} 更新失败`);
             item.admin_state_up = !item.admin_state_up;
         })
     }

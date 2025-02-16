@@ -29,7 +29,7 @@ import { ref } from 'vue';
 import API from '@/assets/app/api';
 import notify from '@/assets/app/notify';
 
-const progs = defineProps({
+const props = defineProps({
     server: { type: Object, required: true, },
     variant: { type: String, default: 'text' },
     size: { type: String, default: 'default' },
@@ -43,7 +43,7 @@ var newPwd = ref('')
 
 async function resetPassword() {
     try {
-        await API.server.changePassword(progs.server.id, newPwd.value.trim(), username.value);
+        await API.server.changePassword(props.server.id, newPwd.value.trim(), username.value);
         notify.success('重置成功');
     } catch (e) {
         notify.error(`重置失败: ${e}`);

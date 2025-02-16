@@ -25,7 +25,7 @@
 
 <script setup>
 
-const progs = defineProps({
+const props = defineProps({
     user: { type: Object, required: true },
     project: { type: Object, required: true },
     roles: { type: Array, required: true },
