@@ -1,62 +1,53 @@
 import { reactive } from "vue"
+import _ from 'lodash'
 
 function formatNow() {
-    let date =  new Date();
+    let date = new Date();
     return date.toLocaleString()
 }
 
 export class Messages {
-    constructor(){
+    constructor() {
         this.items = []
-        this.count = 0
     }
-    newMessage(type, msg) {
-        return {type: type, read: false, deleted: false, message: msg, date: formatNow()}
+    newMessage(type, title, text) {
+        return {
+            type: type, read: false, deleted: false, date: formatNow(),
+            title: title, text: text,
+        }
     }
-    success(msg){
-        this.items.unshift(this.newMessage('success', msg))
+    success(title, text) {
+        this.items.unshift(this.newMessage('success', title, text))
     }
-    info(msg){
-        this.items.unshift(this.newMessage('info', msg))
+    info(title, text) {
+        this.items.unshift(this.newMessage('info', title, text))
     }
-    error(msg){
-        this.items.unshift(this.newMessage('error', msg))
+    error(title, text) {
+        this.items.unshift(this.newMessage('error', title, text))
     }
-    warning(msg){
-        this.items.unshift(this.newMessage('warning', msg))
+    warning(title, text) {
+        this.items.unshift(this.newMessage('warning', title, text))
     }
-    warn(msg){
-        this.warning(msg)
+    warn(title, text) {
+        this.warning(title, text)
     }
     readAll() {
         this.items.forEach((item) => {
-            if (item.read) {
-                return
-            }
-            item.read = true
+            if (!item.read) { item.read = true }
         })
     }
     readItem(item) {
         item.read = true
     }
     itemsNotRead() {
-        let count = 0
-        this.items.forEach((item) => {
-            if (item.read || item.deleted) {
-                return
-            }
-            count += 1
-        })
-        return count
+        return _.reduce(this.items, function(sum, item) {
+            return (!item.read && !item.deleted) ? sum + 1 : sum
+        }, 0)
     }
     countNotDeleted() {
-        let count = 0
-        this.items.forEach((item) => {
-            if (!item.deleted) {
-                count ++
-            }
-        })
-        return count
+        return _.reduce(this.items, function(sum, item) {
+            return !item.deleted ? sum + 1 : sum
+        }, 0)
     }
     removeAll() {
         this.items = []
@@ -69,17 +60,12 @@ export class Messages {
         }
         this.items[index].deleted = true
     }
-
     allReaded() {
-        let readedCount = 0
-        for (let i in this.items) {
-            if (this.items[i].read){
-                readedCount += 1
-            }
-        }
+        let readedCount = _.reduce(this.items, function(sum, item){
+            return item.read ? sum + 1 : sum
+        }, 0)
         return readedCount >= this.items.length;
     }
-
 }
 
 

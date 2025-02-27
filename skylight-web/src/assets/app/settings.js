@@ -1,4 +1,6 @@
+import { version } from "core-js";
 import I18N from "./i18n";
+import _ from 'lodash'
 
 const NOTIFY_POSITION = [
     'bottom-right', 'bottom-left', 'bottom-center',
@@ -14,6 +16,7 @@ class Setting {
         this.onChangeCallback = kwargs.onChangeCallback;
         this.message = kwargs.message;
         this.editable = kwargs.editable == false ? false : true;
+        this.name = kwargs.name || 'unkown';
     }
     onChange(value) {
         if (!this.onChangeCallback) {
@@ -102,7 +105,7 @@ export class SettingGroup {
     }
     getColItems(totalCol, col) {
         let MIN_NUM_PER_COL = 10
-      let totalItems = Object.keys(this.items)
+        let totalItems = Object.keys(this.items)
         let itemNumPerCol = Math.ceil(totalItems.length / totalCol)
         if (itemNumPerCol < MIN_NUM_PER_COL) {
             itemNumPerCol = MIN_NUM_PER_COL
@@ -148,7 +151,7 @@ export class AppSettings {
         this.about = new SettingGroup(
             'about',
             {
-                version: new Setting('dev', {editable: false}),
+                version: new Setting('dev', { editable: false }),
             }
         )
     }
@@ -173,7 +176,61 @@ export class AppSettings {
     }
 }
 
+
+export class ApplicationSettings {
+    constructor() {
+        this.group = {
+            uiSettings: [
+                new BooleanSetting(false, { name: 'themeDark' }),
+                new Setting(navigator.language, { name: 'language', choises: LANGUAGE, onChangeCallback: I18N.setDisplayLang }),
+                new NumberSetting(180, { name: 'navigatorWidth', choises: [180, 200, 220, 240, 260, 280, 300] }),
+                new Setting(NOTIFY_POSITION[0], { name: 'messagePosition', choises: NOTIFY_POSITION }),
+                new NumberSetting(1000, { name: 'consoleLogWidth', choises: [800, 1000, 1200, 1400, 1600] }),
+                new NumberSetting(80, { name: 'resourceWarningPercent', choises: [50, 60, 70, 80, 90] }),
+            ],
+            openstackSettings: [
+                new Setting('RegionOne', { name: 'defaultRegion' }),
+                new NumberSetting(40, { name: 'volumeSizeDefault', choises: [1, 10, 20, 30, 40, 50] }),
+                new NumberSetting(50, { name: 'dataVolumeSizeDefault', }),
+                new NumberSetting(40, { name: 'volumeSizeMin', choises: [1, 10, 20, 30, 40, 50] }),
+                new NumberSetting(8, { name: 'imageUploadBlockSize', choises: [1, 2, 3, 4, 5, 6, 7, 8] }),
+                new NumberSetting(500, { name: 'queryLimit', choises: [100, 500, 1000, 1500, 2000] }),
+                new BooleanSetting(true, { name: 'bootWithVolume', }),
+                new BooleanSetting(false, { name: 'supportFuzzyNameSearch', }),
+            ],
+            about: [
+                new Setting('dev', { name: 'version', editable: false }),
+            ]
+        }
+    }
+    save() {
+        for (let group in this) {
+            this[group].save();
+        }
+    }
+    load() {
+        console.debug('load settings');
+        for (let group in this) {
+            this[group].load();
+        }
+    }
+    reset() {
+        for (let group in this) {
+            this[group].reset();
+        }
+    }
+    updateVersion(version) {
+        this.about.setItem('version', version)
+    }
+}
+
+
+
 const SETTINGS = new AppSettings();
 SETTINGS.load();
+
+
+export const APP_SETTINGS = new ApplicationSettings();
+
 
 export default SETTINGS;

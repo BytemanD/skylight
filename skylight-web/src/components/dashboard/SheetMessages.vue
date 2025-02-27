@@ -1,25 +1,26 @@
 <template>
     <v-navigation-drawer temporary location="right" v-model="show" width="500">
-        <v-divider></v-divider>
-        <v-card title="通知" elevation="0">
+        <v-card title="通知" density="compact" elevation="0">
             <template v-slot:append>
                 <v-btn variant="text" color="warning" density="comfortable" @click="MESSAGES.readAll()"
                     :disabled="MESSAGES.allReaded()">全部已读</v-btn>
-                <v-btn variant="text" color="red" density="comfortable"
-                    :disabled="MESSAGES.countNotDeleted() <= 0"
+                <v-btn variant="text" color="red" density="comfortable" :disabled="MESSAGES.countNotDeleted() <= 0"
                     @click="MESSAGES.removeAll()">全部删除</v-btn>
                 <v-btn class="ml-10" icon="mdi-close" variant="tonal" density="comfortable" @click="close"></v-btn>
             </template>
-            <v-divider></v-divider>
-            <!-- {{ MESSAGES.items }} -->
-            <!-- {{ MESSAGES.countNotDeleted() }} -->
+        </v-card>
+        <v-divider></v-divider>
+        <v-card-text class="pa-0">
             <template v-for="item, index in MESSAGES.items">
-                <v-alert  v-if="!item.deleted" class="ma-4" elevation="2" density="compact" @click="MESSAGES.readItem(item)" :key="index"
-                    :variant="item.read ? 'tonal' : 'flat'" :type="item.type || 'info'" :text="item.message"
-                    :title="item.title || item.date" closable @click:close="MESSAGES.removeItem(item)" border>
+                <v-alert v-if="!item.deleted" class="ma-4" elevation="2" density="compact"
+                    @click="MESSAGES.readItem(item)" :key="index" closable border
+                    :variant="item.read ? 'tonal' : 'flat'" :type="item.type || 'info'"
+                    @click:close="MESSAGES.removeItem(item)" :title="item.title">
+                    <p class="font-weight-medium">{{ item.text }}</p>
+                    <p class="text-subtitle font-weight-light mr-1 text-right">{{ item.date }}</p>
                 </v-alert>
             </template>
-        </v-card>
+        </v-card-text>
     </v-navigation-drawer>
 </template>
 

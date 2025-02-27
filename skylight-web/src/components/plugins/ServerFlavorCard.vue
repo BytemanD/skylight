@@ -14,9 +14,11 @@
             </v-list>
             <v-list-item title="属性">
                 <template v-if="server.flavor">
+                    {{  }}
                     <v-chip label density="compact" class="mr-1 mt-1" size="small"
-                        v-for="(value, key) in server.flavor.extra_specs" v-bind:key="key">
-                        {{ key }}={{ value }}</v-chip>
+                        v-for="key in _.sortBy(_.keys(server.flavor.extra_specs || {}))" v-bind:key="key">
+                        {{ key }}={{ server.flavor.extra_specs[key] }}
+                    </v-chip>
                 </template>
             </v-list-item>
         </v-card-text>
@@ -25,6 +27,7 @@
 
 
 <script setup>
+import _ from 'lodash';
 import BtnServerResize from '@/components/plugins/BtnServerResize.vue';
 
 const props = defineProps({

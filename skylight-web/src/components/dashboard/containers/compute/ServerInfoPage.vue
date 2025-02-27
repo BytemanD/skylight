@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col lg="4" md="12" sm="12" cols="12">
+    <v-col lg="5" md="12" sm="12" cols="12">
       <v-sheet-toolbar min-height="48">
         <v-chip variant="text" class="text--bold" color="cyan">实例：{{ server.name }}</v-chip>
         <v-spacer></v-spacer>

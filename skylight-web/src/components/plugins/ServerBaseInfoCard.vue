@@ -2,16 +2,19 @@
     <v-row>
         <v-col lg="3" md="4" sm="6" cols="12">
             <v-sheet>
-                <v-list-item title="ID" class="pa-0">{{ server.id }}</v-list-item>
+                <v-list-item title="ID" class="pa-0 text-info"><span class="text-grey">{{ server.id
+                        }}</span></v-list-item>
             </v-sheet>
         </v-col>
         <v-col lg="1" md="1" sm="1" cols="1">
             <v-sheet class="d-flex align-center justify-center" max-height="60">
                 <v-icon size="xxx-large" v-if="server['OS-EXT-STS:power_state'] == 1" color="success">mdi-power</v-icon>
-                <v-icon size="xxx-large" v-else-if="server['OS-EXT-STS:power_state'] == 3" color="warning">mdi-pause</v-icon>
-                <v-icon size="xxx-large" v-else-if="server['OS-EXT-STS:power_state'] == 4" color="red">mdi-power</v-icon>
+                <v-icon size="xxx-large" v-else-if="server['OS-EXT-STS:power_state'] == 3"
+                    color="warning">mdi-pause</v-icon>
+                <v-icon size="xxx-large" v-else-if="server['OS-EXT-STS:power_state'] == 4"
+                    color="red">mdi-power</v-icon>
                 <v-icon size="xxx-large" v-else color="grey">mdi-help</v-icon>
-                <span v-else>UNKOWN</span>
+                <span class="py-3" v-else>UNKOWN</span>
                 <!-- <strong class="mr-4">电源</strong>
                 <strong class="mr-4">节点</strong>
                 <span>{{ server['OS-EXT-SRV-ATTR:host'] }}</span> -->
@@ -19,16 +22,19 @@
         </v-col>
         <v-col lg="3" md="6" sm="11" cols="12">
             <v-sheet>
-                <v-list-item title="节点" class="pa-0">{{ server['OS-EXT-SRV-ATTR:host'] || '无' }}</v-list-item>
+                <v-list-item title="节点" class="pa-0 text-info">
+                    <span class="text-grey">{{ server['OS-EXT-SRV-ATTR:host'] || '无' }}</span>
+                </v-list-item>
             </v-sheet>
         </v-col>
 
         <v-col lg="2" md="4" sm="4" cols="12">
             <v-sheet>
-                <v-list-item title="状态" class="pa-0">
+                <v-list-item title="状态" class="pa-0 text-info">
                     <template v-slot:append>
-                        <btn-server-reset-state :servers="[server]" density="compact" variant="text"
-                            @update-server="updateServer" v-if="context && context.isAdmin()" />
+                        <v-divider vertical></v-divider>
+                        <btn-server-reset-state :servers="[server]" variant="text" @update-server="updateServer"
+                            v-if="context && context.isAdmin()" />
                     </template>
                     <span v-if="server.status == 'ACTIVE'" class="text-success">{{ server.status }}</span>
                     <span v-else-if="server.status == 'ERROR'" class="text-red">{{ $t(server.status) }}</span>
@@ -40,12 +46,13 @@
         </v-col>
         <v-col lg="2" md="2" sm="12" cols="12">
             <v-sheet>
-                <v-list-item title="任务" class="pa-0">
+                <v-list-item title="任务" class="pa-0 text-info">
                     <template v-slot:append>
-                        <dialog-live-migrate-abort variant="outlined" v-if="server.status == 'MIGRATING'"
+                        <v-divider vertical></v-divider>
+                        <dialog-live-migrate-abort variant="text" v-if="server.status == 'MIGRATING'"
                             :items="[server]" />
                     </template>
-                    {{ server['OS-EXT-STS:task_state'] || '无' }}
+                    <span class="text-grey">{{ server['OS-EXT-STS:task_state'] || '无' }}</span>
                 </v-list-item>
             </v-sheet>
         </v-col>

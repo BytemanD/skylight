@@ -20,9 +20,8 @@
         </div>
       </v-list>
     </v-navigation-drawer>
-    <sheet-messages v-model="showRightNavigation"
-       @close="() => showRightNavigation = false"></sheet-messages>
-        <v-app-bar density="compact"><v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"
+    <sheet-messages v-model="showRightNavigation" @close="() => showRightNavigation = false"></sheet-messages>
+    <v-app-bar density="compact"><v-app-bar-nav-icon @click="navigation.mini = !navigation.mini"
         :icon="navigation.mini ? 'mdi-dots-vertical' : 'mdi-menu'">
       </v-app-bar-nav-icon>
       <v-chip color="indigo" prepend-icon="mdi-map">{{ $t('cluster') }}: {{ context.cluster }}</v-chip>
@@ -33,7 +32,8 @@
       <btn-audit />
       <btn-home />
       <v-btn @click.stop="showRightNavigation = !showRightNavigation" class="text-none">
-        <v-badge color="red" v-if="!MESSAGES.allReaded()" :content="MESSAGES.itemsNotRead()"> <v-icon size="large">mdi-message</v-icon></v-badge>
+        <v-badge color="red" v-if="!MESSAGES.allReaded()" :content="MESSAGES.itemsNotRead()"> <v-icon
+            size="large">mdi-message</v-icon></v-badge>
         <v-icon v-else>mdi-message</v-icon>
       </v-btn>
       <btn-about />
@@ -41,7 +41,7 @@
       <SettingSheet />
       <btn-logout />
     </v-app-bar>
-    
+
     <v-main>
       <v-container fluid v-if="context && context.user">
         <router-view></router-view>
@@ -67,7 +67,7 @@ import notify from '@/assets/app/notify';
 import { GetContext } from '@/assets/app/context';
 // import API from '@/assets/app/api';
 import WS from '@/assets/app/websocket';
-import {MESSAGES} from '@/assets/app/messages';
+import { MESSAGES } from '@/assets/app/messages';
 
 const navigationGroup = [
   {
