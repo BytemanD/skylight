@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,11 +11,11 @@ import (
 
 	"skylight/internal/consts"
 	"skylight/internal/controller"
-	v1 "skylight/internal/controller/v1"
 	_ "skylight/internal/packed"
 	"skylight/internal/service"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
+	_ "github.com/gogf/gf/contrib/drivers/sqlite/v2"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
@@ -22,7 +23,6 @@ import (
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/gres"
 	"github.com/gogf/gf/v2/os/gsession"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -60,7 +60,7 @@ var (
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			port := parser.GetOpt("port", "8081").String()
-			debug := parser.ContainsOpt("debug")
+			debug := parser.GetOpt("debug").IsEmpty()
 
 			// 初始化日志
 			level := logging.INFO
@@ -89,11 +89,12 @@ var (
 			}
 
 			if !g.Cfg().Available(ctx) {
-				return fmt.Errorf("config is not available")
+				return errors.New("config is not available")
 			}
 			// 初始化DB
-			service.DBInit(ctx)
-
+			// if err := service.DBInit(ctx); err != nil {
+			// 	return errors.Join(errors.New("init db error"), err)
+			// }
 			if gres.Contains("resources") {
 				s.AddSearchPath("resources")
 			}
@@ -112,7 +113,7 @@ var (
 			glog.Infof(ctx, "session path: %s", gsessionPath.String())
 			MakesureDir(gsessionPath.String())
 
-			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String()))
+			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String(), time.Hour*5))
 			s.SetSessionCookieMaxAge(time.Hour)
 			s.SetSessionMaxAge(time.Hour)
 
@@ -128,7 +129,7 @@ var (
 			s.BindObjectRest("/image_upload_tasks", controller.ImageUploadTasksController{})
 			s.BindObjectRest("/image_upload_tasks/:id", controller.ImageUploadTaskController{})
 
-			v1.RegiterRouters(s)
+			// v1.RegiterRouters(s)
 
 			s.Group("", func(group *ghttp.RouterGroup) {
 				group.Middleware(controller.MiddlewareAuth)

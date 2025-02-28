@@ -10,17 +10,17 @@ import (
 
 type ServersController struct{}
 
-func (c *ServersController) Get(req *ghttp.Request) {
-	session := GetAuthSession(req)
-	if session == nil {
-		req.Response.WriteStatus(403, "no login")
-		return
-	}
+// func (c *ServersController) Get(req *ghttp.Request) {
+// 	session := GetAuthSession(req)
+// 	if session == nil {
+// 		req.Response.WriteStatus(403, "no login")
+// 		return
+// 	}
 
-	api := session.OpenstackClient.NovaV2().Server().ResourceApi
-	resp, err := api.AppendUrl("detail").SetQuery(req.URL.Query()).Get(nil)
-	c.WriteProxyResponse(req.GetCtx(), req.Response, resp, err)
-}
+// 	api := session.OpenstackClient.NovaV2().Server().ResourceApi
+// 	resp, err := api.AppendUrl("detail").SetQuery(req.URL.Query()).Get(nil)
+// 	c.WriteProxyResponse(req.GetCtx(), req.Response, resp, err)
+// }
 
 func (c *ServersController) WriteProxyResponse(ctx context.Context, resp *ghttp.Response, proxyResp *resty.Response, err error) {
 	if resp == nil {

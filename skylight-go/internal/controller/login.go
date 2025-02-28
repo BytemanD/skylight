@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	v1 "skylight/internal/controller/v1"
 	"skylight/internal/model"
 	"skylight/internal/service"
 	"skylight/internal/service/openstack"
@@ -44,17 +43,20 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 			Password: reqBody.Auth.Password,
 		}
 		req.Session.Set("loginInfo", loginInfo)
-		service.AuditService.Login(req)
+		if err := service.AuditService.Login(req); err != nil {
+			glog.Error(req.GetCtx(), "login failed: %s", err)
+			req.Response.WriteStatusExit(400, HttpError{Message: "login failed"})
+		}
 		regions, err := manager.GetRegionFromCatalog()
 		if err != nil {
 			req.Response.WriteStatusExit(400, HttpError{Message: "get regions failed"})
 		} else {
 			glog.Infof(req.GetCtx(), "login success")
-			v1.AddAuthSession(
-				req.GetSessionId(), cluster.AuthUrl,
-				reqBody.Auth.User, reqBody.Auth.Project,
-				reqBody.Auth.Password, "RegionOne",
-			)
+			// v1.AddAuthSession(
+			// 	req.GetSessionId(), cluster.AuthUrl,
+			// 	reqBody.Auth.User, reqBody.Auth.Project,
+			// 	reqBody.Auth.Password, "RegionOne",
+			// )
 			req.Response.WriteStatusExit(
 				200, map[string]interface{}{"regions": regions},
 			)
@@ -94,14 +96,15 @@ func (c *LoginController) Put(req *ghttp.Request) {
 		return
 	}
 
-	session := v1.GetAuthSession(req)
-	session.SetRegion(reqBody.Auth.Region)
+	// session := v1.GetAuthSession(req)
+	// session.SetRegion(reqBody.Auth.Region)
 
 	req.Response.WriteStatusExit(200, HttpError{Message: "update success"})
 }
 func (c *LoginController) Delete(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
 	if err := service.AuditService.Logout(req); err != nil {
+		glog.Error(req.Context(), "logout failed: %s", err)
 		req.Response.WriteStatusExit(400, HttpError{Message: "logout failed"})
 	} else {
 		req.Response.WriteStatusExit(200, HttpError{Message: "logout success"})

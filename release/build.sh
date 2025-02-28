@@ -87,7 +87,10 @@ function main() {
     yum install -y tar upx wget || exit 1
     go version
     if [[ $? -ne 0 ]]; then
-        yum install -y golang || exit 1
+        cd /tmp
+        wget  wget https://golang.google.cn/dl/go1.24.0.linux-amd64.tar.gz || exit 1s
+        tar -zxf go1.24.0.linux-amd64.tar.gz  -C /usr/local/
+        cd -
     fi
     node --version
     if [[ $? -ne 0 ]]; then

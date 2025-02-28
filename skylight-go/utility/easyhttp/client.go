@@ -2,7 +2,6 @@ package easyhttp
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -51,16 +50,11 @@ func (c *Client) Execute(req *Request) (*Response, error) {
 	}
 	resp := Response{rawResponse: rawResp}
 	if resp.IsError() {
-		logging.Error("easyhttp Resp: [%s]\n    Body: %s", resp.Status(), resp.Body())
+		logging.Error("easyhttp Resp: [%s]    ContentLength: %d", resp.Status(), resp.rawResponse.ContentLength)
 	} else if resp.GetContentType() == APPLICATION_OCTET_STREAM {
-		logging.Debug("easyhttp Resp: [%s]\n    Body: <stream>", resp.Status())
+		logging.Debug("easyhttp Resp: [%s]    Body: <stream>", resp.Status())
 	} else {
-		respBody := resp.Body()
-		if len(respBody) > 50 {
-			logging.Debug("easyhttp Resp: [%s]\n    Body: %s", resp.Status(), fmt.Sprintf("%s ...", respBody[0:50]))
-		} else {
-			logging.Debug("easyhttp Resp: [%s]\n    Body: %s", resp.Status(), respBody)
-		}
+		logging.Debug("easyhttp Resp: [%s]    ContentLength: %d", resp.Status(), resp.rawResponse.ContentLength)
 	}
 	return &resp, nil
 }

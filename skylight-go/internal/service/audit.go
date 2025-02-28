@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -59,20 +60,22 @@ func (s auditService) Create(projectId, projectName, userId, userName, action st
 	audit := parseAudit(*item)
 	return &audit, nil
 }
-func (s auditService) Login(req *ghttp.Request) {
+func (s auditService) Login(req *ghttp.Request) error {
 	loginInfo, err := OSService.GetLogInfo(req)
 	if err != nil {
-		glog.Infof(req.GetCtx(), "get login info failed: %s", err)
-		return
+		// glog.Infof(req.GetCtx(), "get login info failed: %s", err)
+		return errors.Join(errors.New("get login info failed"), err)
 	}
+	glog.Info(req.GetCtx(), "============ create audit= %s")
 	_, err = dao.CreateAudit(
 		loginInfo.Project.Id, loginInfo.Project.Name,
 		loginInfo.User.Id, loginInfo.User.Name,
 		fmt.Sprintf("登录集群 %s", loginInfo.Cluster),
 	)
 	if err != nil {
-		logging.Error("create audit failed: %s", err)
+		return errors.Join(errors.New("create audit failed"), err)
 	}
+	return nil
 }
 func (s auditService) Logout(req *ghttp.Request) error {
 	loginInfo, err := OSService.GetLogInfo(req)

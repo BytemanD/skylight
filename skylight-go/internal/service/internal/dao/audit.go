@@ -1,10 +1,12 @@
 package dao
 
 import (
-	"skylight/internal/service/internal/do"
+	"time"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
+
+	"skylight/internal/service/internal/do"
 )
 
 func queryAudit() *gdb.Model {
@@ -33,6 +35,7 @@ func CreateAudit(projectId, projectName, userId, userName, action string) (*do.A
 		UserId:      userId,
 		UserName:    userName,
 		Action:      action,
+		CreatedAt:   time.Now(),
 	}
 	if result, err := queryAudit().Insert(item); err != nil {
 		return nil, err
