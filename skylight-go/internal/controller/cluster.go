@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/glog"
 
 	"skylight/internal/model/entity"
 	"skylight/internal/service"
@@ -33,8 +33,8 @@ func (c *ClustersController) Post(req *ghttp.Request) {
 	}
 	cluster, err := service.ClusterService.CreatCluster(reqBody.Cluster.Name, reqBody.Cluster.AuthUrl)
 	if err != nil {
-		glog.Errorf(req.GetCtx(), "create cluster failed: %s", err)
-		req.Response.WriteStatusExit(400, HttpError{Error: "create cluster failed"})
+		g.Log().Errorf(req.GetCtx(), "create cluster failed: %s", err)
+		req.Response.WriteStatusExit(400, HttpError{Error: err.Error()})
 	}
 	req.Response.WriteStatusExit(200, cluster)
 }
@@ -53,7 +53,7 @@ func (c *ClusterController) Delete(req *ghttp.Request) {
 		req.Response.WriteStatusExit(400, HttpError{Message: "invalid cluster id"})
 	}
 	if service.ClusterService.DeleteCluster(id) != nil {
-		glog.Errorf(req.GetCtx(), "delete cluster failed: %s", err)
+		g.Log().Errorf(req.GetCtx(), "delete cluster failed: %s", err)
 		req.Response.WriteStatusExit(403, HttpError{Error: "delete cluster failed"})
 	}
 	req.Response.WriteStatusExit(204)

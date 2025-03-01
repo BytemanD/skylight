@@ -20,7 +20,6 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 type OpenstackManager struct {
@@ -319,10 +318,10 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 	go func(imageId string, imageFile string) {
 		imageBuff, err := ImageUploadBufReader(imageFile)
 		if err != nil {
-			glog.Errorf(req.GetCtx(), "load image from file failed: %s", err)
+			g.Log().Errorf(req.GetCtx(), "load image from file failed: %s", err)
 			return
 		}
-		glog.Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
+		g.Log().Infof(req.GetCtx(), "uploading image %s to backend, path: %s", imageId, imageFile)
 		_, err = c.doProxyWithHeaders2BodyReader(
 			c.serviceEndpoint["glance"], req.Method, proxyUrl, req.URL.Query(),
 			map[string]string{
@@ -332,11 +331,11 @@ func (c *OpenstackManager) uploadImage(proxyUrl string, req *ghttp.Request) (*ea
 			imageBuff,
 		)
 		if err != nil {
-			glog.Errorf(req.GetCtx(), "upload image %s failed: %s", imageId, err)
+			g.Log().Errorf(req.GetCtx(), "upload image %s failed: %s", imageId, err)
 		} else {
-			glog.Infof(req.GetCtx(), "uploaded image %s to backend", imageId)
+			g.Log().Infof(req.GetCtx(), "uploaded image %s to backend", imageId)
 			if err := os.Remove(imageFile); err != nil {
-				glog.Warningf(req.GetCtx(), "remove image file %s failed: %s", imageFile, err)
+				g.Log().Warningf(req.GetCtx(), "remove image file %s failed: %s", imageFile, err)
 			}
 		}
 	}(imageId, cacheFile)

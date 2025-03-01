@@ -16,7 +16,6 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 type openstackService struct {
@@ -62,7 +61,10 @@ func (s openstackService) GetLogInfo(req *ghttp.Request) (*openstack.LoginInfo, 
 	}
 	return &loginInfo, nil
 }
-
+func (s openstackService) IsLogin(sessionId string) bool {
+	_, ok := s.managers[sessionId]
+	return ok
+}
 func (s openstackService) GetManager(req *ghttp.Request) (*openstack.OpenstackManager, error) {
 	sessionId := req.GetSessionId()
 	if client, ok := s.managers[sessionId]; ok {
@@ -112,7 +114,7 @@ func (s *openstackService) addAudit(req *ghttp.Request, proxyUrl string) {
 			return
 		}
 		if err := AuditService.DeleteResoure(req, getResourceName(found[1]), found[2]); err != nil {
-			glog.Infof(req.GetCtx(), "add audit failed: %s", err)
+			g.Log().Infof(req.GetCtx(), "add audit failed: %s", err)
 		}
 		return
 	}
@@ -145,65 +147,73 @@ func (s *openstackService) DoProxy(req *ghttp.Request, prefix string) (*easyhttp
 	if err == nil {
 		s.addAudit(req, proxyUrl)
 		if prefix == "/computing" && strings.ToUpper(req.Method) == "DELETE" {
-			s.watchComputeDeleted(manager, req, proxyUrl)
+			go s.watchComputeDeleted(manager, req, proxyUrl)
 		}
 		if prefix == "/computing" && strings.ToUpper(req.Method) == "POST" {
 			body := openstack.Server{}
 			if err := resp.UNmarshal(&body); err == nil && body.Server.Id != "" {
-				s.watchComputeCreated(req, manager, fmt.Sprintf("/servers/%s", body.Server.Id))
+				go s.watchComputeCreated(req, manager, fmt.Sprintf("/servers/%s", body.Server.Id))
 			}
 		}
 	}
 	return resp, err
 }
 func (s *openstackService) watchComputeDeleted(manager *openstack.OpenstackManager, req *ghttp.Request, proxyUrl string) {
-	go func() {
-		for {
-			resp, _ := manager.ProxyComputing("GET", proxyUrl, nil, nil)
-			if resp != nil {
-				if !resp.IsError() {
-					PublishService.Publish(req, entity.NewInfoMessage("delete server", "update "+proxyUrl, string(resp.Body())))
-				} else if resp.StatusCode() == 404 {
-					values := strings.Split(proxyUrl, "/")
-					if len(values) < 3 {
-						break
-					}
-					PublishService.Publish(req, entity.NewSuccessMessage("delete server", "deleted "+values[2], values[2]))
-					break
+	if !strings.HasPrefix(proxyUrl, "/servers") {
+		return
+	}
+	values := strings.Split(proxyUrl, "/")
+	for {
+		resp, _ := manager.ProxyComputing("GET", proxyUrl, nil, nil)
+		if resp == nil {
+			break
+		}
+		if resp.IsError() {
+			if resp.StatusCode() == 404 {
+				SseService.Send(req.GetSessionId(), "success", "实例删除成功", values[2])
+				return
+			}
+		} else {
+			data := string(resp.Body())
+			SseService.Send(req.GetSessionId(), "info", "更新实例", data)
+
+			body := openstack.Server{}
+			if resp.UNmarshal(&body) == nil {
+				if strings.ToUpper(body.Server.Status) == "ERROR" {
+					SseService.Send(req.GetSessionId(), "error", "实例删除失败", values[2])
+					return
 				}
 			}
-			time.Sleep(time.Second * 2)
 		}
-	}()
+		time.Sleep(time.Second * 2)
+	}
 }
 func (s *openstackService) watchComputeCreated(req *ghttp.Request, manager *openstack.OpenstackManager, proxyUrl string) {
 	if !strings.HasPrefix(proxyUrl, "/servers") {
 		return
 	}
-	go func() {
-		for {
-			resp, err := manager.ProxyComputing("GET", proxyUrl, nil, nil)
-			if err != nil || resp.IsError() {
-				break
-			}
-			body := openstack.Server{}
-			if err := resp.UNmarshal(&body); err != nil {
-				break
-			}
-			data := string(resp.Body())
-			switch body.Server.Status {
-			case "ACTIVE":
-				PublishService.Publish(req, entity.NewSuccessMessage("create server", "created "+proxyUrl, data))
-				return
-			case "ERROR":
-				PublishService.Publish(req, entity.NewErrorMessage("create server", "update "+proxyUrl, data))
-				return
-			default:
-				PublishService.Publish(req, entity.NewInfoMessage("create server", "update "+proxyUrl, data))
-			}
-			time.Sleep(time.Second * 2)
+	for {
+		resp, err := manager.ProxyComputing("GET", proxyUrl, nil, nil)
+		if err != nil || resp.IsError() {
+			break
 		}
-	}()
+		body := openstack.Server{}
+		if err := resp.UNmarshal(&body); err != nil {
+			break
+		}
+		data := string(resp.Body())
+		SseService.Send(req.GetSessionId(), "info", "更新实例", data)
+
+		switch strings.ToUpper(body.Server.Status) {
+		case "ACTIVE":
+			SseService.Send(req.GetSessionId(), "success", "实例创建成功", body.Server.Id)
+			return
+		case "ERROR":
+			SseService.Send(req.GetSessionId(), "error", "实例创建失败", body.Server.Id)
+			return
+		}
+		time.Sleep(time.Second * 2)
+	}
 }
 func (s *openstackService) SaveImageCache(proxyUrl string, req *ghttp.Request) (*entity.ImageUploadTask, error) {
 	metaSize := req.Header.Get("x-image-meta-size")

@@ -3,8 +3,8 @@ package controller
 import (
 	"strconv"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/glog"
 
 	"skylight/internal/model/entity"
 	"skylight/internal/service"
@@ -45,7 +45,7 @@ func (c *ImageUploadTaskController) Delete(req *ghttp.Request) {
 		req.Response.WriteStatusExit(400, HttpError{Message: "invalid cluster id"})
 	}
 	if openstack.ImageUploadTaskService.Delete(id) != nil {
-		glog.Errorf(req.GetCtx(), "delete image upload task failed: %s", err)
+		g.Log().Errorf(req.GetCtx(), "delete image upload task failed: %s", err)
 		req.Response.WriteStatusExit(403, HttpError{Error: "delete image upload task failed"})
 	}
 	req.Response.WriteStatusExit(204)

@@ -1,10 +1,10 @@
 VERSION=""
 
 function logInfo() {
-    echo $(date "+%F %T") "INFO:" $@ 1>&2
+    echo $(date "+%F %T") "INFO:" "$@" 1>&2
 }
 function logError() {
-    echo $(date "+%F %T") "ERROR:" $@ 1>&2
+    echo $(date "+%F %T") "ERROR:" "$@" 1>&2
 }
 
 function getVersion() {
@@ -81,7 +81,11 @@ function main() {
     fi
     logInfo ">>>>>> make semver"
     VERSION=$(getVersion)
-    logInfo "version: ${VERSION}"
+    local versionFormat="$(printf 'version: %20s' $VERSION)"
+    echo "${versionFormat}"
+    logInfo "+-------------------------------+"
+    logInfo "| ${versionFormat} |"
+    logInfo "+-------------------------------+"
 
     logInfo ">>>>>> install packages"
     yum install -y tar upx wget || exit 1
@@ -114,6 +118,9 @@ function main() {
     go env -w GO111MODULE="on"
     go env -w GOPROXY="https://mirrors.aliyun.com/goproxy/,direct"
 
+    RELEASE_PACKAGE="skylight-${VERSION}"
+    rm -rf release/${RELEASE_PACKAGE} release/skylight-*.tar.gz
+
     cd skylight-web
     buildFrontend
     cd -
@@ -124,9 +131,6 @@ function main() {
 
     logInfo ">>>>>> make packages"
 
-    RELEASE_PACKAGE="skylight-${VERSION}"
-
-    rm -rf release/${RELEASE_PACKAGE}
     mkdir release/${RELEASE_PACKAGE}
     mv skylight-go/skylight release/${RELEASE_PACKAGE} || exit 1
     cd release
@@ -139,7 +143,7 @@ function main() {
     cd release
 
     logInfo "========= 构建容器镜像 ========= "
-    TAR=$(ls -1 skylight* |sort -V |tail -n1)
+    TAR=$(ls -1 skylight*.tar.gz |sort -V |tail -n1)
     PACKAGE="${TAR%.tar.gz*}"
     VERSION="${PACKAGE##skylight-}"
     docker build --network=host --no-cache --build-arg PACKAGE=${PACKAGE} --build-arg DATE="$(date)" -t skylight:${VERSION} ./ || exit 1

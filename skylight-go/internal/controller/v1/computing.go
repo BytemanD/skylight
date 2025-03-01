@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 type ServersController struct{}
@@ -26,7 +26,7 @@ func (c *ServersController) WriteProxyResponse(ctx context.Context, resp *ghttp.
 	if resp == nil {
 		resp.WriteStatusExit(400, err)
 	} else {
-		glog.Infof(ctx, "openstack response status: %d, content-length: %s", proxyResp.StatusCode(), proxyResp.Header().Get("Content-Length"))
+		g.Log().Infof(ctx, "openstack response status: %d, content-length: %s", proxyResp.StatusCode(), proxyResp.Header().Get("Content-Length"))
 		resp.WriteJson(proxyResp.Body())
 	}
 }

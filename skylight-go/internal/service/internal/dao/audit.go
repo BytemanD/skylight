@@ -1,47 +1,45 @@
 package dao
 
 import (
-	"time"
-
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 
-	"skylight/internal/service/internal/do"
+	"skylight/internal/model/entity"
 )
 
-func queryAudit() *gdb.Model {
-	return g.DB().Model(do.Audit{})
+const TABLE_AUDITS = "audits"
+
+func modelAudit() *gdb.Model {
+	return g.Model(TABLE_AUDITS)
 }
-func GetAudits() ([]do.Audit, error) {
-	items := []do.Audit{}
-	err := queryAudit().Order("created_at desc").Scan(&items)
+func GetAudits() ([]entity.Audit, error) {
+	items := []entity.Audit{}
+	err := modelAudit().Order("created_at desc").Scan(&items)
 	if err != nil {
 		return nil, err
 	}
 	return items, nil
 }
-func GetAuditsByProjectId(projectId string) ([]do.Audit, error) {
-	items := do.Audits{}
-	err := queryAudit().Where("project_id = ?", projectId).Order("created_at desc").Scan(&items)
+func GetAuditsByProjectId(projectId string) ([]entity.Audit, error) {
+	items := []entity.Audit{}
+	err := modelAudit().Where("project_id = ?", projectId).Order("created_at desc").Scan(&items)
 	if err != nil {
 		return nil, err
 	}
 	return items, nil
 }
-func CreateAudit(projectId, projectName, userId, userName, action string) (*do.Audit, error) {
-	item := do.Audit{
+func CreateAudit(projectId, projectName, userId, userName, action string) (*entity.Audit, error) {
+	item := entity.Audit{
 		ProjectId:   projectId,
 		ProjectName: projectName,
 		UserId:      userId,
 		UserName:    userName,
 		Action:      action,
-		CreatedAt:   time.Now(),
 	}
-	if result, err := queryAudit().Insert(item); err != nil {
+	if id, err := modelAudit().Data(item).InsertAndGetId(); err != nil {
 		return nil, err
 	} else {
-		id, _ := result.LastInsertId()
-		item.Id = int(id)
+		item.Id = id
 		return &item, nil
 	}
 }

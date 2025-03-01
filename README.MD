@@ -31,7 +31,7 @@ sh release/build.sh
    
    ```
    cd skylight-go
-   go run main.go
+   go run main.go [-d] [--gf.gcfg.path=<CONFIG_PATH>]
    ```
 
 2. 启动前端服务

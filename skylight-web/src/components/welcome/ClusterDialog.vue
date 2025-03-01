@@ -24,7 +24,7 @@
     </v-dialog>
 </template>
 <script setup>
-import {ref} from "vue"
+import {reactive, ref} from "vue"
 
 import { ClusterTable } from '@/assets/app/tables.jsx';
 import NewCluster from "./NewCluster.vue";
@@ -32,7 +32,7 @@ import NewCluster from "./NewCluster.vue";
 
 var display = ref(false)
 var refreshing = ref(false)
-var table = new ClusterTable()
+var table = reactive(new ClusterTable())
 
 async function refresh(){
     refreshing.value = true

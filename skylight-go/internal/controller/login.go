@@ -6,8 +6,8 @@ import (
 	"skylight/internal/service"
 	"skylight/internal/service/openstack"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 type LoginController struct{}
@@ -44,14 +44,14 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 		}
 		req.Session.Set("loginInfo", loginInfo)
 		if err := service.AuditService.Login(req); err != nil {
-			glog.Error(req.GetCtx(), "login failed: %s", err)
+			g.Log().Errorf(req.GetCtx(), "login failed: %s", err)
 			req.Response.WriteStatusExit(400, HttpError{Message: "login failed"})
 		}
 		regions, err := manager.GetRegionFromCatalog()
 		if err != nil {
 			req.Response.WriteStatusExit(400, HttpError{Message: "get regions failed"})
 		} else {
-			glog.Infof(req.GetCtx(), "login success")
+			g.Log().Infof(req.GetCtx(), "login success")
 			// v1.AddAuthSession(
 			// 	req.GetSessionId(), cluster.AuthUrl,
 			// 	reqBody.Auth.User, reqBody.Auth.Project,
@@ -62,7 +62,6 @@ func (c *PostLoginController) Post(req *ghttp.Request) {
 			)
 		}
 	}
-
 }
 func (c *LoginController) Get(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
@@ -104,7 +103,7 @@ func (c *LoginController) Put(req *ghttp.Request) {
 func (c *LoginController) Delete(req *ghttp.Request) {
 	req.Response.Header().Set("Content-Type", "application/json")
 	if err := service.AuditService.Logout(req); err != nil {
-		glog.Error(req.Context(), "logout failed: %s", err)
+		g.Log().Errorf(req.Context(), "logout failed: %s", err)
 		req.Response.WriteStatusExit(400, HttpError{Message: "logout failed"})
 	} else {
 		req.Response.WriteStatusExit(200, HttpError{Message: "logout success"})

@@ -219,9 +219,7 @@ import BtnServerMigrate from '@/components/plugins/BtnServerMigrate.vue';
 import BtnServerReboot from '@/components/plugins/BtnServerReboot.vue';
 import BtnServerEvacuate from '@/components/plugins/BtnServerEvacuate.vue';
 import { Context, GetLocalContext } from '@/assets/app/context';
-import notify from '@/assets/app/notify';
-import WS from '@/assets/app/websocket';
-import { MESSAGES } from '@/assets/app/messages';
+import { SES } from '@/assets/app/sse';
 
 
 export default {
@@ -290,40 +288,20 @@ export default {
       this.selectedServer = server;
       this.showServerGroupDialog = !this.showServerGroupDialog;
     },
-    subscribeCreateServer: function () {
+    subscribeServerEvents: function () {
       let self = this
-      WS.subscribe('create server', function (msg) {
-        let data = JSON.parse(msg.data)
-        if (!data.server) {
+
+      SES.subscribe("更新实例", (eventData) => {
+        let serverBody = JSON.parse(eventData.message)
+        if (!serverBody.server) {
           return
         }
-        self.table.updateItem(data.server)
-        switch (data.server.status) {
-          case "ACTIVE":
-            MESSAGES.success('实例创建成功', `实例：${data.server.name} `)
-            break
-          case "ERROR":
-            MESSAGES.error('实例创建失败', `实例：${data.server.name}`)
-            break
-        }
-      })
-    },
-    subscribeDeleteServer: function () {
-      let self = this
-      WS.subscribe('delete server', function (msg) {
-        switch (msg.level) {
-          case "success":
-            MESSAGES.success('实例删除成功', `实例：${msg.data}`)
-            self.table.removeItem(msg.data)
-            break
-          case "info":
-            let data = JSON.parse(msg.data)
-            self.table.updateItem(data.server)
-            break
-          case "error":
-            MESSAGES.error('实例删除失败', `实例：${msg.data}`)
-            break
-        }
+        self.table.updateItem(serverBody.server)
+      });
+      SES.subscribe("实例删除成功", (eventData) => {
+        let serverId = eventData.message
+        self.table.removeItem(serverId)
+        return true
       })
     },
     prePage: function () {
@@ -335,8 +313,7 @@ export default {
   },
   created() {
     this.context = GetLocalContext()
-    this.subscribeCreateServer()
-    this.subscribeDeleteServer()
+    this.subscribeServerEvents()
     this.nextPage()
   }
 };

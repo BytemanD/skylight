@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -13,6 +11,7 @@ import (
 	"skylight/internal/controller"
 	_ "skylight/internal/packed"
 	"skylight/internal/service"
+	"skylight/utility"
 
 	"github.com/BytemanD/easygo/pkg/global/logging"
 	_ "github.com/gogf/gf/contrib/drivers/sqlite/v2"
@@ -20,9 +19,7 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/gres"
-	"github.com/gogf/gf/v2/os/gsession"
 )
 
 var (
@@ -51,7 +48,7 @@ var (
 	ServeCmd = gcmd.Command{
 		Name:  "serve",
 		Usage: "serve",
-		Brief: "start http server",
+		Brief: "start skylight server",
 		Arguments: []gcmd.Argument{
 			{Name: "port", Short: "p", Brief: "The port of server"},
 			{Name: "debug", Short: "d", Orphan: true, Brief: "Show debug message"},
@@ -59,32 +56,36 @@ var (
 			{Name: "template", Short: "T", Brief: "The path of template"},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
-			port := parser.GetOpt("port", "8081").String()
-			debug := parser.GetOpt("debug").IsEmpty()
+			port := parser.GetOpt("port")
+			debug := !parser.GetOpt("debug").IsNil()
 
 			// 初始化日志
-			level := logging.INFO
+			enableDebug, logLevel := false, logging.INFO
 			if debug {
-				level = logging.DEBUG
+				enableDebug, logLevel = debug, logging.DEBUG
 			}
-			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
-			glog.SetDebug(debug)
-			glog.SetStack(debug)
+			g.Log().SetDebug(enableDebug)
+			g.Log().SetStack(enableDebug)
+			logging.BasicConfig(logging.LogConfig{Level: logLevel, EnableColor: true})
 
 			s := g.Server()
+			if !port.IsNil() && port.Uint() > 0 {
+				g.Log().Debugf(ctx, "use port %d", port.Uint())
+				s.SetAddr(fmt.Sprintf(":%d", port.Uint()))
+			}
 			// 初始化静态资源
 			if gres.IsEmpty() {
 				if gfile.Exists(DEV_TEMPLATE) {
-					glog.Infof(ctx, "add template path: %s", DEV_TEMPLATE)
+					g.Log().Infof(ctx, "add template path: %s", DEV_TEMPLATE)
 					s.AddSearchPath(DEV_TEMPLATE)
 				} else {
-					glog.Warningf(ctx, "template %s not exists", DEV_TEMPLATE)
+					g.Log().Warningf(ctx, "template %s not exists", DEV_TEMPLATE)
 				}
 				if gfile.Exists(DEV_STATIC) {
-					glog.Infof(ctx, "static path: %s", DEV_STATIC)
+					g.Log().Infof(ctx, "static path: %s", DEV_STATIC)
 					s.AddStaticPath("/static", DEV_STATIC)
 				} else {
-					glog.Warningf(ctx, "static %s not exists", DEV_STATIC)
+					g.Log().Warningf(ctx, "static %s not exists", DEV_STATIC)
 				}
 			}
 
@@ -99,24 +100,20 @@ var (
 				s.AddSearchPath("resources")
 			}
 
-			if port != "" {
-				s.SetAddr(fmt.Sprintf(":%s", port))
-			}
-			dataPath, _ := g.Cfg().Get(ctx, "server.dataPath", "/var/lib/skylight")
-			glog.Infof(ctx, "data path: %s", dataPath.String())
-			MakesureDir(dataPath.String())
-			MakesureDir(filepath.Join(dataPath.String(), "image_cache"))
+			dataPath := g.Cfg().MustGet(ctx, "server.dataPath")
+			g.Log().Infof(ctx, "data path: %s", dataPath.String())
+			utility.MakesureDir(dataPath.String())
+			utility.MakesureDir(filepath.Join(dataPath.String(), "image_cache"))
 
-			// 初始化 session 驱动
-			glog.Infof(ctx, "init session driver ...")
-			gsessionPath, _ := g.Cfg().Get(ctx, "session.path", "/var/lib/skylight/gsessions")
-			glog.Infof(ctx, "session path: %s", gsessionPath.String())
-			MakesureDir(gsessionPath.String())
-
-			s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String(), time.Hour*5))
+			// 初始化 session 路径
+			service.InitSessionStorage(ctx)
+			s.SetSessionStorage(service.SessionStorage)
+			// s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String(), time.Hour*5))
 			s.SetSessionCookieMaxAge(time.Hour)
 			s.SetSessionMaxAge(time.Hour)
 
+			InitDB(ctx)
+			// core := g.DB().GetCore()
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,
 				ghttp.MiddlewareHandlerResponse, controller.MiddlewareLogResponse,
@@ -135,7 +132,6 @@ var (
 				group.Middleware(controller.MiddlewareAuth)
 
 				s.BindObjectRest("/audits", controller.AuditsController{})
-
 				group.REST("/login", controller.LoginController{})
 				for _, prefix := range PROXY_PREFIXY {
 					if prefix == "/image" {
@@ -145,26 +141,23 @@ var (
 				}
 			})
 
-			s.BindHandler("/ws", func(req *ghttp.Request) {
-				service.PublishService.RegisterPublisher(req)
+			// SSE
+			s.BindHandler("/sse", func(req *ghttp.Request) {
+				session := req.GetQuery("session", "")
+				if session.IsEmpty() {
+					req.Response.WriteStatusExit(400, controller.HttpError{
+						Error: "session is missing",
+					})
+				}
+				if !service.OSService.IsLogin(session.String()) {
+					req.Response.WriteStatusExit(403, controller.HttpError{
+						Error: "session is not login",
+					})
+				}
+				service.SseService.Register(session.String(), req)
 			})
 
-			// TODO: 周期任务
-			filepath.Walk(filepath.Join(gsessionPath.String()),
-				func(path string, info fs.FileInfo, err error) error {
-					if info.IsDir() {
-						return nil
-					}
-					if !info.ModTime().Before(time.Now().AddDate(0, 0, -1)) {
-						return nil
-					}
-					glog.Infof(ctx, "session %s is expired, cleanup", info.Name())
-					os.Remove(filepath.Join(gsessionPath.String(), info.Name()))
-					return nil
-				},
-			)
-
-			glog.Info(ctx, "starting server")
+			g.Log().Info(ctx, "starting server")
 			s.Run()
 			return nil
 		},

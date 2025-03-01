@@ -3,6 +3,8 @@ package utility
 import (
 	"io"
 	"os"
+
+	"github.com/gogf/gf/v2/os/gfile"
 )
 
 func CopyFile(src, dest string) error {
@@ -19,4 +21,12 @@ func CopyFile(src, dest string) error {
 	defer destFile.Close()
 	_, err = io.Copy(destFile, srcFile)
 	return err
+}
+func MakesureDir(path string) {
+	if gfile.Exists(path) {
+		return
+	}
+	if err := gfile.Mkdir(path); err != nil {
+		panic(err)
+	}
 }
