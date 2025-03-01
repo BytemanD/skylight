@@ -12,13 +12,13 @@
         <v-divider></v-divider>
         <v-card-text class="pa-0">
             <template v-for="item, index in MESSAGES.items">
-                <v-alert v-if="!item.deleted" class="ma-4" elevation="2" density="compact"
-                    @click="MESSAGES.readItem(item)" :key="index" closable border
-                    :variant="item.read ? 'tonal' : 'flat'" :type="item.type || 'info'"
-                    @click:close="MESSAGES.removeItem(item)" :title="item.title">
-                    <p class="font-weight-medium">{{ item.text }}</p>
-                    <p class="text-subtitle font-weight-light mr-1 text-right">{{ item.date }}</p>
-                </v-alert>
+                <v-alert v-if="!item.deleted" class="ma-2" elevation="2" density="compact"
+                @click="MESSAGES.readItem(item)" :key="index" closable border
+                :variant="item.read ? 'tonal' : 'flat'" :type="item.type || 'info'"
+                @click:close="MESSAGES.removeItem(item)" :title="item.title">
+                <p class="font-weight-medium">{{ item.text }}</p>
+                <p class="text-subtitle font-weight-light text-right">{{ item.date }}</p>
+            </v-alert>
             </template>
         </v-card-text>
     </v-navigation-drawer>

@@ -60,16 +60,16 @@ var (
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			port := parser.GetOpt("port", "8081").String()
-			debug := parser.GetOpt("debug").IsEmpty()
+			debug := !parser.GetOpt("debug").IsNil()
 
 			// 初始化日志
-			level := logging.INFO
+			enableDebug, logLevel := false, logging.INFO
 			if debug {
-				level = logging.DEBUG
+				enableDebug, logLevel = true, logging.DEBUG
 			}
-			logging.BasicConfig(logging.LogConfig{Level: level, EnableColor: true})
-			glog.SetDebug(debug)
-			glog.SetStack(debug)
+			glog.SetDebug(enableDebug)
+			glog.SetStack(enableDebug)
+			logging.BasicConfig(logging.LogConfig{Level: logLevel, EnableColor: true})
 
 			s := g.Server()
 			// 初始化静态资源
@@ -148,7 +148,21 @@ var (
 			s.BindHandler("/ws", func(req *ghttp.Request) {
 				service.PublishService.RegisterPublisher(req)
 			})
-
+			// SSE
+			s.BindHandler("/sse", func(req *ghttp.Request) {
+				session := req.GetQuery("session", "")
+				if session.IsEmpty() {
+					req.Response.WriteStatusExit(400, controller.HttpError{
+						Error: "session is missing",
+					})
+				}
+				if !service.OSService.IsLogin(session.String()) {
+					req.Response.WriteStatusExit(403, controller.HttpError{
+						Error: "session is not login",
+					})
+				}
+				service.SseService.Register(session.String(), req)
+			})
 			// TODO: 周期任务
 			filepath.Walk(filepath.Join(gsessionPath.String()),
 				func(path string, info fs.FileInfo, err error) error {

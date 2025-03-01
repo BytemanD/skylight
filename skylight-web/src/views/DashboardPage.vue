@@ -65,9 +65,9 @@ import SheetMessages from '@/components/dashboard/SheetMessages.vue';
 import { Utils } from '@/assets/app/lib';
 import notify from '@/assets/app/notify';
 import { GetContext } from '@/assets/app/context';
-// import API from '@/assets/app/api';
-import WS from '@/assets/app/websocket';
+
 import { MESSAGES } from '@/assets/app/messages';
+import { SES } from '@/assets/app/sse';
 
 const navigationGroup = [
   {
@@ -216,9 +216,11 @@ export default {
   created() {
     this.confirmIsLogin()
     Init()
-    let backendWsUrl = sessionStorage.getItem('backend_ws_url')
-    console.log("backend_ws_url is ", backendWsUrl)
-    WS.connect(backendWsUrl)
+    try {
+      SES.listen()
+    } catch (e) {
+      console.error(e)
+    }
   },
 }
 </script>
