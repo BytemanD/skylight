@@ -25,6 +25,7 @@ go.work.sum
 skylight-go/skylight
 skylight-go/skylight
 
+release/build
 release/skylight-*
 release/skylight-*.tar.gz
 skylight-go/internal/packed/resources.go

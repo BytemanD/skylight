@@ -14,5 +14,4 @@ session:
     path: "/var/lib/skylight/gsessions"
 
 database:
-  debug: true
-  link:  "sqlite::@file(/var/lib/skylight/skylight.db)"
+  link:  "sqlite::@file(/var/lib/skylight/db/skylight.db)"

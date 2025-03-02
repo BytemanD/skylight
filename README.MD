@@ -56,4 +56,12 @@ npm run build
 
 ```
 
+默认数据目录
+```
+/var/lib/skylight/config
+/var/lib/skylight/db
+/var/lib/skylight/gsessions
+/var/lib/skylight/migrations
+```
+
 *更多用法参考帮助信息。*

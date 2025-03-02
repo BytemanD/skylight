@@ -21,7 +21,6 @@ function getVersion() {
 }
 
 function buildFrontend() {
-    logInfo "========= 构建前端工程 ========= "
     # npm config set registry https://npmmirror.com/
     npm config set registry https://registry.npmmirror.com/
 
@@ -31,25 +30,19 @@ function buildFrontend() {
     # logInfo ">>>>>> npm audit fix"
     # npm audit fix || exit 1
 
+    rm -rf dist
     logInfo ">>>>>> npm audit build"
     npm run build || exit 1
 }
 
 function buildBackend() {
-    logInfo "========= 构建后端工程 ========= "
-    logInfo ">>>>>> pack resources"
-    rm -rf internal/packed/resources.go
+    # logInfo ">>>>>> pack resources"
+    # rm -rf internal/packed/resources.go
     rm -rf internal/packed/config.go
     gf pack manifest internal/packed/config.go --prefix manifest || exit 1
-    sed -i 's|http://localhost:8081||g' ../skylight-web/dist/config.json
-    sed -i 's|ws://localhost:8081||g' ../skylight-web/dist/config.json
-    gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources || exit 1
-
-    # wget -q https://dl.google.com/go/go1.21.4.linux-amd64.tar.gz
-    # rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz
-    # cp /usr/local/go/bin/* /usr/bin/
-    # echo 'export PATH=/usr/local/go/bin:$PATH' >> $HOME/.bashrc
-    # source $HOME/.bashrc && /usr/local/go/bin/go version
+    # sed -i 's|http://localhost:8081||g' ../skylight-web/dist/config.json
+    # sed -i 's|ws://localhost:8081||g' ../skylight-web/dist/config.json
+    # gf pack ../skylight-web/dist internal/packed/resources.go --prefix resources || exit 1
 
     logInfo ">>>>>> go mod download"
     go mod download
@@ -65,7 +58,7 @@ function buildBackend() {
         -X 'main.GoVersion=${GO_VERSION}' \
         -X 'main.BuildDate=${BUILD_DATE}' \
         -X 'main.BuildPlatform=${UNAME}' -s -w" || exit 1
-    rm -rf internal/packed/resources.go
+    # rm -rf internal/packed/resources.go
     rm -rf internal/packed/config.go
 
     logInfo ">>>>>> compress"
@@ -119,41 +112,45 @@ function main() {
     go env -w GOPROXY="https://mirrors.aliyun.com/goproxy/,direct"
 
     RELEASE_PACKAGE="skylight-${VERSION}"
-    rm -rf release/${RELEASE_PACKAGE} release/skylight-*.tar.gz
 
-    cd skylight-web
-    buildFrontend
-    cd -
+    logInfo "========= 清理构建缓存 ========="
+    rm -rf release/build/*
 
-    cd skylight-go
-    buildBackend
-    cd -
+    mkdir -p release/build
 
-    logInfo ">>>>>> make packages"
+    logInfo "========= 构建前端工程 ========= "
+    cd skylight-web && buildFrontend && cd -
+    mv skylight-web/dist release/build
 
-    mkdir release/${RELEASE_PACKAGE}
-    mv skylight-go/skylight release/${RELEASE_PACKAGE} || exit 1
+    logInfo "========= 构建后端工程 ========="
+    cd skylight-go && buildBackend && cd -
+    mv skylight-go/skylight release/build
+    cp -r migrations release/build
+    cp -r skylight-go/manifest/config release/build
+
+    logInfo "========= 配置项目更新 ========="
     cd release
-    cp install.sh ${RELEASE_PACKAGE}
-    tar czf ${RELEASE_PACKAGE}.tar.gz ${RELEASE_PACKAGE} || exit 1
-    rm -rf ${RELEASE_PACKAGE}
+    sed -i 's|http://localhost:8081||g' build/dist/config.json
+    sed -i 's|ws://localhost:8081||g'   build/dist/config.json
     cd -
-    rm -rf skylight-web/dist
 
-    cd release
-
+    local imageName="skylight:${VERSION}"
     logInfo "========= 构建容器镜像 ========= "
-    TAR=$(ls -1 skylight*.tar.gz |sort -V |tail -n1)
-    PACKAGE="${TAR%.tar.gz*}"
-    VERSION="${PACKAGE##skylight-}"
-    docker build --network=host --no-cache --build-arg PACKAGE=${PACKAGE} --build-arg DATE="$(date)" -t skylight:${VERSION} ./ || exit 1
+    cd release
+    docker build --file ubuntu.Dockerfile --network=host --no-cache \
+        --build-arg DATE="$(date)" \
+        -t ${imageName} ./
+
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    cd -
 
     logInfo "========= 推送镜像 ========="
-    docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}   || exit 1
-    docker tag skylight:${VERSION} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight              || exit 1
-    docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight:${VERSION}      || exit 1
+    docker tag ${imageName} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/${imageName}     || exit 1
+    docker tag ${imageName} registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight         || exit 1
+    docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/${imageName}             || exit 1
     docker push registry.cn-hangzhou.aliyuncs.com/fjboy-ec/skylight                 || exit 1
-    cd -
 }
 
 main

@@ -19,7 +19,6 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/gres"
 )
 
 var (
@@ -56,6 +55,10 @@ var (
 			{Name: "template", Short: "T", Brief: "The path of template"},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			if !g.Cfg().Available(ctx) {
+				return errors.New("config is not available")
+			}
+
 			port := parser.GetOpt("port")
 			debug := !parser.GetOpt("debug").IsNil()
 
@@ -67,43 +70,49 @@ var (
 			g.Log().SetDebug(enableDebug)
 			g.Log().SetStack(enableDebug)
 			logging.BasicConfig(logging.LogConfig{Level: logLevel, EnableColor: true})
-
+			// return
 			s := g.Server()
+			s.Logger().SetDebug(enableDebug)
+			s.Logger().SetStack(enableDebug)
 			if !port.IsNil() && port.Uint() > 0 {
 				g.Log().Debugf(ctx, "use port %d", port.Uint())
 				s.SetAddr(fmt.Sprintf(":%d", port.Uint()))
 			}
 			// 初始化静态资源
-			if gres.IsEmpty() {
-				if gfile.Exists(DEV_TEMPLATE) {
-					g.Log().Infof(ctx, "add template path: %s", DEV_TEMPLATE)
-					s.AddSearchPath(DEV_TEMPLATE)
-				} else {
-					g.Log().Warningf(ctx, "template %s not exists", DEV_TEMPLATE)
-				}
-				if gfile.Exists(DEV_STATIC) {
-					g.Log().Infof(ctx, "static path: %s", DEV_STATIC)
-					s.AddStaticPath("/static", DEV_STATIC)
-				} else {
-					g.Log().Warningf(ctx, "static %s not exists", DEV_STATIC)
-				}
-			}
+			// if gres.IsEmpty() {
+			// 	if gfile.Exists(DEV_TEMPLATE) {
+			// 		g.Log().Infof(ctx, "add template path: %s", DEV_TEMPLATE)
+			// 		s.AddSearchPath(DEV_TEMPLATE)
+			// 	} else {
+			// 		g.Log().Warningf(ctx, "template %s not exists", DEV_TEMPLATE)
+			// 	}
+			// 	if gfile.Exists(DEV_STATIC) {
+			// 		g.Log().Infof(ctx, "static path: %s", DEV_STATIC)
+			// 		s.AddStaticPath("/static", DEV_STATIC)
+			// 	} else {
+			// 		g.Log().Warningf(ctx, "static %s not exists", DEV_STATIC)
+			// 	}
+			// }
 
-			if !g.Cfg().Available(ctx) {
-				return errors.New("config is not available")
-			}
 			// 初始化DB
 			// if err := service.DBInit(ctx); err != nil {
 			// 	return errors.Join(errors.New("init db error"), err)
 			// }
-			if gres.Contains("resources") {
-				s.AddSearchPath("resources")
-			}
+			// if gres.Contains("resources") {
+			// 	s.AddSearchPath("resources")
+			// }
 
 			dataPath := g.Cfg().MustGet(ctx, "server.dataPath")
 			g.Log().Infof(ctx, "data path: %s", dataPath.String())
 			utility.MakesureDir(dataPath.String())
 			utility.MakesureDir(filepath.Join(dataPath.String(), "image_cache"))
+
+			// 设置静态资源路径
+			serverRootPath := filepath.Join(dataPath.String(), "WEB")
+			if gfile.Exists(serverRootPath) {
+				g.Log().Infof(ctx, "set server root: %s", serverRootPath)
+				s.SetServerRoot(serverRootPath)
+			}
 
 			// 初始化 session 路径
 			service.InitSessionStorage(ctx)
