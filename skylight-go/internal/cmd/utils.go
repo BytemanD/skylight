@@ -47,7 +47,7 @@ func sqliteMigrate(ctx context.Context, dbConf *gdb.ConfigNode) {
 	defer m.Close()
 
 	version, dirty, _ := m.Version()
-	g.Log().Infof(ctx, "MIGRATE version: %d, dirty=%t", version, dirty)
+	g.Log().Info(ctx, "MIGRATE currently version=%d, dirty=%t", version, dirty)
 	g.Log().Infof(ctx, "MIGRATE sourceUrl: %s, databaseUrl: %s", sourcePath, dbConf.Name)
 	if err := m.Up(); err != nil {
 		if !errors.Is(err, migrate.ErrNoChange) {

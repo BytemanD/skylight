@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -45,8 +44,7 @@ func (s auditService) Create(projectId, projectName, userId, userName, action st
 func (s auditService) Login(req *ghttp.Request) error {
 	loginInfo, err := OSService.GetLogInfo(req)
 	if err != nil {
-		// g.Log().Infof(req.GetCtx(), "get login info failed: %s", err)
-		return errors.Join(errors.New("get login info failed"), err)
+		return fmt.Errorf("get login info failed: %s", err)
 	}
 	_, err = dao.CreateAudit(
 		loginInfo.Project.Id, loginInfo.Project.Name,
@@ -95,12 +93,15 @@ func (s auditService) DeleteResoure(req *ghttp.Request, name string, resource st
 	return nil
 }
 
-func InitSessionStorage(ctx context.Context) {
-	gsessionPath := g.Cfg().MustGet(ctx, "session.default.path")
-	g.Log().Infof(ctx, "SESSION type: %s", g.Cfg().MustGet(ctx, "session.default.type").String())
-	g.Log().Infof(ctx, "SESSION path: %s", gsessionPath.String())
+func InitSessionStorage(ctx context.Context, s *ghttp.Server) {
+	gsessionPath, gsessionType := g.Cfg().MustGet(ctx, "session.default.path"),
+		g.Cfg().MustGet(ctx, "session.default.type")
+	g.Log().Infof(ctx, "SESSION type: %s, path: %s", gsessionType.String(), gsessionPath.String())
+
 	utility.MakesureDir(gsessionPath.String())
-	SessionStorage = gsession.NewStorageFile(gsessionPath.String(), time.Hour*3)
+	s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String(), time.Hour*3))
+	s.SetSessionCookieMaxAge(time.Hour)
+	s.SetSessionMaxAge(time.Hour)
 
 	// TODO: 周期任务
 	filepath.Walk(filepath.Join(gsessionPath.String()),

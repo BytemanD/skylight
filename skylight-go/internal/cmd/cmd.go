@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"time"
 
 	"skylight/internal/consts"
 	"skylight/internal/controller"
@@ -70,7 +69,7 @@ var (
 			g.Log().SetDebug(enableDebug)
 			g.Log().SetStack(enableDebug)
 			logging.BasicConfig(logging.LogConfig{Level: logLevel, EnableColor: true})
-			// return
+
 			s := g.Server()
 			s.Logger().SetDebug(enableDebug)
 			s.Logger().SetStack(enableDebug)
@@ -78,29 +77,6 @@ var (
 				g.Log().Debugf(ctx, "use port %d", port.Uint())
 				s.SetAddr(fmt.Sprintf(":%d", port.Uint()))
 			}
-			// 初始化静态资源
-			// if gres.IsEmpty() {
-			// 	if gfile.Exists(DEV_TEMPLATE) {
-			// 		g.Log().Infof(ctx, "add template path: %s", DEV_TEMPLATE)
-			// 		s.AddSearchPath(DEV_TEMPLATE)
-			// 	} else {
-			// 		g.Log().Warningf(ctx, "template %s not exists", DEV_TEMPLATE)
-			// 	}
-			// 	if gfile.Exists(DEV_STATIC) {
-			// 		g.Log().Infof(ctx, "static path: %s", DEV_STATIC)
-			// 		s.AddStaticPath("/static", DEV_STATIC)
-			// 	} else {
-			// 		g.Log().Warningf(ctx, "static %s not exists", DEV_STATIC)
-			// 	}
-			// }
-
-			// 初始化DB
-			// if err := service.DBInit(ctx); err != nil {
-			// 	return errors.Join(errors.New("init db error"), err)
-			// }
-			// if gres.Contains("resources") {
-			// 	s.AddSearchPath("resources")
-			// }
 
 			dataPath := g.Cfg().MustGet(ctx, "server.dataPath")
 			g.Log().Infof(ctx, "data path: %s", dataPath.String())
@@ -115,14 +91,11 @@ var (
 			}
 
 			// 初始化 session 路径
-			service.InitSessionStorage(ctx)
-			s.SetSessionStorage(service.SessionStorage)
-			// s.SetSessionStorage(gsession.NewStorageFile(gsessionPath.String(), time.Hour*5))
-			s.SetSessionCookieMaxAge(time.Hour)
-			s.SetSessionMaxAge(time.Hour)
+			service.InitSessionStorage(ctx, s)
 
+			// 初始化 DB
 			InitDB(ctx)
-			// core := g.DB().GetCore()
+			// 设置中间件
 			s.BindMiddlewareDefault(
 				controller.MiddlewareCORS,
 				ghttp.MiddlewareHandlerResponse, controller.MiddlewareLogResponse,
@@ -134,8 +107,6 @@ var (
 			s.BindObjectRest("/clusters/:id", controller.ClusterController{})
 			s.BindObjectRest("/image_upload_tasks", controller.ImageUploadTasksController{})
 			s.BindObjectRest("/image_upload_tasks/:id", controller.ImageUploadTaskController{})
-
-			// v1.RegiterRouters(s)
 
 			s.Group("", func(group *ghttp.RouterGroup) {
 				group.Middleware(controller.MiddlewareAuth)
@@ -166,7 +137,7 @@ var (
 				service.SseService.Register(session.String(), req)
 			})
 
-			g.Log().Info(ctx, "starting server")
+			g.Log().Info(ctx, "start server")
 			s.Run()
 			return nil
 		},
