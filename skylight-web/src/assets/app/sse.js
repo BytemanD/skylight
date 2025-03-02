@@ -19,9 +19,9 @@ class ServerEvents {
     }
     listen() {
         let self = this
-        if (axios.defaults.baseURL == ""){
-            throw Error("SSE start faild because base url is null")
-        }
+        // if (axios.defaults.baseURL == ""){
+        //     throw Error("SSE start faild because base url is null")
+        // }
         let sessionid = VueCookies.get(COOKIE_SESSOIN_ID)
         if (!sessionid) {
             throw Error("SSE start faild because session id is null")

@@ -34,8 +34,6 @@ axios.get(CONFIG).then((resp) => {
     app.config.globalProperties.$router = Router
     app.config.globalProperties.$toast = Toast
     app.mount('#app')
-    sessionStorage.setItem("backend_ws_url", resp.data.backend_ws_url)
-
 }).catch((error) => {
     console.error(error)
     // let propsData = {
