@@ -222,5 +222,8 @@ export default {
       console.error(e)
     }
   },
+  unmounted() {
+    SES.close()
+  }
 }
 </script>

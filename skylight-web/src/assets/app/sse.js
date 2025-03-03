@@ -4,16 +4,11 @@ import axios from "axios";
 import VueCookies from 'vue-cookies';
 import { MESSAGES } from "./messages";
 
-function formatNow() {
-    let date = new Date();
-    return date.toLocaleString()
-}
-// 'gfsessionid=mgtdmt01n2rxk9d8510k79ifk72001t5'
 const COOKIE_SESSOIN_ID = 'gfsessionid';
-
 
 class ServerEvents {
     constructor() {
+        this.id = _.uniqueId('sse-')
         this.connection = null;
         this.subscription = {}
     }
@@ -28,6 +23,10 @@ class ServerEvents {
         }
         let sseUrl = `${axios.defaults.baseURL}/sse?session=${sessionid}`
         console.debug("SSE", "connect to", sseUrl)
+        if (this.connection) {
+            this.connection.close()
+            this.connection = null
+        }
         this.connection = new EventSource(sseUrl)
         this.connection.onmessage = function (event) {
             self.showEvent(event)
@@ -36,9 +35,10 @@ class ServerEvents {
             console.info("SSE connected")
         }
         this.connection.onerror = function (event) {
-            console.error("SSE", "connect failed")
-            this.connection = null;
-            setTimeout(() => {self.listen()}, 3000)
+            console.error("SSE", self.id, `connect error`)
+            if (self.connection) {
+                setTimeout(() => {self.listen()}, 5 * 1000)
+            }
         }
     }
     subscribe(title, handler) {
@@ -72,6 +72,13 @@ class ServerEvents {
             default:
                 console.warn("SSE", "receive event", event)
                 break;
+        }
+    }
+    close() {
+        if (this.connection) {
+            console.info("SSE", "close connection")
+            this.connection.close()
+            this.connection = null;
         }
     }
 }

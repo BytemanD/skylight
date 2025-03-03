@@ -17,6 +17,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 )
 
@@ -57,7 +58,7 @@ var (
 			if !g.Cfg().Available(ctx) {
 				return errors.New("config is not available")
 			}
-
+			gctx.SetInitCtx(ctx)
 			port := parser.GetOpt("port")
 			debug := !parser.GetOpt("debug").IsNil()
 
@@ -129,12 +130,12 @@ var (
 						Error: "session is missing",
 					})
 				}
-				if !service.OSService.IsLogin(session.String()) {
-					req.Response.WriteStatusExit(403, controller.HttpError{
-						Error: "session is not login",
-					})
-				}
-				service.SseService.Register(session.String(), req)
+				// if !service.OSService.IsLogin(session.String()) {
+				// 	req.Response.WriteStatusExit(403, controller.HttpError{
+				// 		Error: "session is not login",
+				// 	})
+				// }
+				service.SseService.RegisterAndWait(session.String(), req)
 			})
 
 			g.Log().Info(ctx, "start server")

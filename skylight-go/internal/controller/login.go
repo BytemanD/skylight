@@ -101,6 +101,8 @@ func (c *LoginController) Put(req *ghttp.Request) {
 	req.Response.WriteStatusExit(200, HttpError{Message: "update success"})
 }
 func (c *LoginController) Delete(req *ghttp.Request) {
+	defer service.SseService.Unregister(req.GetSessionId())
+
 	req.Response.Header().Set("Content-Type", "application/json")
 	if err := service.AuditService.Logout(req); err != nil {
 		g.Log().Errorf(req.Context(), "logout failed: %s", err)
